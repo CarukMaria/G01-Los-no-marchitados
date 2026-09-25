@@ -11,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.Anchor
-import com.google.ar.core.Plane
 import com.google.ar.core.Pose
 import com.hidroplan.app.R
 import io.github.sceneview.ar.ARSceneView
@@ -58,8 +57,8 @@ class ArModeloActivity : AppCompatActivity() {
         presetInfo.text = "${preset.label}  ·  ${preset.dims}"
 
         arSceneView.lifecycle = lifecycle
-        arSceneView.configureSession { _, config ->
-            ArGuias.applySessionConfig(config)
+        arSceneView.configureSession { session, config ->
+            ArGuias.applySessionConfig(session, config)
         }
 
         val tapArea = findViewById<View>(R.id.tapArea)
@@ -106,14 +105,7 @@ class ArModeloActivity : AppCompatActivity() {
                 ?: "El tracking está iniciando. Mové el teléfono suavemente y probá de nuevo."
             return
         }
-        val hit = arSceneView.hitTestAR(
-            xPx = x,
-            yPx = y,
-            planeTypes = setOf(Plane.Type.HORIZONTAL_UPWARD_FACING),
-            point = true,
-            depthPoint = true,
-            instantPlacementPoint = true
-        )
+        val hit = ArGuias.floorHit(arSceneView, x, y)
         if (hit == null) {
             status.text = if (ArGuias.planeCount(arSceneView.session) > 0) {
                 "No cayó en el piso detectado. Apuntá al piso y tocá de nuevo."

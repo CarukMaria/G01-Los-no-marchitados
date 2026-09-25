@@ -36,6 +36,9 @@ apps/android/
 - **Solo ARCore**: sin modo de medición sin AR (decisión del usuario).
 - Render AR con **SceneView 2.x** (Filament): gestiona la cámara, sesión ARCore, luz y el
   pipeline glTF; nosotros solo ponemos nodos (`AnchorNode` + `ModelNode`).
+- Detección de superficie: planos horizontales confirmados tienen prioridad; DepthPoint se usa
+  como respaldo solo cuando el dispositivo admite Depth AUTOMATIC. Instant Placement queda
+  desactivado para no confundir anclas provisionales con suelo detectado.
 
 ## Cómo se conecta el web con las actividades nativas
 

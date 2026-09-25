@@ -2,6 +2,8 @@ package com.hidroplan.app.ar
 
 import com.google.ar.core.Camera
 import com.google.ar.core.Config
+import com.google.ar.core.DepthPoint
+import com.google.ar.core.HitResult
 import com.google.ar.core.Plane
 import com.google.ar.core.Session
 import com.google.ar.core.TrackingFailureReason
@@ -17,13 +19,32 @@ import io.github.sceneview.ar.ARSceneView
 object ArGuias {
 
     /** Config mínima que hace viable la detección temprana de piso. */
-    fun applySessionConfig(config: Config) {
+    fun applySessionConfig(session: Session, config: Config) {
         config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
-        // Determinista: arrancamos con colocación instantánea y depth automático. El
-        // AUTOMATIC permite anclar en pisos lisos (sin textura) cuando el device lo
-        // soporta; ArSession lo baja a DISABLED solo si el hardware no puede.
-        config.instantPlacementMode = Config.InstantPlacementMode.LOCAL_Y_UP
-        config.depthMode = Config.DepthMode.AUTOMATIC
+        config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
+        config.depthMode = if (try { session.isDepthModeSupported(Config.DepthMode.AUTOMATIC) } catch (_: Exception) { false }) {
+            Config.DepthMode.AUTOMATIC
+        } else {
+            Config.DepthMode.DISABLED
+        }
+    }
+
+    fun floorHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        val frame = arSceneView.frame ?: return null
+        return try {
+            val hits = frame.hitTest(x, y)
+            val planeHit = hits.firstOrNull { hit ->
+                val plane = hit.trackable as? Plane
+                plane != null && plane.trackingState == TrackingState.TRACKING &&
+                    plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING && plane.isPoseInPolygon(hit.hitPose)
+            }
+            planeHit ?: hits.firstOrNull { hit ->
+                val depth = hit.trackable as? DepthPoint
+                depth != null && depth.trackingState == TrackingState.TRACKING
+            }
+        } catch (_: Exception) {
+            null
+        }
     }
 
     fun isTracking(camera: Camera?): Boolean = camera?.trackingState == TrackingState.TRACKING
@@ -70,7 +91,7 @@ object ArGuias {
         }
         val planes = planeCount(arSceneView.session)
         return if (planes == 0) {
-            "Buscando el piso… apuntá a un piso con textura y mové el teléfono de un lado a otro."
+            "Buscando el piso… apuntá la cámara en diagonal al suelo y mové el teléfono despacio para que ARCore lo reconozca."
         } else {
             "Piso detectado ($planes). Tocá la pantalla para marcar la primera esquina."
         }

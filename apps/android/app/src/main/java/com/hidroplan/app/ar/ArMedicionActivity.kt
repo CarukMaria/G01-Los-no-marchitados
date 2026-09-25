@@ -11,7 +11,6 @@ import android.widget.Button
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.Anchor
-import com.google.ar.core.Plane
 import com.google.ar.core.TrackingFailureReason
 import com.google.ar.core.TrackingState
 import com.hidroplan.app.R
@@ -69,8 +68,8 @@ class ArMedicionActivity : AppCompatActivity() {
         btnUse = findViewById(R.id.btnUse)
 
         arSceneView.lifecycle = lifecycle
-        arSceneView.configureSession { _, config ->
-            ArGuias.applySessionConfig(config)
+        arSceneView.configureSession { session, config ->
+            ArGuias.applySessionConfig(session, config)
         }
 
         overlay.provider = ::project
@@ -111,14 +110,7 @@ class ArMedicionActivity : AppCompatActivity() {
                 ?: "El tracking está iniciando. Mové el teléfono suavemente y probá de nuevo."
             return
         }
-        val hit = arSceneView.hitTestAR(
-            xPx = x,
-            yPx = y,
-            planeTypes = setOf(Plane.Type.HORIZONTAL_UPWARD_FACING),
-            point = true,
-            depthPoint = true,
-            instantPlacementPoint = true
-        )
+        val hit = ArGuias.floorHit(arSceneView, x, y)
         if (hit == null) {
             status.text = if (ArGuias.planeCount(arSceneView.session) > 0) {
                 "No cayó en el piso detectado. Apuntá al piso y tocá sobre él."
