@@ -1,0 +1,113 @@
+package com.hidroplan.app.ar
+
+import com.google.ar.core.Camera
+import com.google.ar.core.Config
+import com.google.ar.core.DepthPoint
+import com.google.ar.core.HitResult
+import com.google.ar.core.Plane
+import com.google.ar.core.Session
+import com.google.ar.core.TrackingFailureReason
+import com.google.ar.core.TrackingState
+import io.github.sceneview.ar.ARSceneView
+
+/**
+ * Ayudita compartida entre las pantallas AR de medición y colocación:
+ * parte del "no detecta" real es ARCore no logrando tracking (poca luz / poca
+ * textura / mucho movimiento / cámara ocupada). Acá se traducen esos estados a
+ * guía accionable y se puede monitorear el progreso en vivo.
+ */
+object ArGuias {
+
+    /** Config mínima que hace viable la detección temprana de piso. */
+    fun applySessionConfig(session: Session, config: Config) {
+        config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+        config.instantPlacementMode = Config.InstantPlacementMode.DISABLED
+        config.depthMode = if (try { session.isDepthModeSupported(Config.DepthMode.AUTOMATIC) } catch (_: Exception) { false }) {
+            Config.DepthMode.AUTOMATIC
+        } else {
+            Config.DepthMode.DISABLED
+        }
+    }
+
+    fun floorHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        return floorPlaneHit(arSceneView, x, y) ?: depthHit(arSceneView, x, y)
+    }
+
+    fun floorPlaneHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        val frame = arSceneView.frame ?: return null
+        return try {
+            frame.hitTest(x, y).firstOrNull { hit ->
+                val plane = hit.trackable as? Plane
+                plane != null && plane.trackingState == TrackingState.TRACKING &&
+                    plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING && plane.isPoseInPolygon(hit.hitPose)
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun depthHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        val frame = arSceneView.frame ?: return null
+        return try {
+            frame.hitTest(x, y).firstOrNull { hit ->
+                val depth = hit.trackable as? DepthPoint
+                depth != null && depth.trackingState == TrackingState.TRACKING
+            }
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    fun isTracking(camera: Camera?): Boolean = camera?.trackingState == TrackingState.TRACKING
+
+    /** Cuenta planos horizontales TRACKING vistos por la sesión (para feedback en vivo). */
+    fun planeCount(session: Session?): Int =
+        session?.getAllTrackables(Plane::class.java)
+            ?.count {
+                it.trackingState == TrackingState.TRACKING &&
+                    it.type == Plane.Type.HORIZONTAL_UPWARD_FACING
+            }
+            ?: 0
+
+    /** Mensaje accionable según el motivo de falla de tracking de ARCore. */
+    fun reasonGuide(reason: TrackingFailureReason?): String? = when (reason) {
+        TrackingFailureReason.INSUFFICIENT_LIGHT ->
+            "Hay poca luz: encendé una luz o acercate a una ventana y volvé a apuntar al piso."
+        TrackingFailureReason.INSUFFICIENT_FEATURES ->
+            "El piso tiene poca textura: buscá cerámicos, alfombra, hormigón rayado o algún objeto que marque contraste."
+        TrackingFailureReason.EXCESSIVE_MOTION ->
+            "Estás moviendo el teléfono muy rápido: barré la cámara despacio de lado a lado."
+        TrackingFailureReason.CAMERA_UNAVAILABLE ->
+            "La cámara no está disponible: cerrá esta pantalla y volvé a entrar."
+        TrackingFailureReason.BAD_STATE ->
+            "ARCore se desincronizó: esperá un momento o reiniciá la pantalla."
+        else -> null
+    }
+
+    /** Estado textual corto del tracking para mostrar en vivo. */
+    fun trackingLabel(camera: Camera?): String = when (camera?.trackingState) {
+        TrackingState.TRACKING -> "cámara estable"
+        TrackingState.PAUSED -> "cámara pausada"
+        TrackingState.STOPPED -> "cámara detenida"
+        else -> "inicializando"
+    }
+
+    /** Guía general según el estado para mostrar cuando todavía no se marcó nada. */
+    fun statusHint(
+        arSceneView: ARSceneView,
+        tapCount: Int,
+    ): String {
+        if (tapCount > 0) return ""
+        val camera = arSceneView.frame?.camera
+        if (!isTracking(camera)) {
+            return reasonGuide(camera?.trackingFailureReason)
+                ?: "Inicializando la cámara AR… mové el teléfono en movimientos suaves."
+        }
+        val planes = planeCount(arSceneView.session)
+        return if (planes == 0) {
+            "Buscando el piso… apuntá la cámara en diagonal al suelo y mové el teléfono despacio para que ARCore lo reconozca."
+        } else {
+            "Piso detectado ($planes). Tocá la pantalla para marcar la primera esquina."
+        }
+    }
+}

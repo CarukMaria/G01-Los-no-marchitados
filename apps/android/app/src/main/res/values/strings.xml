@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">HidroPlan AR</string>
+
+    <string name="ar_medir">Medir con AR</string>
+    <string name="ar_modelo">Ver en 3D (AR)</string>
+    <string name="ar_no_core">Este equipo no tiene ARCore instalado. Instalá Google Play Services for AR y volvé a intentar.</string>
+    <string name="ar_cam_denied">Necesitamos acceso a la cámara para usar la realidad aumentada.</string>
+    <string name="largo">Largo</string>
+    <string name="ancho">Ancho</string>
+    <string name="usar">Usar medidas</string>
+    <string name="limpiar">Borrar</string>
+    <string name="cerrar">Cerrar</string>
+</resources>

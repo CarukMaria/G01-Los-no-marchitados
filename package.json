@@ -1,0 +1,18 @@
+{
+  "name": "hidroplan-modelos",
+  "private": true,
+  "type": "module",
+  "description": "Tooling para generar los modelos AR 3D (GLB/USDZ/posters) del prototipo",
+  "scripts": {
+    "model": "node tools/generar_modelo.mjs && tools/.venv/bin/python tools/generar_usdz.py && node tools/generar_poster.mjs",
+    "model:glb": "node tools/generar_modelo.mjs",
+    "model:usdz": "tools/.venv/bin/python tools/generar_usdz.py",
+    "model:poster": "node tools/generar_poster.mjs",
+    "ar": "bash tools/testear_ar.sh",
+    "ar:keep": "bash tools/testear_ar.sh --keep"
+  },
+  "dependencies": {
+    "gltf-validator": "^2.0.0-dev.3.10",
+    "three": "^0.186.1"
+  }
+}
