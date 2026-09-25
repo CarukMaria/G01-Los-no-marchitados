@@ -131,18 +131,21 @@ class ArModeloActivity : AppCompatActivity() {
         arSceneView.addChildNode(node)
 
         val yawOffset = yawAwayFromCamera(anchor.pose)
+        status.text = "Cargando el sistema ${preset.label}…"
 
         arSceneView.modelLoader.loadModelInstanceAsync(preset.file) { instance ->
+            if (placed !== node) return@loadModelInstanceAsync
             if (instance == null) {
+                releasePlaced()
+                status.text = "No se pudo cargar el sistema 3D. Tocá el piso para intentar de nuevo."
                 Toast.makeText(this, "No se pudo cargar el modelo 3D", Toast.LENGTH_SHORT).show()
                 return@loadModelInstanceAsync
             }
             val model = ModelNode(instance)
             fitModelToPreset(model, yawOffset)
             model.parent = node
+            status.text = "Sistema de ${preset.label} colocado (${preset.dims}). Tocá otro lugar para moverlo."
         }
-
-        status.text = "Sistema de ${preset.label} colocado (${preset.dims}). Tocá otro lugar para moverlo."
     }
 
     /**

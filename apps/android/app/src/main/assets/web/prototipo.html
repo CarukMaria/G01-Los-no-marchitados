@@ -4201,7 +4201,7 @@
             // ───────────────────────── Motor AR ─────────────────────────
             const AREngine = (() => {
                 let renderer = null, scene = null, camera = null;
-                let xrSession = null, hitSource = null;
+                let xrSession = null, hitSource = null, hitSourcePending = false;
                 let mode = null, running = false;
                 let hudEl = null;
                 let points = [], rectInfo = null, measureGroup = null;
@@ -4439,7 +4439,8 @@
                         if (modelGroup) { disposeModel(modelGroup); modelGroup = null; }
                         renderer.xr.setReferenceSpaceType('local-floor');
                         await renderer.xr.setSession(session);
-                        hitSource = null; // se crea en onFrame sobre el primer frame
+                        hitSource = null;
+                        hitSourcePending = false;
                         session.addEventListener('end', onEnd);
                         onSelectHandler = overlayOn ? null : onSelect;
                         if (onSelectHandler) session.addEventListener('select', onSelectHandler);
@@ -4470,7 +4471,10 @@
                         return true;
                     } catch (err) {
                         console.error('AR start error:', err);
+                        const failedSession = xrSession;
                         running = false; xrSession = null; mode = null; overlayOn = false;
+                        hitSource = null; hitSourcePending = false;
+                        if (failedSession) { try { failedSession.end().catch(() => { }); } catch (_e) { } }
                         swalNotify('No se pudo iniciar la sesión AR: ' + (err.message || 'error') + '. Actualizá Chrome o activá Google Play Services for AR y probá de nuevo.', 'error');
                         return false;
                     }
@@ -4506,18 +4510,34 @@
                     if (g.parent) g.parent.remove(g);
                 }
 
+                function isHorizontalFloorPose(pose) {
+                    const q = pose && pose.transform && pose.transform.orientation;
+                    if (!q || q.length < 4) return false;
+                    const upY = 1 - 2 * (q[0] * q[0] + q[2] * q[2]);
+                    return upY > 0.85;
+                }
+
                 function onFrame(_time, frame) {
                     if (!frame) return;
                     const refSpace = renderer.xr.getReferenceSpace();
-                    if (!hitSource && xrSession && refSpace) {
-                        try { xrSession.requestHitTestSource({ space: refSpace }).then((s) => { hitSource = s; }).catch(() => { }); }
-                        catch (_e) { }
+                    if (!hitSource && !hitSourcePending && xrSession && refSpace) {
+                        hitSourcePending = true;
+                        try {
+                            xrSession.requestHitTestSource({ space: refSpace, entityTypes: ['plane'] })
+                                .then((s) => { hitSource = s; hitSourcePending = false; })
+                                .catch(() => { hitSourcePending = false; });
+                        } catch (_e) {
+                            hitSourcePending = false;
+                        }
                     }
                     let hitPose = null;
                     if (hitSource && frame && refSpace) {
                         try {
                             const hits = frame.getHitTestResults(hitSource);
-                            if (hits.length) hitPose = hits[0].getPose(refSpace);
+                            for (const hit of hits) {
+                                const pose = hit.getPose(refSpace);
+                                if (isHorizontalFloorPose(pose)) { hitPose = pose; break; }
+                            }
                         } catch (_e) { }
                     }
                     if (hitPose) {
@@ -4691,7 +4711,9 @@
                     points = []; rectInfo = null; curHit = null;
                     overlayOn = false; autoApplied = false; watchdogOn = false;
                     if (hudEl) hudEl.hidden = true;
+                    if (hitSource) { try { hitSource.cancel(); } catch (_e) { } }
                     mode = null; hitSource = null;
+                    hitSourcePending = false;
                 }
 
                 function endSession() {

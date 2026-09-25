@@ -63,7 +63,10 @@ object ArGuias {
     /** Cuenta planos horizontales TRACKING vistos por la sesión (para feedback en vivo). */
     fun planeCount(session: Session?): Int =
         session?.getAllTrackables(Plane::class.java)
-            ?.count { it.trackingState == TrackingState.TRACKING }
+            ?.count {
+                it.trackingState == TrackingState.TRACKING &&
+                    it.type == Plane.Type.HORIZONTAL_UPWARD_FACING
+            }
             ?: 0
 
     /** Mensaje accionable según el motivo de falla de tracking de ARCore. */

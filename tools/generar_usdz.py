@@ -17,27 +17,21 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(HERE), "modelos")
 os.makedirs(OUT, exist_ok=True)
 
-# Compartidas con generar_modelo.mjs (metros)
-SEP_Y = 0.45
-SEP_Z = 0.42
-BASE_Z = 0.45
-
 PRESETS = [
-    # (tag, L, nN, nL)
-    ("hidroponia-compact", 1.2, 2, 2),
-    ("hidroponia", 2.4, 3, 3),
-    ("hidroponia-36", 3.6, 4, 4),
-    ("hidroponia-48", 4.8, 4, 6),
+    ("hidroponia-compact", 1.2, 1.2, 0.8, 2, 2),
+    ("hidroponia", 2.4, 1.6, 1.3, 3, 3),
+    ("hidroponia-36", 3.6, 2.0, 1.7, 4, 4),
+    ("hidroponia-48", 4.8, 2.0, 2.6, 4, 6),
 ]
 
 MATERIALS = {
     # nombre: (color rgb 0-1, metalness, roughness, opacity)
-    "pipe":   ((0.945, 0.961, 0.976), 0.1, 0.25, 1.0),
-    "water":  ((0.133, 0.827, 0.933), 0.3, 0.1, 0.8),
-    "frame":  ((0.278, 0.333, 0.412), 0.7, 0.5, 1.0),
-    "plant":  ((0.133, 0.773, 0.369), 0.0, 0.6, 1.0),
-    "tank":   ((0.118, 0.161, 0.231), 0.2, 0.4, 1.0),
-    "pump":   ((0.008, 0.518, 0.780), 0.3, 0.4, 1.0),
+    "pipe":   ((0.973, 0.980, 0.988), 0.02, 0.65, 1.0),
+    "water":  ((0.024, 0.714, 0.831), 0.0, 0.35, 0.9),
+    "frame":  ((0.392, 0.455, 0.545), 0.05, 0.75, 1.0),
+    "plant":  ((0.133, 0.773, 0.369), 0.0, 0.75, 1.0),
+    "tank":   ((0.200, 0.255, 0.333), 0.03, 0.65, 1.0),
+    "pump":   ((0.055, 0.647, 0.914), 0.03, 0.55, 1.0),
 }
 
 
@@ -135,46 +129,51 @@ def _anchor(stage, root_path):
     return xf
 
 
-def build(stage, tag, L, nN, nL):
+def build(stage, tag, L, W, H, nN, nL):
     offsetX = -L / 2
-    offsetZ = -((nL - 1) * SEP_Y) / 2
-    topZ = BASE_Z + (nN - 1) * SEP_Z
+    row_spacing = (W - 0.1) / (nL - 1) if nL > 1 else 0
+    level_spacing = (H - 0.31) / (nN - 1)
+    first_level = 0.15
 
     root = UsdGeom.Xform.Define(stage, "/HidroPlan")
+    root.AddTranslateOp().Set((0.325, 0, 0))
 
     # 1. Postes verticales
-    for i, xPos in enumerate([0, L] * nL):
-        z = (i % nL) * SEP_Y + offsetZ
-        pid = f"/HidroPlan/postes/p_{i}"
-        parent = _anchor(stage, pid)
-        parent.AddTranslateOp().Set((xPos + offsetX, (topZ + 0.3) / 2, z))
-        cyl = UsdGeom.Cylinder.Define(stage, pid + "/geom")
-        cyl.GetRadiusAttr().Set(0.025)
-        cyl.GetHeightAttr().Set(topZ + 0.3)
-        cyl.GetAxisAttr().Set("Y")
-        _bind(cyl, _material(stage, "frame"))
+    idx = 0
+    for xPos in (0, L):
+        for i in range(nL):
+            z = i * row_spacing - (nL - 1) * row_spacing / 2
+            pid = f"/HidroPlan/postes/p_{idx}"
+            idx += 1
+            parent = _anchor(stage, pid)
+            parent.AddTranslateOp().Set((xPos + offsetX, H / 2, z))
+            cyl = UsdGeom.Cylinder.Define(stage, pid + "/geom")
+            cyl.GetRadiusAttr().Set(0.025)
+            cyl.GetHeightAttr().Set(H)
+            cyl.GetAxisAttr().Set("Y")
+            _bind(cyl, _material(stage, "frame"))
 
     # 2. Travesaños horizontales por nivel
     idx = 0
     for j in range(nN):
-        y = BASE_Z + j * SEP_Z
+        y = first_level + j * level_spacing
         for xPos in (0, L):
             pid = f"/HidroPlan/travesanos/t_{idx}"
             idx += 1
             parent = _anchor(stage, pid)
-            parent.AddTranslateOp().Set((xPos + offsetX, y, ((nL - 1) * SEP_Y) / 2 + offsetZ))
+            parent.AddTranslateOp().Set((xPos + offsetX, y, 0))
             cyl = UsdGeom.Cylinder.Define(stage, pid + "/geom")
             cyl.GetRadiusAttr().Set(0.018)
-            cyl.GetHeightAttr().Set((nL - 1) * SEP_Y + 0.1)
+            cyl.GetHeightAttr().Set((nL - 1) * row_spacing + 0.1)
             cyl.GetAxisAttr().Set("Z")
             _bind(cyl, _material(stage, "frame"))
 
     # 3. Canales NFT + agua + plantines
     plant_idx = 0
     for j in range(nN):
-        y = BASE_Z + j * SEP_Z + 0.05
+        y = first_level + j * level_spacing + 0.05
         for i in range(nL):
-            z = i * SEP_Y + offsetZ
+            z = i * row_spacing - (nL - 1) * row_spacing / 2
 
             # canal (cilindro eje X: en USD "X" es el eje del cilindro)
             pid = f"/HidroPlan/canales/c_{j}_{i}"
@@ -208,10 +207,10 @@ def build(stage, tag, L, nN, nL):
                 _bind(sph, _material(stage, "plant"))
 
     # 4. Tanque reservorio (caja mesh exacta, sin scale por xform)
-    tank_w, tank_h, tank_d = 0.5, 0.55, (nL - 1) * SEP_Y + 0.35
+    tank_w, tank_h, tank_d = 0.5, 0.55, W
     pid = "/HidroPlan/tanque"
     parent = _anchor(stage, pid)
-    parent.AddTranslateOp().Set((offsetX - tank_w / 2 - 0.15, tank_h / 2, 0))
+    parent.AddTranslateOp().Set((offsetX - tank_w / 2 - 0.175, tank_h / 2, 0))
     cube = _mesh_box(stage, pid + "/geom",
                      (tank_w / 2, tank_h / 2, tank_d / 2))
     _bind(cube, _material(stage, "tank"))
@@ -219,14 +218,14 @@ def build(stage, tag, L, nN, nL):
     # 5. Bomba
     pid = "/HidroPlan/bomba"
     parent = _anchor(stage, pid)
-    parent.AddTranslateOp().Set((offsetX - tank_w / 2 - 0.15, 0.12, 0))
+    parent.AddTranslateOp().Set((offsetX - tank_w / 2 - 0.175, 0.12, 0))
     cube = _mesh_box(stage, pid + "/geom", (0.1, 0.1, 0.1))
     _bind(cube, _material(stage, "pump"))
 
     return root
 
 
-def make_usdz(tag, L, nN, nL):
+def make_usdz(tag, L, W, H, nN, nL):
     tmp = tempfile.mkdtemp(prefix="hidroplan_usdz_")
     usdc_path = os.path.join(tmp, "model.usdc")
     usdz_path = os.path.join(OUT, f"{tag}.usdz")
@@ -234,7 +233,7 @@ def make_usdz(tag, L, nN, nL):
     stage = Usd.Stage.CreateNew(usdc_path)
     UsdGeom.SetStageUpAxis(stage, UsdGeom.Tokens.y)
     UsdGeom.SetStageMetersPerUnit(stage, 1.0)
-    stage.SetDefaultPrim(build(stage, tag, L, nN, nL).GetPrim())
+    stage.SetDefaultPrim(build(stage, tag, L, W, H, nN, nL).GetPrim())
     stage.Save()
 
     # Empaquetar a .usdz. CreateNewUsdzPackage puede fallar en crates "in-place";
@@ -250,6 +249,6 @@ def make_usdz(tag, L, nN, nL):
 
 
 if __name__ == "__main__":
-    for tag, L, nN, nL in PRESETS:
-        make_usdz(tag, L, nN, nL)
+    for tag, L, W, H, nN, nL in PRESETS:
+        make_usdz(tag, L, W, H, nN, nL)
     print("Listo.")

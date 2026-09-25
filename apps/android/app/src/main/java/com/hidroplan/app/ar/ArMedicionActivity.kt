@@ -56,6 +56,7 @@ class ArMedicionActivity : AppCompatActivity() {
         }
     }
     private val viewProj = FloatArray(16)
+    private val projection = FloatArray(16)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -228,10 +229,10 @@ class ArMedicionActivity : AppCompatActivity() {
         try {
             val camera = frame.camera
             if (camera.trackingState != TrackingState.TRACKING) return null
-            camera.getProjectionMatrix(viewProj, 0, 0.05f, 100f)
+            camera.getProjectionMatrix(projection, 0, 0.05f, 100f)
             val view = FloatArray(16)
             camera.getViewMatrix(view, 0)
-            Matrix.multiplyMM(viewProj, 0, viewProj, 0, view, 0)
+            Matrix.multiplyMM(viewProj, 0, projection, 0, view, 0)
             val clip = FloatArray(4)
             Matrix.multiplyMV(clip, 0, viewProj, 0, floatArrayOf(world[0], world[1], world[2], 1f), 0)
             if (clip[3] == 0f) return null
