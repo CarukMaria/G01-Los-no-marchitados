@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#16181f">
+
+    <io.github.sceneview.ar.ARSceneView
+        android:id="@+id/arView"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <com.hidroplan.app.ar.MedicionOverlay
+        android:id="@+id/overlay"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+    <TextView
+        android:id="@+id/diag"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|bottom"
+        android:layout_marginBottom="72dp"
+        android:maxWidth="420dp"
+        android:padding="16dp"
+        android:visibility="invisible"
+        android:textColor="#e2e8f0"
+        android:textSize="12sp"
+        android:background="@drawable/bg_hud" />
+
+    <TextView
+        android:id="@+id/status"
+        style="@style/Hud.Chip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|center_horizontal"
+        android:layout_marginTop="24dp"
+        android:text="Movés el teléfono y tocá para marcar puntos" />
+
+    <LinearLayout
+        android:id="@+id/btnRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:paddingBottom="24dp"
+        android:paddingTop="8dp"
+        android:background="@drawable/bg_fade">
+
+        <Button
+            android:id="@+id/btnClear"
+            style="@style/Hud.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:backgroundTint="#334155"
+            android:text="@string/limpiar" />
+
+        <Button
+            android:id="@+id/btnUse"
+            style="@style/Hud.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:enabled="false"
+            android:backgroundTint="#0284c7"
+            android:text="@string/usar" />
+
+        <Button
+            android:id="@+id/btnClose"
+            style="@style/Hud.Button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:backgroundTint="#475569"
+            android:text="@string/cerrar" />
+    </LinearLayout>
+
+</FrameLayout>
