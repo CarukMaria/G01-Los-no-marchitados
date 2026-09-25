@@ -922,6 +922,33 @@
             display: none;
         }
 
+        /* Modo compatible: cámara real + modelo 3D encima (sin WebXR/ARCore).
+           El video vive en .cam-stage y el canvas de three se superpone. */
+        .cam-stage {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+        }
+        .cam-stage video {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .cam-stage canvas {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+        .ar-hud > .ar-hud-top,
+        .ar-hud > .ar-hud-bot {
+            position: relative;
+            z-index: 2;
+        }
+
         .ar-hud-top {
             width: 100%;
             display: flex;
@@ -2222,6 +2249,10 @@
                                             style="pointer-events:auto">
                                             🕶 Abrir en realidad aumentada
                                         </button>
+                                        <button class="btn" id="btnARCompat" onclick="abrirARCompat()"
+                                            style="pointer-events:auto;margin-top:8px;opacity:.92">
+                                            🎥 Compatible: ver sobre tu cámara (cualquier celular)
+                                        </button>
                                         <a href="#" id="qlLink" rel="ar" class="ql-link" hidden>🍎
                                             En iPhone: abrir con Quick Look</a>
                                         <a href="#" id="svLink" class="ql-link" hidden>🤖
@@ -2497,6 +2528,8 @@
             /* ══════════════════════════════════════════════════════════════
                DATOS
             ══════════════════════════════════════════════════════════════ */
+            const BUILD = 'v9-fbcf9b9';
+            try { console.info('[HidroPlan] build', BUILD); } catch (_e) { }
             const CULTIVOS = {
                 lechuga: { n: 'Lechuga', ic: '🥬', ciclo: 45, dM2: 25, kg: 0.30, precio: 1800, dif: 'Fácil', temp: '12–22 °C' },
                 albahaca: { n: 'Albahaca', ic: '🌿', ciclo: 30, dM2: 20, kg: 0.15, precio: 3200, dif: 'Fácil', temp: '18–26 °C' },
@@ -4025,6 +4058,37 @@
                     return info;
                 }
 
+                // Sonda real: consulta qué configs de sesión acepta este dispositivo
+                // SIN abrir una sesión (no interrumpe). El inclinio de lo que pasa.
+                async function probarAR() {
+                    const out = {
+                        build: (typeof BUILD !== 'undefined' ? BUILD : '?'),
+                        secure: !!window.isSecureContext,
+                        protocol: location.protocol,
+                        ua: navigator.userAgent
+                    };
+                    if (navigator.xr && navigator.xr.isSessionSupported) {
+                        out.xr = 'presente';
+                        out.sesiones = {};
+                        const combos = [
+                            ['immersive-ar', []],
+                            ['immersive-ar + hit-test', ['hit-test']],
+                            ['immersive-ar + dom-overlay', ['dom-overlay']]
+                        ];
+                        for (const [k, feats] of combos) {
+                            try {
+                                const ok = await navigator.xr.isSessionSupported('immersive-ar', feats.length ? { requiredFeatures: feats } : {});
+                                out.sesiones[k] = ok ? '✅ soportada' : '❌ NO soportada';
+                            } catch (e) {
+                                out.sesiones[k] = 'error: ' + String((e && e.message) || e);
+                            }
+                        }
+                    } else {
+                        out.xr = 'AUSENTE (navigator.xr indefinido)';
+                    }
+                    return out;
+                }
+
                 async function notSupportedExplain() {
                     const d = await diagnostico();
                     supportCache = d.xr && d.ar;
@@ -4413,7 +4477,7 @@
                     await start('model', { url: curAR ? curAR.glb : 'modelos/hidroponia.glb', label: (curAR && curAR.label) || '2,4 m', dims: (curAR && curAR.dims) || '3,1 × 1,6 × 1,3 m' });
                 }
 
-                return { supported, detectSupport, diagnostico, abrirMedicion, abrirModelo };
+                return { supported, detectSupport, diagnostico, probarAR, running: () => running, abrirMedicion, abrirModelo };
             })();
 
             function abrirARMedicion() { AREngine.abrirMedicion(); }
@@ -4421,23 +4485,220 @@
 
             // Modal de diagnóstico: por qué no hay AR en este dispositivo.
             async function mostrarDiagAR() {
-                const d = await AREngine.diagnostico();
-                const ua = (d.ua || '').match(/(Chrome|Safari|Firefox|SamsungBrowser)[/\s]([\d.]+)/);
+                const d = (AREngine && AREngine.probarAR) ? await AREngine.probarAR() : await AREngine.diagnostico();
+                const ls = d.sesiones ? Object.entries(d.sesiones).map(([k, v]) => v.indexOf('✅') === 0
+                    ? '<b>' + k + '</b>: ' + v
+                    : '<b>' + k + '</b>: <span style="color:#e24">' + v + '</span>').join('<br>') : '—';
+                const ua = (d.ua || '').match(/(Chrome|SamsungBrowser|Firefox|Safari)[/\s](\d+)/);
                 Swal.fire({
-                    title: 'Diagnóstico AR',
+                    title: 'Diagnóstico AR · ' + d.build,
                     html:
                         '<div style="text-align:left;font-size:13.5px;line-height:1.7">' +
-                        '<b>HTTPS</b>: ' + (d.secure ? '✅ Sí' : '❌ No — abrí la URL https:// publicada') +
-                        '<br><b>API WebXR</b>: ' + (d.xr ? '✅ Presente' : '❌ Ausente en este navegador') +
-                        '<br><b>AR (immersive-ar)</b>: ' + (d.ar ? '✅ Listo' : '❌ No disponible' + (d.arError ? ' — ' + d.arError : '')) +
-                        '<br><b>Navegador</b>: ' + (ua ? ua[0] : 'desconocido') +
-                        '<br><br><b>Si Android no soporta AR:</b> instalá <b>Google Play Services for AR</b> (Play Store) y reiniciá Chrome. Alternativa: tocá "Google Scene Viewer" en la zona de modelos.' +
-                        '<br><b>Si es iPhone:</b> usá el enlace <b>Quick Look</b>.' +
+                        '<b>HTTPS</b>: ' + (d.secure ? '✅ Sí' : '❌ No — abrí la URL https://') +
+                        '<br><b>WebXR</b>: ' + (d.xr === 'presente' ? '✅ Presente' : '❌ ' + d.xr) +
+                        (d.sesiones ? '<br><b>Sesiones que acepta:</b><br>' + ls : '') +
+                        '<br><b>Navegador</b>: ' + (ua ? ua[0] : (d.ua || 'desconocido')) +
+                        '<br><br><b>Si todo es ❌:</b> el celular no tiene <b>ARCore</b> (Google Play Services for AR) o es Chrome viejo/embebido. ' +
+                        'Instalá ARCore desde Play Store, reiniciá Chrome y probá de nuevo. Mientras tanto usá el modo 🎥 <b>Compatible</b> (funciona en cualquier celular).' +
+                        '<details style="margin-top:8px"><summary>Ver detalle técnico (copiá esto y pegalo si seguís con problemas)</summary>' +
+                        '<pre style="font-size:11px;background:#0b1329;color:#7dd3fc;padding:8px;border-radius:8px;overflow:auto;max-height:140px;white-space:pre-wrap">' +
+                        JSON.stringify(d) + '</pre></details>' +
                         '</div>',
                     confirmButtonText: 'Entendido',
                     confirmButtonColor: '#06b6d4'
                 });
             }
+
+            // ───────────────── Modo compatible: cámara + modelo 3D ─────────────────
+            // No usa WebXR ni ARCore: el modelo flota sobre la cámara real. Funciona en
+            // cualquier celular con Chrome/Safari (solo exige HTTPS, como ya tenemos).
+            const CAM = (() => {
+                let root = null, video = null, canvas = null;
+                let renderer = null, scene = null, camera = null;
+                let model = null, shadow = null;
+                let stream = null, animId = null, lastT = 0;
+                let rotY = -0.6, autoRot = true;
+                let ptr = { on: false, d: 0 };
+                const ptrs = {};
+
+                const get = (id) => document.getElementById(id);
+                const VP = () => get('camVideo');
+                const CP = () => get('camCanvas');
+
+                function abrir() {
+                    if (root) return;
+                    if (AREngine.running()) { swalNotify('Cerrá primero la sesión de realidad aumentada.', 'warn'); return; }
+                    root = document.createElement('div');
+                    root.className = 'ar-hud';
+                    root.innerHTML =
+                        '<div class="cam-stage">' +
+                        '  <video id="camVideo" playsinline autoplay muted></video>' +
+                        '  <canvas id="camCanvas"></canvas>' +
+                        '</div>' +
+                        '<div class="ar-hud-top">' +
+                        '  <span class="ar-hud-chip"><span class="pulse"></span><span id="camChip">🎥 Modo compatible · modelo sobre tu cámara</span></span>' +
+                        '  <button class="ar-hud-x" id="camX" aria-label="Cerrar">✕</button>' +
+                        '</div>' +
+                        '<div class="ar-hud-bot ar-hud-model">' +
+                        '  <div class="ar-read"><div class="v" id="camRead">—</div><div class="l">sin anclaje · escala real aproximada</div></div>' +
+                        '  <div class="ar-hint2" id="camHint">Arrastrá para girar · pellizcá para ajustar el tamaño</div>' +
+                        '</div>';
+                    document.body.appendChild(root);
+                    get('camX').addEventListener('click', cerrar);
+                    video = VP();
+                    canvas = CP();
+                    video.addEventListener('loadedmetadata', onVideoReady, { once: true });
+                    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
+                        cerrar();
+                        setTimeout(() => swalNotify('Este navegador no permite usar la cámara. Probá Chrome o Safari actualizados.', 'error'), 250);
+                        return;
+                    }
+                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
+                        .then((s) => { stream = s; video.srcObject = s; video.play().catch(() => { }); })
+                        .catch((e) => {
+                            console.error('[CAM] cámara:', e);
+                            cerrar();
+                            setTimeout(() => swalNotify('No se pudo acceder a la cámara. Permití el acceso en el navegador.', 'error'), 250);
+                        });
+                }
+
+                function onVideoReady() {
+                    get('camChip').textContent = '🎥 Apuntá al lugar donde vas a instalar'
+                        + (curAR ? ' (' + curAR.dims + ')' : '');
+                    initThree();
+                }
+
+                function initThree() {
+                    if (renderer) return;
+                    try {
+                        renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+                    } catch (e) {
+                        cerrar();
+                        setTimeout(() => swalNotify('No se pudo crear el visor 3D en este celular.', 'error'), 250);
+                        return;
+                    }
+                    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+                    renderer.setSize(innerWidth, innerHeight);
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(55, innerWidth / innerHeight, 0.05, 30);
+                    camera.position.set(0, 1.4, 3.1);
+                    camera.lookAt(0, -0.2, 0);
+                    scene.add(new THREE.HemisphereLight(0xffffff, 0x334155, 1.0));
+                    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+                    key.position.set(2, 4, 3);
+                    scene.add(key);
+                    scene.add(new THREE.AmbientLight(0xffffff, 0.25));
+                    loadModel();
+                    canvas.addEventListener('pointerdown', onDown);
+                    canvas.addEventListener('pointermove', onMove);
+                    canvas.addEventListener('pointerup', onUp);
+                    window.addEventListener('resize', onResize);
+                    lastT = performance.now();
+                    animId = requestAnimationFrame(loop);
+                }
+
+                function loadModel() {
+                    const gltf = (curAR && curAR.glb) || 'modelos/hidroponia.glb';
+                    new THREE.GLTFLoader().load(gltf, (g) => {
+                        if (!renderer) return;
+                        if (model) disposeCompat(model);
+                        model = g.scene;
+                        model.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+                        const box = new THREE.Box3().setFromObject(model);
+                        const size = new THREE.Vector3();
+                        box.getSize(size);
+                        const maxDim = Math.max(size.x, size.y, size.z) || 1;
+                        const s = 2.1 / maxDim; // la pieza entra en ~2,1 m de alto/diámetro visual
+                        model.scale.set(s, s, s);
+                        model.rotation.y = rotY;
+                        model.position.set(0, -1.05, 0);
+                        scene.add(model);
+                        shadow = new THREE.Mesh(
+                            new THREE.CircleGeometry(1.0, 28),
+                            new THREE.MeshBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.28 })
+                        );
+                        shadow.rotation.x = -Math.PI / 2;
+                        shadow.position.set(0, -1.06, 0);
+                        const radio = 0.55 * maxDim * s;
+                        shadow.scale.set(radio, 1, radio);
+                        scene.add(shadow);
+                        get('camRead').textContent = (curAR ? curAR.dims : '—') + ' aprox.';
+                    }, undefined, (err) => {
+                        console.error('GLB compat:', err);
+                        get('camRead').textContent = 'No se pudo cargar el modelo';
+                    });
+                }
+
+                function loop(t) {
+                    if (!renderer) return;
+                    const dt = Math.min(0.05, (t - lastT) / 1000);
+                    lastT = t;
+                    if (autoRot && model) { rotY += dt * 0.35; model.rotation.y = rotY; }
+                    renderer.render(scene, camera);
+                    animId = requestAnimationFrame(loop);
+                }
+
+                function onDown(e) {
+                    canvas.setPointerCapture && canvas.setPointerCapture(e.pointerId);
+                    ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+                    if (Object.keys(ptrs).length === 1) { ptr.on = true; autoRot = false; ptr.d = 0; }
+                }
+                function onMove(e) {
+                    if (!(e.pointerId in ptrs) || !model) return;
+                    const p = ptrs[e.pointerId];
+                    const dx = e.clientX - p.x;
+                    p.x = e.clientX; p.y = e.clientY;
+                    const ids = Object.keys(ptrs);
+                    if (ids.length >= 2) {
+                        const a = ptrs[ids[0]], b = ptrs[ids[1]];
+                        const nd = Math.hypot(b.x - a.x, b.y - a.y);
+                        if (ptr.d) model.scale.multiplyScalar(nd / ptr.d);
+                        ptr.d = nd;
+                    } else if (ids.length === 1 && (Math.abs(dx) > 1 || Math.abs(p.y - e.clientY) > 1)) {
+                        ptr.d = 0;
+                        rotY += dx * 0.01;
+                        model.rotation.y = rotY;
+                    }
+                }
+                function onUp(e) {
+                    delete ptrs[e.pointerId];
+                    ptr.d = 0;
+                    if (!Object.keys(ptrs).length) ptr.on = false;
+                }
+
+                function onResize() {
+                    if (!renderer) return;
+                    renderer.setSize(innerWidth, innerHeight);
+                    camera.aspect = innerWidth / innerHeight;
+                    camera.updateProjectionMatrix();
+                }
+
+                function disposeCompat(o) {
+                    o.traverse((n) => {
+                        if (n.geometry) n.geometry.dispose();
+                        if (n.material) {
+                            (Array.isArray(n.material) ? n.material : [n.material]).forEach((m) => { if (m.map) m.map.dispose(); m.dispose(); });
+                        }
+                    });
+                    if (o.parent) o.parent.remove(o);
+                }
+
+                function cerrar() {
+                    if (animId) { cancelAnimationFrame(animId); animId = null; }
+                    if (stream) { stream.getTracks().forEach((t) => t.stop()); stream = null; }
+                    if (renderer) { renderer.dispose(); renderer = null; }
+                    if (video) { video.srcObject = null; video = null; }
+                    if (model) { disposeCompat(model); model = null; }
+                    if (shadow) { disposeCompat(shadow); shadow = null; }
+                    if (root && root.parentNode) root.parentNode.removeChild(root);
+                    root = null; canvas = null; scene = null; camera = null;
+                    window.removeEventListener('resize', onResize);
+                }
+
+                return { abrir };
+            })();
+
+            function abrirARCompat() { CAM.abrir(); }
 
             setARModelForParams();
             AREngine.detectSupport();
