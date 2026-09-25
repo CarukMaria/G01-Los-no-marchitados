@@ -16,9 +16,13 @@ import com.hidroplan.app.R
 import io.github.sceneview.ar.ARSceneView
 import io.github.sceneview.ar.arcore.createAnchorOrNull
 import io.github.sceneview.ar.node.AnchorNode
+import io.github.sceneview.math.Position
 import io.github.sceneview.math.Rotation
+import io.github.sceneview.math.Scale
 import io.github.sceneview.node.ModelNode
 import kotlin.math.atan2
+import kotlin.math.cos
+import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
@@ -133,10 +137,9 @@ class ArModeloActivity : AppCompatActivity() {
                 Toast.makeText(this, "No se pudo cargar el modelo 3D", Toast.LENGTH_SHORT).show()
                 return@loadModelInstanceAsync
             }
-            ModelNode(instance).apply {
-                rotation = Rotation(y = yawOffset)
-                parent = node
-            }
+            val model = ModelNode(instance)
+            fitModelToPreset(model, yawOffset)
+            model.parent = node
         }
 
         status.text = "Sistema de ${preset.label} colocado (${preset.dims}). Tocá otro lugar para moverlo."
@@ -159,6 +162,30 @@ class ArModeloActivity : AppCompatActivity() {
         val alpha = atan2(-dzn, dxn)
         val anchorYaw = yawOf(anchorPose)
         return Math.toDegrees((alpha - anchorYaw).toDouble()).toFloat()
+    }
+
+    private fun fitModelToPreset(model: ModelNode, yaw: Float) {
+        val size = model.size
+        if (size.x <= 0f || size.y <= 0f || size.z <= 0f) return
+
+        val sx = preset.largo / size.x
+        val sy = preset.alto / size.y
+        val sz = preset.ancho / size.z
+        val center = model.center
+        val bottom = center.y - size.y / 2f
+        val radians = Math.toRadians(yaw.toDouble())
+        val centerX = center.x * sx
+        val centerZ = center.z * sz
+        val rotatedX = cos(radians).toFloat() * centerX + sin(radians).toFloat() * centerZ
+        val rotatedZ = -sin(radians).toFloat() * centerX + cos(radians).toFloat() * centerZ
+
+        model.scale = Scale(sx, sy, sz)
+        model.rotation = Rotation(y = yaw)
+        model.position = Position(
+            -rotatedX,
+            -bottom * sy,
+            -rotatedZ
+        )
     }
 
     /** Yaw (rotación en Y) de un Pose, derivado de su matriz de rotación. */

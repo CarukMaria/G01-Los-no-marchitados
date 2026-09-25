@@ -39,6 +39,9 @@ apps/android/
 - Detección de superficie: planos horizontales confirmados tienen prioridad; DepthPoint se usa
   como respaldo solo cuando el dispositivo admite Depth AUTOMATIC. Instant Placement queda
   desactivado para no confundir anclas provisionales con suelo detectado.
+- Colocación 3D: al cargar cada GLB se ajustan sus límites a largo × ancho × alto del preset,
+  se centra la huerta alrededor del toque y se corrige el origen vertical para apoyar la base
+  sobre el plano AR, incluso después de orientar el largo hacia adelante.
 
 ## Cómo se conecta el web con las actividades nativas
 
