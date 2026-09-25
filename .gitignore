@@ -1,0 +1,9 @@
+# Dependencias de tooling local (regeneración de modelos, no forman parte del sitio)
+node_modules/
+tools/.venv/
+
+# Certificados locales del servidor HTTPS
+*.pem
+
+# Logs
+*.log
