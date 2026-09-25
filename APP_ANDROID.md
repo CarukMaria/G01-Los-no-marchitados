@@ -101,7 +101,25 @@ cd apps/android
 
 - ✅ Proyecto compilable desde cero; `assembleDebug` genera **app-debug.apk**.
 - ✅ Assets embebidos (web + modelos + marcadores), sin CDN.
-- ⏳ Pendiente de validación en dispositivo real (cámara, tracking, alineación del modelo,
-  grosor visual de marcadores y rect). Escenarios a afinar en test: superficies oscuras/brillo,
-  VERTICAL vs HORIZONTAL del piso, y si los marcadores puntiagudos se ven bien en planos.
+- ✅ **Validado en dispositivo real (moto e14, MIUI, adb/USB)**:
+  - Instalación y arranque sin crash; site v10 cargado offline (datos persistidos).
+  - ARCore instalado on-demand: el tap de AR → `checkAvailabilityAsync` (SUPPORTED_NOT_INSTALLED)
+    → `requestInstall(true)` → Play Store → `com.google.ar.core` instalado.
+  - Botón "📏 Medir en realidad aumentada" del web → abre `ArMedicionActivity` (cámara, HUD
+    Borrar/Usar medidas/Cerrar, hit-test funcional: sin superficie a la vista avisa "No detectó…").
+  - `abrirARModelo()` → `ArModeloActivity` abre y cierra correctamente.
+  - Ciclos abrir/cerrar sin crash (ver fix de teardown abajo).
+  - Debugging WebView activo solo en build de debug (CDP por `adb forward localabstract:webview_devtools_remote_<pid>`).
+- Fixes aplicados durante el test:
+  - **Crash al cerrar AR**: SceneView 2.1.1 lanza NPE (`CameraNode.destroy → CameraComponent.getCamera`)
+    en el LifeCycleObserver cuando la sesión no llegó a iniciar, tumbando la Activity. Se blindó con
+    `ar/SafeARSceneView.kt` (destroy con try/catch) usado en ambos layouts AR.
+  - **Aviso falso "Tu navegador/celular no soporta WebXR-AR"**: en la app se sobreescribe
+    `AREngine.supported = () => true` (referencia directa al binding, no `window.AREngine`, que es
+    un `const` de script) y se fuerzan ocultos `webarUnavailable`/`webarUnavailable4`.
+  - `buildFeatures.buildConfig = true` para `BuildConfig.DEBUG`.
+- ⏳ **Pendiente de prueba física (requiere apuntar la cámara a un piso real)**:
+  marcar 3+ esquinas → "Usar medidas" → confirmar que `inLargo`/`inAncho` se pueblan en el web
+  y se recalcula el proyecto; probar "Ver en 3D" colocando el modelo a escala; ajustar marcadores,
+  retícula y alineación si hace falta. Escenarios: superficies oscuras/brillo, VERTICAL vs HORIZONTAL.
 - El web site de GitHub Pages se mantiene intacto (los no-marchitados `main`).

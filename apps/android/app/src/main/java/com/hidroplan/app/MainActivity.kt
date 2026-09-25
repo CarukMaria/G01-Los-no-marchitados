@@ -64,6 +64,10 @@ class MainActivity : AppCompatActivity() {
         web = findViewById(R.id.web)
         loader = findViewById(R.id.loader)
 
+        if (BuildConfig.DEBUG) {
+            WebView.setWebContentsDebuggingEnabled(true)
+        }
+
         setupWeb()
         web.loadUrl("file:///android_asset/web/prototipo.html")
     }
@@ -168,6 +172,9 @@ class MainActivity : AppCompatActivity() {
             "window.abrirARMedicion = function(){ try { AndroidApp.abrirMedicion(document.getElementById('pLargo') ? document.getElementById('pLargo').value : ''); } catch (e) { AndroidApp.abrirMedicion(''); } };" +
             "window.abrirARModelo = function(){ try { AndroidApp.abrirModelo(document.getElementById('pLargo') ? document.getElementById('pLargo').value : ''); } catch (e) { AndroidApp.abrirModelo(''); } };" +
             "window.abrirARCompat = function(){ try { AndroidApp.abrirMedicion(document.getElementById('pLargo') ? document.getElementById('pLargo').value : ''); } catch (e) { AndroidApp.abrirMedicion(''); } };" +
-            "window.setMedidasApp = function(l, a){ try { var il = document.getElementById('inLargo'); var ia = document.getElementById('inAncho'); if (il) il.value = '' + l; if (ia) ia.value = '' + a; if (window.calcularMedidas) calcularMedidas(); } catch (e) {} };"
+            "window.setMedidasApp = function(l, a){ try { var il = document.getElementById('inLargo'); var ia = document.getElementById('inAncho'); if (il) il.value = '' + l; if (ia) ia.value = '' + a; if (window.calcularMedidas) calcularMedidas(); } catch (e) {} };" +
+            "if (typeof AREngine !== 'undefined' && AREngine.supported) { AREngine.supported = function(){ return true; }; }" +
+            "function __ocultarAvisos(){ try { ['webarUnavailable','webarUnavailable4'].forEach(function(id){ var el = document.getElementById(id); if (el) el.hidden = true; }); } catch (e) {} }" +
+            "__ocultarAvisos(); setTimeout(__ocultarAvisos, 500); setTimeout(__ocultarAvisos, 1500);"
     }
 }

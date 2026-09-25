@@ -7,6 +7,10 @@ android {
     namespace = "com.hidroplan.app"
     compileSdk = 36
 
+    buildFeatures {
+        buildConfig = true
+    }
+
     defaultConfig {
         applicationId = "com.hidroplan.app"
         minSdk = 26
