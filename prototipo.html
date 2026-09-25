@@ -751,6 +751,20 @@
             text-decoration: none;
         }
 
+        .ar-diag {
+            margin-top: 6px;
+            padding: 2px 0;
+            border: none;
+            background: none;
+            color: #5b6b85;
+            font-size: 12px;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+        .ar-diag:hover {
+            color: var(--aqua);
+        }
+
         /* 3D */
         .viewer {
             position: relative;
@@ -1971,8 +1985,10 @@
                                             📏 Medir en realidad aumentada
                                         </button>
                                         <div class="ar-unavailable" id="webarUnavailable" hidden>
-                                            ⚠️ Tu navegador/celular no soporta WebXR-AR. Completá las medidas en la
-                                            pestaña <b>Manual</b>.
+                                            <span>⚠️ Tu navegador/celular no soporta WebXR-AR. Completá las medidas en la
+                                            pestaña <b>Manual</b>.</span>
+                                            <button type="button" class="ar-diag"
+                                                onclick="mostrarDiagAR()">¿Por qué? Diagnóstico</button>
                                         </div>
                                     </div>
                                 </div>
@@ -2208,13 +2224,18 @@
                                         </button>
                                         <a href="#" id="qlLink" rel="ar" class="ql-link" hidden>🍎
                                             En iPhone: abrir con Quick Look</a>
+                                        <a href="#" id="svLink" class="ql-link" hidden>🤖
+                                            En Android: abrir con Google Scene Viewer</a>
                                         <div class="muted" style="font-size:12px;text-align:center;margin-top:10px">
                                             Dimensiones reales del modelo:
                                             <strong id="arDims">—</strong>
                                         </div>
                                         <div class="ar-unavailable" id="webarUnavailable4" hidden>
-                                            ⚠️ Tu navegador/celular no soporta WebXR-AR. En Android usá Chrome con
-                                            ARCore; en iPhone tocá el enlace Quick Look.
+                                            <span>⚠️ Tu navegador/celular no soporta WebXR-AR. En Android usá Chrome con
+                                            ARCore o el enlace Scene Viewer; en iPhone tocá el enlace Quick
+                                            Look.</span>
+                                            <button type="button" class="ar-diag"
+                                                onclick="mostrarDiagAR()">¿Por qué? Diagnóstico</button>
                                         </div>
                                     </div>
                                 </div>
@@ -3904,6 +3925,13 @@
                 if (poster) poster.src = best.poster;
                 const ql = document.getElementById('qlLink');
                 if (ql) { ql.href = best.usdz; ql.hidden = false; }
+                const sv = document.getElementById('svLink');
+                if (sv) {
+                    const publico = new URL(best.usdz, location.href).href;
+                    sv.href = 'https://arvr.google.com/scene-viewer/1.0?file=' + encodeURIComponent(publico) +
+                        '&mode=ar_preferred&title=' + encodeURIComponent('Tu proyecto hidropónico');
+                    sv.hidden = false;
+                }
                 const dims = document.getElementById('arDims');
                 if (dims) dims.textContent = best.dims;
             }
@@ -3977,6 +4005,44 @@
                     return ok;
                 }
 
+                // Detalle de por qué no hay AR: contexto seguro, API WebXR, sesión immersive-ar.
+                async function diagnostico() {
+                    const info = {
+                        secure: !!window.isSecureContext,
+                        protocol: location.protocol,
+                        xr: !!(navigator.xr && navigator.xr.isSessionSupported),
+                        ar: false,
+                        arError: null,
+                        ua: navigator.userAgent
+                    };
+                    if (info.xr) {
+                        try { info.ar = await navigator.xr.isSessionSupported('immersive-ar'); }
+                        catch (e) { info.ar = false; info.arError = String((e && e.message) || e); }
+                    }
+                    return info;
+                }
+
+                async function notSupportedExplain() {
+                    const d = await diagnostico();
+                    supportCache = d.xr && d.ar;
+                    const w1 = $id('webarUnavailable');
+                    const w4 = $id('webarUnavailable4');
+                    if (w1) w1.hidden = supportCache;
+                    if (w4) w4.hidden = supportCache;
+                    let msg;
+                    if (!d.secure) {
+                        msg = 'La página se abrió por ' + d.protocol + ': WebXR exige HTTPS. Abrí la URL https:// publicada o usá adb reverse.';
+                    } else if (!d.xr) {
+                        msg = 'Este navegador no expone WebXR. Probá Chrome de Google actualizado; en iPhone usá el enlace Quick Look.';
+                    } else if (!d.ar) {
+                        msg = 'Chrome expone WebXR pero el AR (immersive-ar) no está habilitado en este celular: suele faltar ARCore (Google Play Services for AR). Instalalo en Play, reiniciá Chrome y volvé a probar.';
+                    } else {
+                        msg = 'WebXR-AR se reporta disponible pero la sesión no arrancó. Actualizá Chrome, quitá modos de ahorro de batería o reiniciá el equipo.';
+                    }
+                    console.error('[AR] sin AR:', d);
+                    swalNotify('No se pudo iniciar AR: ' + msg, 'warn');
+                }
+
                 function setChip(txt, ok) {
                     const chip = $id('arHudChip');
                     if (!chip) return;
@@ -4011,7 +4077,7 @@
 
                 async function start(type, opts) {
                     if (running || !supported()) {
-                        if (!supported()) { await detectSupport(); swalNotify('Este navegador/celular no soporta WebXR-AR. Usá la medición Manual o el enlace Quick Look.', 'error'); }
+                        if (!supported()) { await notSupportedExplain(); }
                         return false;
                     }
                     initWorld();
@@ -4283,11 +4349,31 @@
                     await start('model', { url: curAR ? curAR.glb : 'modelos/hidroponia.glb', label: (curAR && curAR.label) || '2,4 m', dims: (curAR && curAR.dims) || '3,1 × 1,6 × 1,3 m' });
                 }
 
-                return { supported, detectSupport, abrirMedicion, abrirModelo };
+                return { supported, detectSupport, diagnostico, abrirMedicion, abrirModelo };
             })();
 
             function abrirARMedicion() { AREngine.abrirMedicion(); }
             function abrirARModelo() { AREngine.abrirModelo(); }
+
+            // Modal de diagnóstico: por qué no hay AR en este dispositivo.
+            async function mostrarDiagAR() {
+                const d = await AREngine.diagnostico();
+                const ua = (d.ua || '').match(/(Chrome|Safari|Firefox|SamsungBrowser)[/\s]([\d.]+)/);
+                Swal.fire({
+                    title: 'Diagnóstico AR',
+                    html:
+                        '<div style="text-align:left;font-size:13.5px;line-height:1.7">' +
+                        '<b>HTTPS</b>: ' + (d.secure ? '✅ Sí' : '❌ No — abrí la URL https:// publicada') +
+                        '<br><b>API WebXR</b>: ' + (d.xr ? '✅ Presente' : '❌ Ausente en este navegador') +
+                        '<br><b>AR (immersive-ar)</b>: ' + (d.ar ? '✅ Listo' : '❌ No disponible' + (d.arError ? ' — ' + d.arError : '')) +
+                        '<br><b>Navegador</b>: ' + (ua ? ua[0] : 'desconocido') +
+                        '<br><br><b>Si Android no soporta AR:</b> instalá <b>Google Play Services for AR</b> (Play Store) y reiniciá Chrome. Alternativa: tocá "Google Scene Viewer" en la zona de modelos.' +
+                        '<br><b>Si es iPhone:</b> usá el enlace <b>Quick Look</b>.' +
+                        '</div>',
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#06b6d4'
+                });
+            }
 
             setARModelForParams();
             AREngine.detectSupport();
