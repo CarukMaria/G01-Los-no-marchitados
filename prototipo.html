@@ -6,12 +6,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#065f46">
     <title>HidroPlan — Tu proyecto hidropónico automático</title>
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <!-- Three.js for 3D and AR interactive models -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- SweetAlert2 (local: no depender de CDN en redes que lo bloqueen) -->
+    <script src="vendor/sweetalert2.min.js"></script>
+    <!-- Three.js for 3D and AR interactive models (local, versión r128) -->
+    <script src="vendor/three.min.js"></script>
     <!-- GLTFLoader para WebXR (misma versión que three.min.js r128). -->
-    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <script src="vendor/GLTFLoader.js"></script>
     <style>
         :root {
             --verde: #34c759;
@@ -947,6 +947,76 @@
         .ar-hud > .ar-hud-bot {
             position: relative;
             z-index: 2;
+        }
+
+        /* Panel de autodiagnóstico: qué tiene este celular/navegador para AR */
+        .diag-bar {
+            position: fixed;
+            left: 12px;
+            bottom: 12px;
+            z-index: 2000;
+            font-family: var(--ios-font);
+        }
+        .diag-btn {
+            border: 1px solid var(--aqua);
+            background: rgba(2, 6, 23, 0.85);
+            color: var(--aqua);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            backdrop-filter: blur(8px);
+        }
+        .diag-panel {
+            position: absolute;
+            left: 0;
+            bottom: 44px;
+            width: min(92vw, 360px);
+            background: rgba(2, 6, 23, 0.92);
+            border: 1px solid #1e3a5f;
+            border-radius: 14px;
+            padding: 10px 12px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .diag-head {
+            font-size: 12px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+        .diag-mini {
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 600;
+            flex: 1;
+            text-align: center;
+        }
+        .diag-copy {
+            border: 1px solid #1e3a5f;
+            background: none;
+            color: #7dd3fc;
+            font-size: 11px;
+            border-radius: 8px;
+            padding: 2px 8px;
+            cursor: pointer;
+        }
+        .diag-body {
+            font-size: 11.5px;
+            color: #cbd5e1;
+            line-height: 1.6;
+            max-height: 40vh;
+            overflow: auto;
+        }
+        .diag-two {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0 12px;
         }
 
         .ar-hud-top {
@@ -2528,8 +2598,136 @@
             /* ══════════════════════════════════════════════════════════════
                DATOS
             ══════════════════════════════════════════════════════════════ */
-            const BUILD = 'v9-fbcf9b9';
-            try { console.info('[HidroPlan] build', BUILD); } catch (_e) { }
+            const BUILD = 'v10';
+            try { window.__DIAG = {
+                build: BUILD, ts: Date.now(),
+                three: false, swal: false, gl: null, renderer: null,
+                secure: !!window.isSecureContext,
+                ua: navigator.userAgent,
+                cameraApi: false, cameraState: 'unknown',
+                xr: false, sessions: {},
+                errors: []
+            }; } catch (_e) { }
+            try { window.__DIAG.three = !!(THREE && THREE.WebGLRenderer); } catch (_e) { }
+            try { window.__DIAG.swal = !!Swal; } catch (_e) { }
+            window.addEventListener('error', (e) => {
+                try {
+                    window.__DIAG.errors.push('onerror: ' + (e.message || '') + ' @' + String((e.filename || '').split('/').pop()) + ':' + e.lineno);
+                    console.error('[Diag]', e.message, e.filename, e.lineno);
+                } catch (_e) { }
+            });
+            window.addEventListener('unhandledrejection', (e) => {
+                try {
+                    window.__DIAG.errors.push('rechazo: ' + ((e.reason && (e.reason.message || e.reason)) || e.reason));
+                    console.error('[Diag] unhandledrejection', e.reason);
+                } catch (_e) { }
+            });
+            console.info('[HidroPlan] build', BUILD);
+
+            // ───────── Sondeo automático de capacidades (visible en pantalla) ─────────
+            async function probeCapabilities() {
+                const D = window.__DIAG;
+                try {
+                    const c = document.createElement('canvas').getContext('webgl');
+                    D.gl = !!c;
+                    if (c) {
+                        const dbg = c.getExtension('WEBGL_debug_renderer_info');
+                        D.renderer = dbg ? c.getParameter(dbg.UNMASKED_RENDERER_WEBGL) : 'n/d';
+                    }
+                } catch (_e) { D.gl = false; }
+                try {
+                    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        D.cameraApi = true;
+                        if (navigator.permissions && navigator.permissions.query) {
+                            try { D.cameraState = (await navigator.permissions.query({ name: 'camera' })).state; } catch (_e) { }
+                        }
+                    }
+                } catch (_e) { }
+                if (navigator.xr && navigator.xr.isSessionSupported) {
+                    D.xr = true;
+                    const combos = [['default', false, []], ['hit-test', true, ['hit-test']], ['dom-overlay', true, ['dom-overlay']]];
+                    for (const [k, req, feats] of combos) {
+                        try { D.sessions[k] = await navigator.xr.isSessionSupported('immersive-ar', req ? { requiredFeatures: feats } : {}); }
+                        catch (e) { D.sessions[k] = 'err:' + String((e && e.message) || e); }
+                    }
+                }
+                renderDiagBar();
+            }
+
+            function checkLabel(nombre, ok) {
+                return '<div style="display:flex;justify-content:space-between;gap:8px">' +
+                    '<span>' + nombre + '</span><b>' +
+                    (ok === true ? '✅' : ok === false ? '❌' : String(ok === undefined || ok === null ? '—' : ok)) +
+                    '</b></div>';
+            }
+
+            function renderDiagBar() {
+                const bar = document.getElementById('diagBar');
+                if (!bar || !window.__DIAG) return;
+                const D = window.__DIAG;
+                const ua = (D.ua || navigator.userAgent || '').match(/(Chrome|SamsungBrowser|Firefox|OPR|Safari|AppleWebKit)[/\s]([\d.]+)/);
+                let h = '<div class="diag-two"><div>' +
+                    checkLabel('Build', D.build) +
+                    checkLabel('HTTPS', D.secure) +
+                    checkLabel('three.js', D.three) +
+                    checkLabel('SweetAlert', D.swal) +
+                    checkLabel('WebGL', D.gl) +
+                    '</div><div>' +
+                    checkLabel('Cámara (API)', D.cameraApi) +
+                    checkLabel('Cámara (permiso)', D.cameraState) +
+                    checkLabel('WebXR API', D.xr) +
+                    (D.xr ? ('<div style="font-size:11px;color:#7dd3fc">' +
+                        checkLabel('· sesión AR', D.sessions.default) +
+                        checkLabel('· + hit-test', D.sessions['hit-test']) +
+                        checkLabel('· + dom-overlay', D.sessions['dom-overlay']) +
+                        '</div>') : '') +
+                    '</div></div>';
+                if (D.errors && D.errors.length) {
+                    h += '<div style="margin-top:6px;border-top:1px dashed #1e3a5f;padding-top:6px;color:#fca5a5;font-size:11px;line-height:1.5">Errores JS:<br>' + D.errors.slice(-6).map((x) => x).join('<br>') + '</div>';
+                }
+                h += '<div style="margin-top:6px;border-top:1px dashed #1e3a5f;padding-top:6px;color:#5b6b85;font-size:11px;line-height:1.5">' +
+                    'Navigator: ' + (D.ua || navigator.userAgent || '?').slice(0, 140) +
+                    (D.renderer ? '<br>GPU: ' + D.renderer.slice(0, 90) : '') +
+                    '</div>';
+                bar.querySelector('.diag-body').innerHTML = h;
+            }
+
+            function toggleDiag() {
+                const b = document.getElementById('diagBar');
+                if (!b) return;
+                const on = b.classList.toggle('open');
+                b.querySelector('.diag-body').hidden = !on;
+            }
+
+            function copyDiag() {
+                const t = JSON.stringify(window.__DIAG, null, 2);
+                const done = () => { try { swalNotify('Diagnóstico copiado. Pe<strong>g</strong>alo acá.', 'success'); } catch (_e) { } };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(t).then(done, () => { });
+                } else {
+                    const ta = document.createElement('textarea');
+                    ta.value = t; document.body.appendChild(ta); ta.select();
+                    try { document.execCommand('copy'); } catch (_e) { }
+                    ta.remove(); done();
+                }
+            }
+
+            function initDiagBar() {
+                if (document.getElementById('diagBar')) { probeCapabilities(); return; }
+                const bar = document.createElement('div');
+                bar.id = 'diagBar';
+                bar.className = 'diag-bar';
+                bar.innerHTML =
+                    '<button class="diag-btn" onclick="toggleDiag()">🔍 <> AR</button>' +
+                    '<div class="diag-panel">' +
+                    '  <div class="diag-head">Estado AR <span class="diag-mini" id="diagBuild"></span> <button class="diag-copy" onclick="copyDiag()">copiar</button></div>' +
+                    '  <div class="diag-body" hidden></div>' +
+                    '</div>';
+                document.body.appendChild(bar);
+                document.getElementById('diagBuild').textContent = window.__DIAG.build;
+                probeCapabilities();
+            }
+
             const CULTIVOS = {
                 lechuga: { n: 'Lechuga', ic: '🥬', ciclo: 45, dM2: 25, kg: 0.30, precio: 1800, dif: 'Fácil', temp: '12–22 °C' },
                 albahaca: { n: 'Albahaca', ic: '🌿', ciclo: 30, dM2: 20, kg: 0.15, precio: 3200, dif: 'Fácil', temp: '18–26 °C' },
@@ -4187,7 +4385,13 @@
                         if (!supported()) { await notSupportedExplain(); }
                         return false;
                     }
-                    initWorld();
+                    try { initWorld(); }
+                    catch (e) {
+                        console.error('[AR] visor:', e);
+                        try { window.__DIAG.errors.push('initWorld: ' + String((e && e.message) || e)); } catch (_e) { }
+                        swalNotify('No se pudo crear el visor WebGL: ' + ((e && e.message) || e) + '. En el panel 🔍 AR este celular no marca WebGL ✅.', 'error');
+                        return false;
+                    }
                     try {
                         if (!hudEl) hudEl = buildHUD();
                         hudEl.hidden = true;
@@ -4480,8 +4684,26 @@
                 return { supported, detectSupport, diagnostico, probarAR, running: () => running, abrirMedicion, abrirModelo };
             })();
 
-            function abrirARMedicion() { AREngine.abrirMedicion(); }
-            function abrirARModelo() { AREngine.abrirModelo(); }
+            function abrirARMedicion() { armado(() => AREngine.abrirMedicion()); }
+            function abrirARModelo() { armado(() => AREngine.abrirModelo()); }
+
+            // Cualquier excepción de los botones AR se vuelve visible (toast + diag).
+            function armado(fn) {
+                try {
+                    const r = fn();
+                    if (r && r.catch) r.catch((e) => { console.error('[AR] async:', e); notificarError(e); });
+                } catch (e) {
+                    console.error('[AR] botón:', e);
+                    notificarError(e);
+                }
+            }
+            function notificarError(e) {
+                try {
+                    window.__DIAG.errors.push('botón AR: ' + String((e && e.message) || e));
+                    renderDiagBar();
+                    swalNotify('Error inesperado: ' + ((e && e.message) || e), 'error');
+                } catch (_e) { try { alert('Error: ' + ((e && e.message) || e)); } catch (_e2) { } }
+            }
 
             // Modal de diagnóstico: por qué no hay AR en este dispositivo.
             async function mostrarDiagAR() {
@@ -4550,16 +4772,41 @@
                     video.addEventListener('loadedmetadata', onVideoReady, { once: true });
                     if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) {
                         cerrar();
-                        setTimeout(() => swalNotify('Este navegador no permite usar la cámara. Probá Chrome o Safari actualizados.', 'error'), 250);
+                        setTimeout(() => swalNotify('Este navegador no expone la cámara (a menudo pasa en vistas previas de apps/QR). Abrí el link DIRECTAMENTE en Chrome: copiá la URL y no la abras desde otra app.', 'error'), 250);
                         return;
                     }
-                    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false })
-                        .then((s) => { stream = s; video.srcObject = s; video.play().catch(() => { }); })
-                        .catch((e) => {
-                            console.error('[CAM] cámara:', e);
-                            cerrar();
-                            setTimeout(() => swalNotify('No se pudo acceder a la cámara. Permití el acceso en el navegador.', 'error'), 250);
-                        });
+                    tryCam({ facingMode: 'environment' }).then((s) => {
+                        if (!root || !video) { s.getTracks().forEach((t) => t.stop()); return; }
+                        stream = s; video.srcObject = s;
+                        try { video.play().catch(() => { }); } catch (_e) { }
+                    }).catch(handleCamError);
+                }
+
+                async function tryCam(constraint) {
+                    if (!navigator.mediaDevices) throw new Error('sin mediaDevices');
+                    try {
+                        return await navigator.mediaDevices.getUserMedia({ video: constraint, audio: false });
+                    } catch (e) {
+                        if (constraint !== true) return tryCam(true); // reintento con cualquier cámara
+                        throw e;
+                    }
+                }
+
+                function handleCamError(e) {
+                    const n = (e && e.name) || 'Error';
+                    try { window.__DIAG.errors.push('camera ' + n + ': ' + String((e && e.message) || e)); console.error('[CAM] cámara:', e); } catch (_e) { }
+                    cerrar();
+                    let msg;
+                    if (n === 'NotAllowedError' || n === 'SecurityError') {
+                        msg = 'Permiso de cámara denegado para este sitio. En Chrome: tocá el candado de la URL → Cámara → Permitir. Si viniste desde una app/QR, primero abrí la web directo en Chrome.';
+                    } else if (n === 'NotFoundError') {
+                        msg = 'No se encontró ninguna cámara en este celular/navegador. Probá abrir la URL directo en Chrome.';
+                    } else if (n === 'NotReadableError') {
+                        msg = 'La cámara está siendo usada por otra app. Cerrala y reintentá.';
+                    } else {
+                        msg = 'No se pudo acceder a la cámara (' + n + ' ' + ((e && e.message) || '') + '). Permitila en los ajustes del navegador.';
+                    }
+                    setTimeout(() => swalNotify(msg, 'error'), 250);
                 }
 
                 function onVideoReady() {
@@ -4698,10 +4945,11 @@
                 return { abrir };
             })();
 
-            function abrirARCompat() { CAM.abrir(); }
+            function abrirARCompat() { armado(() => CAM.abrir()); }
 
             setARModelForParams();
             AREngine.detectSupport();
+            initDiagBar();
         </script>
 </body>
 
