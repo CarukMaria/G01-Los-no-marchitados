@@ -10,6 +10,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <!-- Three.js for 3D and AR interactive models -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <!-- GLTFLoader para WebXR (misma versión que three.min.js r128). -->
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
     <style>
         :root {
             --verde: #34c759;
@@ -688,169 +690,65 @@
             animation: slideIn .3s
         }
 
-        /* medidor / cámara simulada */
-        .ar-view {
+/* ═══ AR REAL (WebXR) — lanzadores y disponibilidad ═══ */
+        .ar-launch {
             position: relative;
-            height: 250px;
-            border-radius: var(--r);
             overflow: hidden;
-            background: linear-gradient(160deg, #0f172a, #1e293b);
-            margin-bottom: 16px;
-            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.5);
+            margin-bottom: 14px;
+            padding: 0;
         }
 
-        .ar-view video {
-            position: absolute;
-            inset: 0;
+        .ar-launch .ar-poster {
             width: 100%;
-            height: 100%;
+            height: 190px;
             object-fit: cover;
-            display: none;
-            z-index: 1;
+            display: block;
+            background: #081020;
         }
 
-        .ar-view canvas.ar-three-canvas {
-            position: absolute;
-            inset: 0;
+        .ar-launch-body {
+            padding: 14px 16px 16px;
+        }
+
+        .ar-launch-body h3 {
+            margin: 0 0 4px;
+            font-size: 16.5px;
+        }
+
+        .ar-launch-body p {
+            margin: 0 0 12px;
+            font-size: 13px;
+            color: var(--gris);
+        }
+
+        .ar-launch .btn {
             width: 100%;
-            height: 100%;
-            z-index: 2;
-            pointer-events: auto;
-            touch-action: none;
         }
 
-        .ar-grid {
-            position: absolute;
-            inset: 0;
-            background-image: linear-gradient(rgba(34, 211, 238, .13) 1px, transparent 1px), linear-gradient(90deg, rgba(34, 211, 238, .13) 1px, transparent 1px);
-            background-size: 28px 28px;
-            z-index: 2;
-            pointer-events: none;
+        .ar-unavailable {
+            display: flex;
+            gap: 8px;
+            align-items: flex-start;
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: #fef3c7;
+            border: 0.5px solid #fcd34d;
+            color: #92400e;
+            font-size: 12.5px;
+            line-height: 1.5;
         }
 
-        .ar-scan {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #22d3ee, transparent);
-            animation: scan 2.4s ease-in-out infinite;
-            box-shadow: 0 0 20px #22d3ee;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        @keyframes scan {
-
-            0%,
-            100% {
-                top: 12%
-            }
-
-            50% {
-                top: 84%
-            }
-        }
-
-        .ar-hint {
-            position: absolute;
-            left: 12px;
-            right: 12px;
-            bottom: 12px;
-            text-align: center;
-            color: #ffffff;
-            font-size: 12px;
-            font-weight: 600;
-            letter-spacing: .2px;
-            z-index: 4;
-            background: rgba(15, 23, 42, 0.75);
-            backdrop-filter: blur(8px);
-            padding: 5px 10px;
-            border-radius: 99px;
-            border: 0.5px solid rgba(255, 255, 255, 0.15);
-            pointer-events: none;
-        }
-
-        .ar-top-bar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            right: 10px;
+        .ql-link {
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            z-index: 4;
-            pointer-events: none;
-        }
-
-        .ar-status-badge {
-            background: rgba(15, 23, 42, 0.85);
-            backdrop-filter: blur(8px);
-            color: #38bdf8;
-            font-size: 11px;
-            font-weight: 700;
-            padding: 4px 10px;
-            border-radius: 99px;
-            border: 0.5px solid rgba(56, 189, 248, 0.3);
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .ar-status-badge .live-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: #22d3ee;
-            animation: pulse 1.4s infinite;
-        }
-
-        .ar-frame {
-            position: absolute;
-            inset: 24px;
-            border: 2px dashed rgba(34, 211, 238, .45);
-            border-radius: 16px;
-            z-index: 3;
-            pointer-events: none;
-        }
-
-        .ar-corner {
-            position: absolute;
-            width: 26px;
-            height: 26px;
-            border: 3.5px solid #22d3ee
-        }
-
-        .ar-corner.tl {
-            top: -3px;
-            left: -3px;
-            border-right: none;
-            border-bottom: none;
-            border-radius: 8px 0 0 0
-        }
-
-        .ar-corner.tr {
-            top: -3px;
-            right: -3px;
-            border-left: none;
-            border-bottom: none;
-            border-radius: 0 8px 0 0
-        }
-
-        .ar-corner.bl {
-            bottom: -3px;
-            left: -3px;
-            border-right: none;
-            border-top: none;
-            border-radius: 0 0 0 8px
-        }
-
-        .ar-corner.br {
-            bottom: -3px;
-            right: -3px;
-            border-left: none;
-            border-top: none;
-            border-radius: 0 0 8px 0
+            justify-content: center;
+            gap: 6px;
+            margin-top: 8px;
+            font-size: 12.5px;
+            font-weight: 600;
+            color: var(--azul);
+            text-decoration: none;
         }
 
         /* 3D */
@@ -943,16 +841,6 @@
             vertical-align: middle
         }
 
-        .viewer video.viewer-bg-video {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: none;
-            z-index: 1;
-        }
-
         .viewer canvas.three-canvas {
             position: absolute;
             inset: 0;
@@ -999,38 +887,236 @@
             background: rgba(56, 189, 248, 0.3);
         }
 
-        .viewer-btn.btn-ar-cam {
-            background: linear-gradient(135deg, #0284c7, #0369a1);
-            border-color: #38bdf8;
-            color: #ffffff;
-            box-shadow: 0 0 12px rgba(56, 189, 248, 0.45);
+        /* ═══ AR REAL (WebXR) — HUD fullscreen (dom-overlay) ═══ */
+        .ar-hud {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            pointer-events: auto;
+            touch-action: none;
+            user-select: none;
+            font-family: var(--ios-font);
+            color: #fff;
+            padding: calc(env(safe-area-inset-top, 0px) + 14px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: space-between;
         }
 
-        .viewer-btn.btn-ar-cam:hover,
-        .viewer-btn.btn-ar-cam:active {
-            box-shadow: 0 0 18px rgba(56, 189, 248, 0.7);
-        }
-
-        .viewer-btn.active-ar {
-            background: linear-gradient(135deg, #15803d, #16a34a) !important;
-            border-color: #4ade80 !important;
-            color: #ffffff !important;
-            box-shadow: 0 0 14px rgba(74, 222, 128, 0.6) !important;
-            animation: pulse 2s infinite;
-        }
-
-        /* AR Plane scan line for Screen 4 */
-        .viewer-ar-scan {
-            position: absolute;
-            left: 0;
-            right: 0;
-            height: 3px;
-            background: linear-gradient(90deg, transparent, #22d3ee, transparent);
-            animation: scan 2s ease-in-out infinite;
-            box-shadow: 0 0 20px #22d3ee;
-            z-index: 3;
-            pointer-events: none;
+        .ar-hud[hidden] {
             display: none;
+        }
+
+        .ar-hud-top {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .ar-hud-chip {
+            background: rgba(2, 6, 23, .62);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(34, 211, 238, .35);
+            border-radius: 99px;
+            padding: 7px 13px;
+            font-size: 12.5px;
+            font-weight: 700;
+            letter-spacing: .3px;
+            color: #67e8f9;
+            display: inline-flex;
+            align-items: center;
+            gap: 7px;
+            max-width: calc(100% - 54px);
+        }
+
+        .ar-hud-chip .pulse {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22d3ee;
+            animation: pulse 1.4s infinite;
+            flex: none;
+        }
+
+        .ar-hud-chip.ok {
+            color: #4ade80;
+            border-color: rgba(74, 222, 128, .35);
+        }
+
+        .ar-hud-chip.ok .pulse {
+            background: #22c55e;
+            animation: none;
+        }
+
+        .ar-hud-x {
+            pointer-events: auto;
+            flex: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: rgba(2, 6, 23, .62);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255, 255, 255, .18);
+            color: #fff;
+            font-size: 16px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .ar-hud-x:active {
+            transform: scale(.92);
+        }
+
+        .ar-reticle {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 96px;
+            height: 96px;
+            transform: translate(-50%, -50%);
+            z-index: 2;
+        }
+
+        .ar-ret-ring {
+            position: absolute;
+            inset: 10px;
+            border-radius: 50%;
+            border: 2px solid rgba(34, 211, 238, .75);
+        }
+
+        .ar-ret-notch {
+            position: absolute;
+            inset: 1px;
+            border-radius: 50%;
+            border: 1.5px dashed rgba(34, 211, 238, .35);
+        }
+
+        .ar-ret-dot {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            background: #22d3ee;
+            box-shadow: 0 0 10px rgba(34, 211, 238, .9);
+        }
+
+        .ar-reticle.off {
+            opacity: .28;
+        }
+
+        .ar-hud-bot {
+            width: 100%;
+            pointer-events: none;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .ar-read {
+            background: rgba(2, 6, 23, .68);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255, 255, 255, .16);
+            border-radius: 14px;
+            padding: 9px 16px 10px;
+            text-align: center;
+            min-width: 150px;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .ar-read .v {
+            font-size: 22px;
+            font-weight: 800;
+            color: #22d3ee;
+            letter-spacing: -.5px;
+            line-height: 1.2;
+        }
+
+        .ar-read .l {
+            font-size: 10.5px;
+            color: #94a3b8;
+            font-weight: 700;
+            letter-spacing: .4px;
+            text-transform: uppercase;
+            margin-top: 2px;
+        }
+
+        .ar-hud-actions {
+            width: 100%;
+            max-width: 420px;
+            display: flex;
+            gap: 8px;
+            pointer-events: auto;
+        }
+
+        .ar-btn {
+            flex: 1;
+            border: none;
+            border-radius: 14px;
+            padding: 13px 8px;
+            font-family: inherit;
+            font-size: 14px;
+            font-weight: 700;
+            letter-spacing: -.2px;
+            color: #fff;
+            cursor: pointer;
+            background: rgba(15, 23, 42, .72);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 0.5px solid rgba(255, 255, 255, .18);
+            transition: transform .15s;
+        }
+
+        .ar-btn:active {
+            transform: scale(.96);
+        }
+
+        .ar-btn.ok {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            box-shadow: 0 4px 16px rgba(34, 197, 94, .4);
+        }
+
+        .ar-btn[disabled] {
+            opacity: .4;
+            pointer-events: none;
+        }
+
+        .ar-hint2 {
+            pointer-events: none;
+            font-size: 12px;
+            font-weight: 600;
+            letter-spacing: .2px;
+            background: rgba(2, 6, 23, .55);
+            border: 0.5px solid rgba(255, 255, 255, .14);
+            padding: 6px 14px;
+            border-radius: 99px;
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            color: #e2e8f0;
+        }
+
+        .ar-hud-model {
+            width: 100%;
+            pointer-events: none;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
         }
 
         .viewer-touch-hint {
@@ -1875,39 +1961,25 @@
 
                             <!-- AR -->
                             <div class="pane on" id="paneAR">
-                                <div class="ar-view" id="arContainer">
-                                    <video id="arVideo" playsinline autoplay muted></video>
-                                    <canvas id="arThreeCanvas" class="ar-three-canvas"></canvas>
-                                    <div class="ar-grid" id="arGrid"></div>
-                                    <div class="ar-frame" id="arFrame">
-                                        <div class="ar-corner tl"></div>
-                                        <div class="ar-corner tr"></div>
-                                        <div class="ar-corner bl"></div>
-                                        <div class="ar-corner br"></div>
-                                    </div>
-                                    <div class="ar-scan" id="arScan"></div>
-                                    <div class="ar-top-bar">
-                                        <span class="ar-status-badge" id="arCamBadge"><span class="live-dot"></span>AR
-                                            EN VIVO</span>
-                                        <button class="viewer-btn" id="btnToggleArCam" onclick="toggleARCamera()"
-                                            title="Encender / Apagar Cámara" style="pointer-events:auto">
-                                            📷
+                                <div class="card ar-launch">
+                                    <div class="ar-launch-body">
+                                        <h3>📏 Medí tu espacio con realidad aumentada</h3>
+                                        <p>Apuntá la cámara al piso, marcá los puntos de cada esquina y el
+                                            sistema calcula largo y ancho en metros reales.</p>
+                                        <button class="btn btn-primary" id="btnARMedir" onclick="abrirARMedicion()"
+                                            style="pointer-events:auto">
+                                            📏 Medir en realidad aumentada
                                         </button>
+                                        <div class="ar-unavailable" id="webarUnavailable" hidden>
+                                            ⚠️ Tu navegador/celular no soporta WebXR-AR. Completá las medidas en la
+                                            pestaña <b>Manual</b>.
+                                        </div>
                                     </div>
-                                    <div class="ar-hint" id="arHint">Apuntá la cámara al espacio y tocá Escanear</div>
                                 </div>
-                                <div style="display:flex;gap:8px;margin-bottom:8px">
-                                    <button class="btn btn-primary" style="flex:1" id="btnArScan"
-                                        onclick="escanearAR()">
-                                        🎯 Escanear espacio
-                                    </button>
-                                    <button class="btn btn-outline" style="width:auto;padding:0 14px"
-                                        id="btnArCamActivar" onclick="toggleARCamera()" title="Permisos de cámara">
-                                        📸 Cámara
-                                    </button>
-                                </div>
-                                <p class="muted" style="text-align:center;margin-top:8px;font-size:12px">Permite usar la
-                                    cámara de tu celular con visión AR en vivo y medición espacial.</p>
+                                <p class="muted" style="text-align:center;margin-top:8px;font-size:12px">La medición se
+                                    hace a pantalla completa, en metros reales. La altura siempre se ingresa en
+                                    <b>Manual</b>.
+                                </p>
                             </div>
 
                             <!-- MANUAL -->
@@ -2064,23 +2136,39 @@
                             <h1 style="font-size:23px">Tu proyecto en 3D</h1>
                             <p>Ajustá los parámetros y mirá cómo cambia el modelo y el costo en tiempo real.</p>
 
+                            <div class="tabs" id="modeTabs">
+                                <button class="on" id="modeTab3d" onclick="setModo3D('3d')"
+                                    style="display:flex;align-items:center;justify-content:center;gap:5px">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" />
+                                        <path d="M8 21h8M12 17v4M2 7h15" />
+                                    </svg>
+                                    <span>Modelo 3D</span>
+                                </button>
+                                <button id="modeTabAr" onclick="setModo3D('ar')"
+                                    style="display:flex;align-items:center;justify-content:center;gap:5px">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                        <path d="M12 2l8 4.5v9L12 20l-8-4.5v-9L12 2z" />
+                                        <path d="M12 22V12M12 12L4 7.5M12 12l8-4.5" />
+                                    </svg>
+                                    <span>Realidad aumentada</span>
+                                </button>
+                            </div>
+
+                            <div id="modePane3d" class="mode-pane">
                             <div class="viewer" id="viewer3dContainer">
-                                <video id="viewerBgVideo" class="viewer-bg-video" playsinline autoplay muted></video>
                                 <div class="badge" id="viewerBadge">THREE.JS · WEBGL 3D</div>
                                 <div class="live" id="viewerLiveStatus"><i></i> INTERACTIVO</div>
                                 <div class="viewer-touch-hint" id="viewerTouchHint">🖐️ Arrastrá para rotar</div>
                                 <canvas id="threeCanvas3D" class="three-canvas"></canvas>
                                 <svg id="view3d" style="display:none" preserveAspectRatio="xMidYMid meet"></svg>
-                                <div class="viewer-ar-scan" id="viewerArScan"></div>
                                 <div class="viewer-controls-bar">
                                     <button class="viewer-btn" onclick="reset3DCamera()"
                                         title="Centrar vista fija">🎯</button>
                                     <button class="viewer-btn" onclick="toggle3DAutoRotate()" id="btnAutoRotate"
                                         title="Girar automático">🔄</button>
-                                    <!-- Botón abajo de centrar y giro: Activar Cámara AR y fijar modelo en eje horizontal -->
-                                    <button class="viewer-btn btn-ar-cam" id="btnToggleViewerAR"
-                                        onclick="toggleViewerARMode()"
-                                        title="Escanear y anclar en Realidad Aumentada (Cámara)">📷</button>
                                 </div>
                                 <div class="legend">
                                     <span><i style="background:#38bdf8"></i>Canal NFT</span>
@@ -2094,13 +2182,43 @@
                                     <span id="budgetPillTxt">Dentro del presupuesto</span>
                                 </div>
                             </div>
+                            </div>
 
-                            <!-- Botón destacado AR para activar cámara y fijar modelo en el plano horizontal -->
-                            <button class="btn btn-primary" id="btnMainAR" onclick="toggleViewerARMode()" 
-                                style="width:100%;margin-bottom:14px;background:linear-gradient(135deg,#0284c7,#0369a1);box-shadow:0 4px 14px rgba(2,132,199,0.35);display:flex;align-items:center;justify-content:center;gap:8px;font-size:15px">
-                                <span>📷</span>
-                                <span id="btnMainARTxt">Activar Cámara y Realidad Aumentada</span>
-                            </button>
+                            <!-- ════════════════════════════════════════════════════════════════
+                                 AR REAL — sesión WebXR propia (AREngine) a pantalla completa.
+                                 MODELOS GENERADOS a escala métrica real (1 unidad = 1 metro),
+                                 con piso anclado en y = 0 (listos para anclar sobre el floor):
+                                   - modelos/hidroponia*.glb  → WebXR (Chrome Android / ARCore).
+                                   - modelos/hidroponia*.usdz → iOS fallback (Quick Look, enlace rel="ar").
+                                   - modelos/hidroponia*-preview.svg → poster del lanzador.
+                                 Hay un preset por configuración de tamaño (compact / 1.2m, default / 2.4m,
+                                 36 / 3.6m y 48 / 4.8m); setARModelForParams() elige el más cercano
+                                 según S.params y actualiza poster/Quick Look/dimensiones en caliente.
+                                 Regeneración: `npm run model` (three.js GLTFExporter + usd-core). -->
+                            <div class="mode-pane" id="modePaneAr" hidden>
+                                <div class="card ar-launch">
+                                    <img class="ar-poster" id="arPoster" alt="Vista previa del modelo 3D">
+                                    <div class="ar-launch-body">
+                                        <h3>🕶 Probá tu proyecto en el lugar real</h3>
+                                        <p>Se ancla a escala real 1:1 sobre el piso y queda fijo donde lo colocás,
+                                            aunque movás la cámara. La sesión toma toda la pantalla.</p>
+                                        <button class="btn btn-primary" id="btnARModelo" onclick="abrirARModelo()"
+                                            style="pointer-events:auto">
+                                            🕶 Abrir en realidad aumentada
+                                        </button>
+                                        <a href="#" id="qlLink" rel="ar" class="ql-link" hidden>🍎
+                                            En iPhone: abrir con Quick Look</a>
+                                        <div class="muted" style="font-size:12px;text-align:center;margin-top:10px">
+                                            Dimensiones reales del modelo:
+                                            <strong id="arDims">—</strong>
+                                        </div>
+                                        <div class="ar-unavailable" id="webarUnavailable4" hidden>
+                                            ⚠️ Tu navegador/celular no soporta WebXR-AR. En Android usá Chrome con
+                                            ARCore; en iPhone tocá el enlace Quick Look.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
 
                             <div class="card">
                                 <div class="row between" style="margin-bottom:6px">
@@ -2572,202 +2690,38 @@
                 document.getElementById('lblPresu').textContent = fmt(S.presupuesto);
             });
 
-            /* --- AR y Cámara Real con Three.js --- */
-            let arStream = null;
-            let arThreeScene = null, arThreeCamera = null, arThreeRenderer = null;
-            let arBoxMesh = null, arGridHelper = null;
-            let arAnimId = null;
-
-            async function initARCameraStream() {
-                const vid = document.getElementById('arVideo');
-                const hint = document.getElementById('arHint');
-                const badge = document.getElementById('arCamBadge');
-                if (!vid) return;
-
-                if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                    swalNotify('Tu navegador no soporta acceso directo a la cámara. Se usará el modo AR simulado.', 'warn');
-                    return false;
-                }
-
-                try {
-                    // Try environment camera (back camera on mobile)
-                    const constraints = {
-                        video: {
-                            facingMode: { ideal: 'environment' },
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        },
-                        audio: false
-                    };
-                    const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                    arStream = stream;
-                    vid.srcObject = stream;
-                    vid.style.display = 'block';
-                    await vid.play();
-
-                    if (badge) {
-                        badge.innerHTML = '<span class="live-dot" style="background:#22c55e"></span>CÁMARA ACTIVA';
-                    }
-                    if (hint) {
-                        hint.textContent = '📐 Apuntá al piso/mesa y presioná "Escanear espacio"';
-                    }
-                    swalNotify('📷 Cámara activada con éxito', 'success');
-                    initARThreeOverlay();
-                    return true;
-                } catch (err) {
-                    console.warn('Error accediendo a la cámara:', err);
-                    if (err.name === 'NotAllowedError' || err.name === 'PermissionDeniedError') {
-                        swalNotify('Permiso de cámara denegado. Podés habilitarlo en los ajustes del navegador o ingresar medidas en "Manual".', 'error');
-                    } else {
-                        swalNotify('No se pudo iniciar la cámara: ' + (err.message || 'error desconocido') + '. Se utilizará el visor virtual.', 'warn');
-                    }
-                    return false;
-                }
-            }
-
-            function stopARCameraStream() {
-                if (arStream) {
-                    arStream.getTracks().forEach(track => track.stop());
-                    arStream = null;
-                }
-                const vid = document.getElementById('arVideo');
-                if (vid) {
-                    vid.style.display = 'none';
-                    vid.srcObject = null;
-                }
-                const badge = document.getElementById('arCamBadge');
-                if (badge) {
-                    badge.innerHTML = '<span class="live-dot"></span>AR EN VIVO';
-                }
-            }
-
-            async function toggleARCamera() {
-                if (arStream) {
-                    stopARCameraStream();
-                    swalNotify('Cámara apagada', 'info');
-                } else {
-                    await initARCameraStream();
-                }
-            }
-
-            function initARThreeOverlay() {
-                const canvas = document.getElementById('arThreeCanvas');
-                const container = document.getElementById('arContainer');
-                if (!canvas || !container || typeof THREE === 'undefined') return;
-
-                if (arThreeRenderer) {
-                    resizeARThree();
-                    return;
-                }
-
-                const w = container.clientWidth || 360;
-                const h = container.clientHeight || 250;
-
-                arThreeScene = new THREE.Scene();
-                arThreeCamera = new THREE.PerspectiveCamera(50, w / h, 0.1, 100);
-                arThreeCamera.position.set(0, 1.8, 3.2);
-                arThreeCamera.lookAt(0, 0.2, 0);
-
-                arThreeRenderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
-                arThreeRenderer.setSize(w, h);
-                arThreeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-
-                const amb = new THREE.AmbientLight(0xffffff, 0.85);
-                arThreeScene.add(amb);
-                const dir = new THREE.DirectionalLight(0x38bdf8, 1.2);
-                dir.position.set(2, 4, 3);
-                arThreeScene.add(dir);
-
-                // Grid ground for spatial reference
-                arGridHelper = new THREE.GridHelper(4, 8, 0x22d3ee, 0x0ea5e9);
-                arGridHelper.position.y = -0.01;
-                arThreeScene.add(arGridHelper);
-
-                // Animated Bounding Box representing measured space
-                const geom = new THREE.BoxGeometry(2.4, 1.2, 1.6);
-                const wireGeom = new THREE.WireframeGeometry(geom);
-                arBoxMesh = new THREE.LineSegments(wireGeom, new THREE.LineBasicMaterial({ color: 0x38bdf8, linewidth: 2 }));
-                arBoxMesh.position.set(0, 0.6, 0);
-                arThreeScene.add(arBoxMesh);
-
-                function animateAR() {
-                    arAnimId = requestAnimationFrame(animateAR);
-                    if (arBoxMesh) {
-                        arBoxMesh.rotation.y += 0.008;
-                    }
-                    if (arThreeRenderer && arThreeScene && arThreeCamera) {
-                        arThreeRenderer.render(arThreeScene, arThreeCamera);
-                    }
-                }
-                animateAR();
-            }
-
-            function resizeARThree() {
-                const container = document.getElementById('arContainer');
-                if (!container || !arThreeRenderer || !arThreeCamera) return;
-                const w = container.clientWidth;
-                const h = container.clientHeight;
-                if (w && h) {
-                    arThreeCamera.aspect = w / h;
-                    arThreeCamera.updateProjectionMatrix();
-                    arThreeRenderer.setSize(w, h);
-                }
-            }
-
+            /* --- Tabs de medición (AR / Manual / Croquis) --- */
             function setTab(btn, pane) {
                 btn.parentElement.querySelectorAll('button').forEach(b => b.classList.remove('on'));
                 btn.classList.add('on');
                 document.querySelectorAll('.pane').forEach(p => p.classList.remove('on'));
                 document.getElementById(pane).classList.add('on');
-                if (pane === 'paneAR') {
-                    setTimeout(() => {
-                        initARThreeOverlay();
-                        resizeARThree();
-                    }, 100);
-                } else {
-                    stopARCameraStream();
-                }
             }
 
-            /* --- AR Escaneo con Cámara o Sensores --- */
-            async function escanearAR() {
-                const hint = document.getElementById('arHint');
-                const scanLine = document.getElementById('arScan');
+            /* --- Disponibilidad de WebXR en la pestaña AR --- */
+            function updateARAvailability() {
+                const warn = document.getElementById('webarUnavailable');
+                if (warn) warn.hidden = AREngine.supported();
+            }
 
-                // If camera isn't turned on, attempt to turn it on first!
-                if (!arStream) {
-                    const started = await initARCameraStream();
-                    if (!started) {
-                        // user denied or fallback
-                        // proceed with simulated scan
-                    }
+            function setModo3D(modo) {
+                const t3 = document.getElementById('modeTab3d');
+                const ta = document.getElementById('modeTabAr');
+                const p3 = document.getElementById('modePane3d');
+                const pa = document.getElementById('modePaneAr');
+                if (!t3 || !ta || !p3 || !pa) return;
+                t3.classList.toggle('on', modo === '3d');
+                ta.classList.toggle('on', modo === 'ar');
+                p3.hidden = modo !== '3d';
+                pa.hidden = modo !== 'ar';
+                if (modo === 'ar') {
+                    setTimeout(() => {
+                        resizeThree3DViewer();
+                        updateARAvailability();
+                        const don = document.getElementById('webarUnavailable4');
+                        if (don) don.hidden = AREngine.supported();
+                    }, 60);
                 }
-
-                if (scanLine) scanLine.style.animationDuration = '0.9s';
-                if (hint) hint.textContent = '📡 Analizando profundidad y planos…';
-                swalNotify('📡 Calibrando sensores AR y midiendo espacio…', 'info');
-
-                setTimeout(() => {
-                    // Realistic measurement estimation
-                    const l = +(2.4 + (Math.random() * 1.6)).toFixed(1);
-                    const a = +(1.8 + (Math.random() * 1.0)).toFixed(1);
-                    const h = +(2.2 + (Math.random() * 0.4)).toFixed(1);
-
-                    document.getElementById('inLargo').value = l;
-                    document.getElementById('inAncho').value = a;
-                    document.getElementById('inAlto').value = h;
-
-                    // Update 3D box mesh scale in AR overlay
-                    if (arBoxMesh) {
-                        arBoxMesh.scale.set(l / 2.4, h / 2.0, a / 1.6);
-                    }
-
-                    if (hint) hint.textContent = `✓ Medido: ${l}m largo × ${a}m ancho`;
-                    if (scanLine) scanLine.style.animationDuration = '2.4s';
-                    calcularMedidas();
-
-                    swalNotify(`✅ Espacio detectado: ${l}m × ${a}m × ${h}m (Superficie: ${(l * a).toFixed(2)} m²)`, 'success');
-                }, 1600);
             }
 
             /* --- Croquis --- */
@@ -2984,6 +2938,7 @@
                 document.getElementById('pLinT').textContent = S.params.lineas;
                 render3D(); renderCroquis(); renderCostos(); renderAlertas();
                 updateBudgetPill3D();
+                setARModelForParams();
             }
 
             /* --- Budget pill on 3D viewer --- */
@@ -3042,17 +2997,13 @@
 
             /* --- Three.js WebGL 3D Interactive Model --- */
             let t3Scene = null, t3Camera = null, t3Renderer = null, t3HydroGroup = null;
-            let t3Grid = null, t3Axes = null;
+            let t3Grid = null;
             let t3AnimId = null;
             let t3AutoRotate = false;
             let t3IsDragging = false;
             let t3PrevMouse = { x: 0, y: 0 };
             let t3Rot = { x: 0.35, y: -0.65 };
             let t3Distance = 6.0;
-
-            // AR Camera Mode State in Screen 4
-            let t3ARMode = false;
-            let t3ARStream = null;
 
             function initThree3DViewer() {
                 const canvas = document.getElementById('threeCanvas3D');
@@ -3069,8 +3020,7 @@
                 const h = container.clientHeight || 280;
 
                 t3Scene = new THREE.Scene();
-                // If in AR mode, scene background is null (transparent over camera video)
-                t3Scene.background = t3ARMode ? null : new THREE.Color(0x0b1220);
+                t3Scene.background = new THREE.Color(0x0b1220);
 
                 t3Camera = new THREE.PerspectiveCamera(45, w / h, 0.1, 100);
                 updateT3CameraTransform();
@@ -3097,24 +3047,6 @@
                 t3Grid = new THREE.GridHelper(10, 16, 0x0ea5e9, 0x1e293b);
                 t3Grid.position.y = -0.01;
                 t3Scene.add(t3Grid);
-
-                // AR Horizontal Ground Target & Visual XYZ Axes Helper (Fixed spatial anchor point)
-                const axesGroup = new THREE.Group();
-                const axesHelper = new THREE.AxesHelper(1.8);
-                axesGroup.add(axesHelper);
-
-                // Circular scanning ground ring under the model
-                const ringGeom = new THREE.RingGeometry(0.3, 1.8, 32);
-                const ringMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee, side: THREE.DoubleSide, transparent: true, opacity: 0.45 });
-                const ringMesh = new THREE.Mesh(ringGeom, ringMat);
-                ringMesh.rotation.x = -Math.PI / 2;
-                ringMesh.position.y = 0.01;
-                axesGroup.add(ringMesh);
-
-                t3Axes = axesGroup;
-                t3Axes.position.set(0, 0, 0); // anchored right in the center floor
-                t3Axes.visible = t3ARMode; // Visible in AR mode to show the fixed scanned ground axis
-                t3Scene.add(t3Axes);
 
                 // Hydroponic structure root group
                 t3HydroGroup = new THREE.Group();
@@ -3201,14 +3133,9 @@
             }
 
             function reset3DCamera() {
-                // If in AR mode, anchor to a fixed perspective over the real space
-                if (t3ARMode) {
-                    t3Rot = { x: 0.42, y: -0.45 };
-                    t3Distance = 5.2;
-                } else {
-                    t3Rot = { x: 0.35, y: -0.65 };
-                    t3Distance = 6.0;
-                }
+                // Standard interactive 3D view framing
+                t3Rot = { x: 0.35, y: -0.65 };
+                t3Distance = 6.0;
                 updateT3CameraTransform();
                 swalNotify('Vista fija fijada en ejes de coordenadas', 'info');
             }
@@ -3220,132 +3147,6 @@
                     btn.style.background = t3AutoRotate ? 'rgba(52, 199, 89, 0.4)' : '';
                     btn.style.borderColor = t3AutoRotate ? 'var(--verde)' : '';
                 }
-            }
-
-            /* --- MODO REALIDAD AUMENTADA EN EL MODELO 3D (Cámara + Ejes Fijos) --- */
-            async function toggleViewerARMode() {
-                if (t3ARMode) {
-                    stopViewerARCamera();
-                    swalNotify('Modo 3D Estándar activado', 'info');
-                } else {
-                    await startViewerARCamera();
-                }
-            }
-
-            async function startViewerARCamera() {
-                const vid = document.getElementById('viewerBgVideo');
-                const badge = document.getElementById('viewerBadge');
-                const live = document.getElementById('viewerLiveStatus');
-                const btn = document.getElementById('btnToggleViewerAR');
-                const hint = document.getElementById('viewerTouchHint');
-                const scanLine = document.getElementById('viewerArScan');
-
-                if (scanLine) scanLine.style.display = 'block';
-
-                let camAvailable = false;
-                if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                    try {
-                        const constraints = {
-                            video: {
-                                facingMode: { ideal: 'environment' },
-                                width: { ideal: 1280 },
-                                height: { ideal: 720 }
-                            },
-                            audio: false
-                        };
-                        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-                        t3ARStream = stream;
-                        if (vid) {
-                            vid.srcObject = stream;
-                            vid.style.display = 'block';
-                            await vid.play();
-                        }
-                        camAvailable = true;
-                    } catch (err) {
-                        console.warn('Cámara real no disponible o permiso denegado:', err);
-                        // Fallback: use simulated AR room scan on PC/browser
-                        if (vid) vid.style.display = 'none';
-                    }
-                }
-
-                t3ARMode = true;
-
-                // Set transparent background if camera stream is playing, else sleek spatial dark grid
-                if (t3Scene) {
-                    t3Scene.background = camAvailable ? null : new THREE.Color(0x040814);
-                    if (t3Grid) t3Grid.material.color.setHex(0x22d3ee);
-                    if (t3Axes) t3Axes.visible = true;
-                }
-
-                // Stop auto-rotation: model stays completely static anchored on the scanned horizontal axis
-                t3AutoRotate = false;
-                const autoBtn = document.getElementById('btnAutoRotate');
-                if (autoBtn) {
-                    autoBtn.style.background = '';
-                    autoBtn.style.borderColor = '';
-                }
-
-                // Anchor camera to static perspective over horizontal plane
-                reset3DCamera();
-
-                if (btn) btn.classList.add('active-ar');
-                const mainBtn = document.getElementById('btnMainAR');
-                const mainTxt = document.getElementById('btnMainARTxt');
-                if (mainBtn) mainBtn.style.background = 'linear-gradient(135deg,#15803d,#16a34a)';
-                if (mainTxt) mainTxt.textContent = 'Apagar Realidad Aumentada';
-
-                if (badge) badge.textContent = camAvailable ? 'AR · CÁMARA EN VIVO' : 'AR · ESPACIO ANCLADO';
-                if (live) live.innerHTML = '<i style="background:#22c55e"></i> AR ANCLADO';
-                if (hint) hint.innerHTML = '📍 Modelo fijo en eje horizontal';
-
-                // Brief scan line animation to simulate surface scanning
-                setTimeout(() => {
-                    if (scanLine) scanLine.style.display = 'none';
-                }, 2200);
-
-                if (camAvailable) {
-                    swalNotify('📷 Realidad Aumentada activa: modelo fijado en el eje horizontal', 'success');
-                } else {
-                    swalNotify('🎯 Modelo fijado estático en el eje horizontal escaneado', 'info');
-                }
-            }
-
-            function stopViewerARCamera() {
-                if (t3ARStream) {
-                    t3ARStream.getTracks().forEach(t => t.stop());
-                    t3ARStream = null;
-                }
-                const vid = document.getElementById('viewerBgVideo');
-                if (vid) {
-                    vid.style.display = 'none';
-                    vid.srcObject = null;
-                }
-
-                const scanLine = document.getElementById('viewerArScan');
-                if (scanLine) scanLine.style.display = 'none';
-
-                t3ARMode = false;
-
-                if (t3Scene) {
-                    t3Scene.background = new THREE.Color(0x0b1220);
-                    if (t3Axes) t3Axes.visible = false;
-                    if (t3Grid) t3Grid.material.color.setHex(0x0ea5e9);
-                }
-
-                const btn = document.getElementById('btnToggleViewerAR');
-                const badge = document.getElementById('viewerBadge');
-                const live = document.getElementById('viewerLiveStatus');
-                const hint = document.getElementById('viewerTouchHint');
-                const mainBtn = document.getElementById('btnMainAR');
-                const mainTxt = document.getElementById('btnMainARTxt');
-
-                if (mainBtn) mainBtn.style.background = 'linear-gradient(135deg,#0284c7,#0369a1)';
-                if (mainTxt) mainTxt.textContent = 'Activar Cámara y Realidad Aumentada';
-
-                if (btn) btn.classList.remove('active-ar');
-                if (badge) badge.textContent = 'THREE.JS · WEBGL 3D';
-                if (live) live.innerHTML = '<i style="background:#4ade80"></i> INTERACTIVO';
-                if (hint) hint.innerHTML = '🖐️ Arrastrá para rotar';
             }
 
             function buildHydro3DModel() {
@@ -3932,6 +3733,7 @@
                     render3D(); renderAlertas();
                     lastBudgetState = null; // reset for fresh pill
                     updateBudgetPill3D();
+                    setARModelForParams();
                 }
                 if (s === 4 && sl === 1) { renderCroquis(); renderCostos(); }
                 if (s === 5 && sl === 0) renderBeneficios();
@@ -4051,13 +3853,12 @@
             updatePhoneClock();
             setInterval(updatePhoneClock, 30000);
 
-            // Window resize hook for 3D WebGL and AR viewports
+            // Window resize hook for 3D WebGL viewer
             window.addEventListener('resize', () => {
                 resizeThree3DViewer();
-                resizeARThree();
             });
 
-            // Re-render Three.js when arriving at Screen 4 or Screen 2
+            // Re-render Three.js when arriving at Screen 4
             const originalOnEnter = onEnter;
             onEnter = function (s, sl) {
                 originalOnEnter(s, sl);
@@ -4067,17 +3868,429 @@
                         buildHydro3DModel();
                     }, 50);
                 }
-                if (s === 2 && sl === 1) {
-                    setTimeout(() => {
-                        resizeARThree();
-                    }, 50);
-                } else if (s !== 2) {
-                    stopARCameraStream();
-                }
-                if (s !== 4) {
-                    stopViewerARCamera();
-                }
             };
+
+            /* ══════════════════════════════════════════════════════════════
+               AR REAL — WebXR (AREngine): medición y modelo.
+               - 'measure': marcá puntos sobre el piso/paredes (hit-test) →
+                 largo×ancho reales aplicados al formulario del proyecto.
+               - 'model'  : ancla el GLB del preset a escala real 1:1 sobre el
+                 piso (local-floor); una vez colocado queda fijo al mundo.
+               La sesión 'immersive-ar' toma toda la pantalla; el HUD se sirve
+               por dom-overlay. iOS/Safari no expone WebXR → fallback a la
+               medición Manual y a Quick Look (enlace rel="ar" al .usdz).
+               Regeneración de modelos: `npm run model`.
+               ══════════════════════════════════════════════════════════════ */
+
+            // Modelos por preset de tamaño (escala métrica real, piso en y=0).
+            const AR_MODELOS = [
+                { L: 1.2, glb: 'modelos/hidroponia-compact.glb', usdz: 'modelos/hidroponia-compact.usdz', poster: 'modelos/hidroponia-compact-preview.svg', label: '1,2 m', dims: '1,9 × 1,2 × 0,8 m' },
+                { L: 2.4, glb: 'modelos/hidroponia.glb',         usdz: 'modelos/hidroponia.usdz',         poster: 'modelos/hidroponia-preview.svg',         label: '2,4 m', dims: '3,1 × 1,6 × 1,3 m' },
+                { L: 3.6, glb: 'modelos/hidroponia-36.glb',      usdz: 'modelos/hidroponia-36.usdz',      poster: 'modelos/hidroponia-36-preview.svg',      label: '3,6 m', dims: '4,3 × 2,0 × 1,7 m' },
+                { L: 4.8, glb: 'modelos/hidroponia-48.glb',      usdz: 'modelos/hidroponia-48.usdz',      poster: 'modelos/hidroponia-48-preview.svg',      label: '4,8 m', dims: '5,5 × 2,0 × 2,6 m' }
+            ];
+
+            let curAR = null;
+
+            // Elige el preset cuyo largo de canal más se acerca a S.params.longitud
+            // y actualiza el lanzador AR (poster, Quick Look y dimensiones).
+            function setARModelForParams() {
+                const L = (S.params && S.params.longitud) || 2.4;
+                let best = AR_MODELOS[0];
+                for (const m of AR_MODELOS) if (Math.abs(m.L - L) < Math.abs(best.L - L)) best = m;
+                if (best === curAR) return;
+                curAR = best;
+                const poster = document.getElementById('arPoster');
+                if (poster) poster.src = best.poster;
+                const ql = document.getElementById('qlLink');
+                if (ql) { ql.href = best.usdz; ql.hidden = false; }
+                const dims = document.getElementById('arDims');
+                if (dims) dims.textContent = best.dims;
+            }
+
+            // ───────────────────────── Motor AR ─────────────────────────
+            const AREngine = (() => {
+                let renderer = null, scene = null, camera = null;
+                let xrSession = null, hitSource = null;
+                let mode = null, running = false;
+                let hudEl = null;
+                let points = [], rectInfo = null, measureGroup = null;
+                let modelGroup = null, modelPlaced = false;
+                let curHit = null;
+                const tv = new THREE.Vector3();
+                let supportCache;
+
+                const $id = (id) => document.getElementById(id);
+
+                function buildHUD() {
+                    const el = document.createElement('div');
+                    el.id = 'arHud';
+                    el.className = 'ar-hud';
+                    el.hidden = true;
+                    el.innerHTML =
+                        '<div class="ar-hud-top">' +
+                        '  <span class="ar-hud-chip" id="arHudChip"><span class="pulse"></span><span id="arHudChipTxt">Preparando AR…</span></span>' +
+                        '  <button class="ar-hud-x" id="arHudX" aria-label="Salir">✕</button>' +
+                        '</div>' +
+                        '<div class="ar-reticle off" id="arReticle"><div class="ar-ret-dot"></div><div class="ar-ret-notch"></div><div class="ar-ret-ring"></div></div>' +
+                        '<div class="ar-hud-bot" id="arHudMeasure" hidden>' +
+                        '  <div class="ar-read"><div class="v" id="arReadV">—</div><div class="l" id="arReadL">distancia</div></div>' +
+                        '  <div class="ar-hud-actions">' +
+                        '    <button class="ar-btn" id="arBtnUndo">Deshacer</button>' +
+                        '    <button class="ar-btn" id="arBtnClear">Limpiar</button>' +
+                        '    <button class="ar-btn ok" id="arBtnApply" disabled>Usar medidas</button>' +
+                        '  </div>' +
+                        '  <div class="ar-hint2" id="arHintMeasure">Tocá la pantalla para marcar la primera esquina</div>' +
+                        '</div>' +
+                        '<div class="ar-hud-bot ar-hud-model" id="arHudModel" hidden>' +
+                        '  <div class="ar-read"><div class="v" id="arModelRead">—</div><div class="l">escala real · anclado al piso</div></div>' +
+                        '  <div class="ar-hint2" id="arHintModel">Apuntá al piso donde querés colocarlo</div>' +
+                        '</div>';
+                    document.body.appendChild(el);
+                    el.addEventListener('click', (e) => {
+                        if (e.target.closest('button')) return;
+                        if (running && mode === 'measure') placePoint();
+                    });
+                    $id('arHudX').addEventListener('click', () => endSession());
+                    $id('arBtnUndo').addEventListener('click', () => { if (points.length) points.pop(); rebuildMeasure(); });
+                    $id('arBtnClear').addEventListener('click', () => { points = []; rebuildMeasure(); });
+                    $id('arBtnApply').addEventListener('click', applyMeasure);
+                    return el;
+                }
+
+                function supported() {
+                    if (supportCache === undefined) supportCache = !!(navigator.xr && navigator.xr.isSessionSupported);
+                    return supportCache;
+                }
+
+                async function detectSupport() {
+                    let ok = supported();
+                    if (ok) {
+                        try { ok = await navigator.xr.isSessionSupported('immersive-ar'); }
+                        catch (_e) { ok = false; }
+                    }
+                    supportCache = ok;
+                    const w1 = $id('webarUnavailable');
+                    const w4 = $id('webarUnavailable4');
+                    if (w1) w1.hidden = ok;
+                    if (w4) w4.hidden = ok;
+                    return ok;
+                }
+
+                function setChip(txt, ok) {
+                    const chip = $id('arHudChip');
+                    if (!chip) return;
+                    chip.classList.toggle('ok', !!ok);
+                    const t = $id('arHudChipTxt');
+                    if (t) t.textContent = txt;
+                }
+
+                function setReticle(on) {
+                    const r = $id('arReticle');
+                    if (r) r.classList.toggle('off', !on);
+                }
+
+                function initWorld() {
+                    if (renderer) return;
+                    renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+                    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+                    renderer.outputEncoding = THREE.sRGBEncoding;
+                    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+                    renderer.toneMappingExposure = 1.1;
+                    renderer.xr.enabled = true;
+                    scene = new THREE.Scene();
+                    camera = new THREE.PerspectiveCamera(70, innerWidth / innerHeight, 0.01, 50);
+                    scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.9));
+                    const key = new THREE.DirectionalLight(0xffffff, 1.1);
+                    key.position.set(1, 2, 1);
+                    scene.add(key);
+                    const fill = new THREE.DirectionalLight(0x38bdf8, 0.35);
+                    fill.position.set(-1, 1, -1);
+                    scene.add(fill);
+                }
+
+                async function start(type, opts) {
+                    if (running || !supported()) {
+                        if (!supported()) { await detectSupport(); swalNotify('Este navegador/celular no soporta WebXR-AR. Usá la medición Manual o el enlace Quick Look.', 'error'); }
+                        return false;
+                    }
+                    initWorld();
+                    try {
+                        if (!hudEl) hudEl = buildHUD();
+                        const session = await navigator.xr.requestSession('immersive-ar', {
+                            requiredFeatures: ['hit-test'],
+                            optionalFeatures: ['dom-overlay'],
+                            domOverlay: { root: hudEl }
+                        });
+                        xrSession = session;
+                        mode = type;
+                        running = true;
+                        modelPlaced = false;
+                        scene.remove(...scene.children.filter(c => c.userData.ar === true));
+                        if (modelGroup) { disposeModel(modelGroup); modelGroup = null; }
+                        renderer.xr.setReferenceSpaceType('local-floor');
+                        await renderer.xr.setSession(session);
+                        hitSource = null; // se crea en onFrame sobre el primer frame
+                        session.addEventListener('end', onEnd);
+                        if (type === 'model') {
+                            points = [];
+                            rectInfo = null;
+                            hudEl.hidden = false;
+                            $id('arHudModel').hidden = false;
+                            $id('arHudMeasure').hidden = true;
+                            $id('arModelRead').textContent = '—';
+                            setChip('📡 Buscando piso…', false);
+                            $id('arHintModel').textContent = 'Apuntá al piso donde querés colocar el modelo';
+                            loadModel(opts);
+                        } else {
+                            points = [];
+                            rectInfo = null;
+                            hudEl.hidden = false;
+                            $id('arHudMeasure').hidden = false;
+                            $id('arHudModel').hidden = true;
+                            setChip('📏 Medición AR', false);
+                            $id('arReadV').textContent = '—';
+                            $id('arReadL').textContent = 'distancia';
+                            $id('arBtnApply').disabled = true;
+                            $id('arHintMeasure').textContent = 'Tocá la pantalla para marcar la primera esquina';
+                        }
+                        renderer.setAnimationLoop(onFrame);
+                        return true;
+                    } catch (err) {
+                        console.error('AR start error:', err);
+                        running = false; xrSession = null; mode = null;
+                        swalNotify('No se pudo iniciar la sesión AR: ' + (err.message || 'error'), 'error');
+                        return false;
+                    }
+                }
+
+                function loadModel(opts) {
+                    const loader = new THREE.GLTFLoader();
+                    loader.load(opts.url, (gltf) => {
+                        if (!running || mode !== 'model') { disposeModel(gltf.scene); return; }
+                        gltf.scene.traverse((o) => { if (o.isMesh) o.castShadow = true; });
+                        if (modelGroup) disposeModel(modelGroup);
+                        modelGroup = gltf.scene;
+                        modelGroup.userData.ar = true;
+                        modelGroup.visible = false;
+                        scene.add(modelGroup);
+                        $id('arModelRead').textContent = opts.label + ' · ' + opts.dims;
+                        setChip('📡 Apuntá al piso…', false);
+                    }, undefined, (err) => {
+                        console.error('GLB load error:', err);
+                        endSession();
+                        setTimeout(() => swalNotify('No se pudo cargar el modelo para AR.', 'error'), 250);
+                    });
+                }
+
+                function disposeModel(g) {
+                    g.traverse((o) => {
+                        if (o.geometry) o.geometry.dispose();
+                        if (o.material) {
+                            const ms = Array.isArray(o.material) ? o.material : [o.material];
+                            ms.forEach((m) => m.dispose());
+                        }
+                    });
+                    if (g.parent) g.parent.remove(g);
+                }
+
+                function onFrame(_time, frame) {
+                    if (!frame) return;
+                    const refSpace = renderer.xr.getReferenceSpace();
+                    if (!hitSource && xrSession && refSpace) {
+                        try { xrSession.requestHitTestSource({ space: refSpace }).then((s) => { hitSource = s; }).catch(() => { }); }
+                        catch (_e) { }
+                    }
+                    let hitPose = null;
+                    if (hitSource && frame && refSpace) {
+                        try {
+                            const hits = frame.getHitTestResults(hitSource);
+                            if (hits.length) hitPose = hits[0].getPose(refSpace);
+                        } catch (_e) { }
+                    }
+                    if (hitPose) {
+                        tv.fromArray(hitPose.transform.position);
+                        curHit = curHit || new THREE.Vector3();
+                        curHit.copy(tv);
+                        setReticle(true);
+                        if (mode === 'measure') updateLive();
+                        if (mode === 'model' && modelGroup && !modelPlaced) {
+                            modelPlaced = true;
+                            modelGroup.position.copy(curHit);
+                            modelGroup.visible = true;
+                            setChip('✅ Anclado a escala real', true);
+                            $id('arHintModel').textContent = 'El modelo quedó fijo en el lugar. Caminá alrededor para verlo';
+                        }
+                    } else {
+                        curHit = null;
+                        setReticle(false);
+                    }
+                    renderer.render(scene, camera);
+                }
+
+                function updateLive() {
+                    const readV = $id('arReadV');
+                    const readL = $id('arReadL');
+                    if (!readV || !readL) return;
+                    if (rectInfo) {
+                        readV.textContent = rectInfo.l.toFixed(2) + ' × ' + rectInfo.a.toFixed(2) + ' m';
+                        readL.textContent = 'largo × ancho · ' + (rectInfo.l * rectInfo.a).toFixed(1) + ' m²';
+                        return;
+                    }
+                    if (points.length && curHit) {
+                        readV.textContent = points[points.length - 1].distanceTo(curHit).toFixed(2) + ' m';
+                        readL.textContent = 'hasta el último punto';
+                    }
+                }
+
+                function placePoint() {
+                    if (!curHit) return;
+                    points.push(curHit.clone());
+                    rebuildMeasure();
+                }
+
+                function rebuildMeasure() {
+                    if (measureGroup) { disposeModel(measureGroup); }
+                    measureGroup = new THREE.Group();
+                    measureGroup.userData.ar = true;
+                    scene.add(measureGroup);
+                    const markerMat = new THREE.MeshBasicMaterial({ color: 0x22d3ee });
+                    const dotGeo = new THREE.SphereGeometry(0.022, 10, 10);
+                    const postGeo = new THREE.CylinderGeometry(0.004, 0.004, 1, 4);
+                    points.forEach((p) => {
+                        const dot = new THREE.Mesh(dotGeo, markerMat);
+                        dot.position.copy(p);
+                        measureGroup.add(dot);
+                        if (p.y > 0.02) {
+                            const post = new THREE.Mesh(postGeo, markerMat.clone());
+                            post.geometry = new THREE.CylinderGeometry(0.004, 0.004, p.y, 4);
+                            post.position.set(p.x, p.y / 2, p.z);
+                            measureGroup.add(post);
+                        }
+                    });
+                    if (points.length >= 2) {
+                        const geo = new THREE.BufferGeometry().setFromPoints(points);
+                        const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0x38bdf8 }));
+                        measureGroup.add(line);
+                    }
+                    rectInfo = computeRect();
+                    const apply = $id('arBtnApply');
+                    if (apply) apply.disabled = !rectInfo;
+                    if (rectInfo) drawRect(rectInfo);
+                    const hint = $id('arHintMeasure');
+                    if (hint) {
+                        hint.textContent = points.length === 0 ? 'Tocá la pantalla para marcar la primera esquina'
+                            : points.length === 1 ? 'Marcá la segunda esquina del espacio'
+                            : points.length === 2 ? 'Marcá una tercera esquina para calcular la superficie'
+                            : 'Marcá más puntos o usá las medidas calculadas';
+                    }
+                    updateLive();
+                }
+
+                function computeRect() {
+                    const n = points.length;
+                    if (n < 3) return null;
+                    let mx = 0, mz = 0;
+                    points.forEach((p) => { mx += p.x; mz += p.z; });
+                    mx /= n; mz /= n;
+                    let cxx = 0, cxz = 0, czz = 0;
+                    points.forEach((p) => {
+                        const dx = p.x - mx, dz = p.z - mz;
+                        cxx += dx * dx; cxz += dx * dz; czz += dz * dz;
+                    });
+                    const ang = 0.5 * Math.atan2(2 * cxz, cxx - czz);
+                    const dirs = { u: { x: Math.cos(ang), z: Math.sin(ang) }, v: { x: -Math.sin(ang), z: Math.cos(ang) } };
+                    let minu = Infinity, maxu = -Infinity, minv = Infinity, maxv = -Infinity;
+                    points.forEach((p) => {
+                        const dx = p.x - mx, dz = p.z - mz;
+                        const u = dx * dirs.u.x + dz * dirs.u.z;
+                        const v = dx * dirs.v.x + dz * dirs.v.z;
+                        minu = Math.min(minu, u); maxu = Math.max(maxu, u);
+                        minv = Math.min(minv, v); maxv = Math.max(maxv, v);
+                    });
+                    const u = maxu - minu, v = maxv - minv;
+                    const alongU = u >= v;
+                    const l = Math.max(u, v), a = Math.min(u, v);
+                    const rot = alongU ? -ang : -(ang + Math.PI / 2);
+                    const cu = (minu + maxu) / 2, cv = (minv + maxv) / 2;
+                    const cx = mx + cu * dirs.u.x + cv * dirs.v.x;
+                    const cz = mz + cu * dirs.u.z + cv * dirs.v.z;
+                    return {
+                        l: +(l.toFixed(2)),
+                        a: +(a.toFixed(2)),
+                        cx, cz, rot,
+                        y: points[0].y
+                    };
+                }
+
+                function drawRect(r) {
+                    const g = new THREE.Group();
+                    g.userData.ar = true;
+                    const plane = new THREE.Mesh(
+                        new THREE.PlaneGeometry(r.l, r.a),
+                        new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.16, side: THREE.DoubleSide })
+                    );
+                    plane.rotation.x = -Math.PI / 2;
+                    const box = new THREE.LineSegments(
+                        new THREE.EdgesGeometry(new THREE.PlaneGeometry(r.l, r.a)),
+                        new THREE.LineBasicMaterial({ color: 0x22d3ee })
+                    );
+                    box.rotation.x = -Math.PI / 2;
+                    g.add(plane, box);
+                    g.position.set(r.cx, r.y, r.cz);
+                    g.rotation.y = r.rot;
+                    measureGroup.add(g);
+                }
+
+                function applyMeasure() {
+                    if (!rectInfo) return;
+                    const l = rectInfo.l, a = rectInfo.a;
+                    const inL = $id('inLargo'), inA = $id('inAncho');
+                    if (inL) inL.value = l.toFixed(2);
+                    if (inA) inA.value = a.toFixed(2);
+                    calcularMedidas();
+                    const m2 = (l * a).toFixed(1);
+                    endSession();
+                    setTimeout(() => swalNotify('✅ Medidas AR aplicadas: ' + l.toFixed(2) + ' m largo × ' + a.toFixed(2) + ' m ancho (' + m2 + ' m²). Revisá la altura en Manual.', 'success'), 300);
+                }
+
+                function onEnd() {
+                    if (!running) return;
+                    running = false;
+                    renderer.setAnimationLoop(null);
+                    if (measureGroup) { disposeModel(measureGroup); measureGroup = null; }
+                    if (modelGroup) { disposeModel(modelGroup); modelGroup = null; }
+                    points = []; rectInfo = null; curHit = null;
+                    if (hudEl) hudEl.hidden = true;
+                    mode = null; hitSource = null;
+                }
+
+                function endSession() {
+                    if (xrSession) {
+                        const s = xrSession;
+                        xrSession = null;
+                        try { s.end().catch(() => { }); } catch (_e) { }
+                    } else {
+                        onEnd();
+                    }
+                }
+
+                async function abrirMedicion() {
+                    await start('measure');
+                }
+
+                async function abrirModelo() {
+                    await start('model', { url: curAR ? curAR.glb : 'modelos/hidroponia.glb', label: (curAR && curAR.label) || '2,4 m', dims: (curAR && curAR.dims) || '3,1 × 1,6 × 1,3 m' });
+                }
+
+                return { supported, detectSupport, abrirMedicion, abrirModelo };
+            })();
+
+            function abrirARMedicion() { AREngine.abrirMedicion(); }
+            function abrirARModelo() { AREngine.abrirModelo(); }
+
+            setARModelForParams();
+            AREngine.detectSupport();
         </script>
 </body>
 
