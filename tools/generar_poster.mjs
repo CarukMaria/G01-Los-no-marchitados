@@ -9,26 +9,23 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = resolve(__dirname, '..', 'modelos');
 mkdirSync(OUT, { recursive: true });
 
-const SEP_Y = 0.45; // espaciado entre líneas
-const SEP_Z = 0.42; // altura entre niveles
-const BASE_Z = 0.45;
-
 const PRESETS = [
-    { tag: 'hidroponia-compact', L: 1.2, nN: 2, nL: 2 },
-    { tag: 'hidroponia',         L: 2.4, nN: 3, nL: 3 },
-    { tag: 'hidroponia-36',      L: 3.6, nN: 4, nL: 4 },
-    { tag: 'hidroponia-48',      L: 4.8, nN: 4, nL: 6 },
+    { tag: 'hidroponia-compact', L: 1.2, W: 1.2, H: 0.8, nN: 2, nL: 2 },
+    { tag: 'hidroponia',         L: 2.4, W: 1.6, H: 1.3, nN: 3, nL: 3 },
+    { tag: 'hidroponia-36',      L: 3.6, W: 2.0, H: 1.7, nN: 4, nL: 4 },
+    { tag: 'hidroponia-48',      L: 4.8, W: 2.0, H: 2.6, nN: 4, nL: 6 },
 ];
 
 const cosA = Math.cos(Math.PI / 6);
 const sinA = Math.sin(Math.PI / 6);
 const iso = (x, y, z) => [(x - y) * cosA, (x + y) * sinA - z];
 
-function projectModel(L, nL, nN) {
+function projectModel(L, modelW, modelH, nL, nN) {
     const offsetX = -L / 2;
-    const offsetZ = -((nL - 1) * SEP_Y) / 2;
-    const topZ = BASE_Z + (nN - 1) * SEP_Z;
-    const pts = (X, Y, Z) => iso(X, Y, Z);
+    const rowSpacing = nL > 1 ? (modelW - 0.1) / (nL - 1) : 0;
+    const levelSpacing = (modelH - 0.31) / (nN - 1);
+    const firstLevel = 0.15;
+    const pts = (X, Y, Z) => iso(X + 0.325, Y, Z);
 
     const posteLines = [];
     const travesLines = [];
@@ -38,21 +35,21 @@ function projectModel(L, nL, nN) {
 
     for (const xPos of [0, L]) {
         for (let i = 0; i < nL; i++) {
-            const x = xPos + offsetX, z = i * SEP_Y + offsetZ;
-            posteLines.push([pts(x, 0, z), pts(x, topZ + 0.3, z)]);
+            const x = xPos + offsetX, z = i * rowSpacing - (nL - 1) * rowSpacing / 2;
+            posteLines.push([pts(x, 0, z), pts(x, modelH, z)]);
         }
         for (let j = 0; j < nN; j++) {
-            const y = BASE_Z + j * SEP_Z;
+            const y = firstLevel + j * levelSpacing;
             const x1 = xPos + offsetX;
-            const z1 = offsetZ, z2 = (nL - 1) * SEP_Y + offsetZ;
+            const z1 = -(nL - 1) * rowSpacing / 2, z2 = (nL - 1) * rowSpacing / 2;
             travesLines.push([pts(x1, y, z1), pts(x1, y, z2)]);
         }
     }
 
     for (let j = 0; j < nN; j++) {
-        const y = BASE_Z + j * SEP_Z + 0.05;
+        const y = firstLevel + j * levelSpacing + 0.05;
         for (let i = 0; i < nL; i++) {
-            const z = i * SEP_Y + offsetZ;
+            const z = i * rowSpacing - (nL - 1) * rowSpacing / 2;
             const a = pts(-L / 2, y, z);
             const b = pts(L / 2, y, z);
             canalLines.push([a, b]);
@@ -65,9 +62,9 @@ function projectModel(L, nL, nN) {
         }
     }
 
-    const tankW = 0.5, tankH = 0.55, tankD = (nL - 1) * SEP_Y + 0.35;
-    const tankC = [offsetX - tankW / 2 - 0.15, tankH / 2, 0];
-    const pumpC = [offsetX - tankW / 2 - 0.15, 0.12, 0];
+    const tankW = 0.5, tankH = 0.55, tankD = modelW;
+    const tankC = [offsetX - tankW / 2 - 0.175, tankH / 2, 0];
+    const pumpC = [offsetX - tankW / 2 - 0.175, 0.12, 0];
 
     // Caja de 8 esquinas para el tanque (para el polígono de cara visible)
     const hw = tankW / 2, hh = tankH / 2, hd = tankD / 2;
@@ -96,9 +93,9 @@ function esc(s) {
     return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
-function makeSvg({ tag, L, nL, nN }) {
+function makeSvg({ tag, L, W: modelW, H: modelH, nL, nN }) {
     const W = 800, H = 450;
-    const m = projectModel(L, nL, nN);
+    const m = projectModel(L, modelW, modelH, nL, nN);
 
     // Bounds del modelo para centrar + escala de ajuste
     const all = [
@@ -164,7 +161,7 @@ function makeSvg({ tag, L, nL, nN }) {
     // canal (PVC)
     for (const [a, b] of m.canalLines) el.push(seg(a, b, '#e2e8f0', 9));
     // agua
-    for (const [a, b] of m.aguaLines) el.push(seg(a, b, '#22d3ee', 4, '5,4'));
+    for (const [a, b] of m.aguaLines) el.push(seg(a, b, '#06b6d4', 4, '5,4'));
     // estructura encima
     for (const [a, b] of m.posteLines) el.push(seg(a, b, '#94a3b8', 1.5));
 
@@ -174,8 +171,8 @@ function makeSvg({ tag, L, nL, nN }) {
     }
 
     // tanque y bomba
-    el.push(poly(m.tankPoly, '#1e293b', '#22d3ee', 1.5));
-    el.push(poly(m.pumpPoly, '#0284c7', '#38bdf8', 1));
+    el.push(poly(m.tankPoly, '#334155', '#06b6d4', 1.5));
+    el.push(poly(m.pumpPoly, '#0ea5e9', '#7dd3fc', 1));
 
     // caja de título al pie
     el.push(`<rect x="40" y="${H - 78}" width="${W - 80}" height="46" rx="10" fill="#020617" opacity="0.5"/>`);

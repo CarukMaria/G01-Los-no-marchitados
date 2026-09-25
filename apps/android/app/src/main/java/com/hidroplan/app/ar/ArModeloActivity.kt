@@ -109,10 +109,10 @@ class ArModeloActivity : AppCompatActivity() {
                 ?: "El tracking está iniciando. Mové el teléfono suavemente y probá de nuevo."
             return
         }
-        val hit = ArGuias.floorHit(arSceneView, x, y)
+        val hit = ArGuias.floorPlaneHit(arSceneView, x, y)
         if (hit == null) {
             status.text = if (ArGuias.planeCount(arSceneView.session) > 0) {
-                "No cayó en el piso detectado. Apuntá al piso y tocá de nuevo."
+                "El modelo solo se coloca sobre un plano horizontal confirmado. Apuntá al suelo y mové el teléfono hasta que ARCore lo detecte."
             } else {
                 "Todavía no detecta el piso: barré la cámara sobre una zona con textura y tocá de nuevo."
             }

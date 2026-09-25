@@ -30,15 +30,26 @@ object ArGuias {
     }
 
     fun floorHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        return floorPlaneHit(arSceneView, x, y) ?: depthHit(arSceneView, x, y)
+    }
+
+    fun floorPlaneHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
         val frame = arSceneView.frame ?: return null
         return try {
-            val hits = frame.hitTest(x, y)
-            val planeHit = hits.firstOrNull { hit ->
+            frame.hitTest(x, y).firstOrNull { hit ->
                 val plane = hit.trackable as? Plane
                 plane != null && plane.trackingState == TrackingState.TRACKING &&
                     plane.type == Plane.Type.HORIZONTAL_UPWARD_FACING && plane.isPoseInPolygon(hit.hitPose)
             }
-            planeHit ?: hits.firstOrNull { hit ->
+        } catch (_: Exception) {
+            null
+        }
+    }
+
+    private fun depthHit(arSceneView: ARSceneView, x: Float, y: Float): HitResult? {
+        val frame = arSceneView.frame ?: return null
+        return try {
+            frame.hitTest(x, y).firstOrNull { hit ->
                 val depth = hit.trackable as? DepthPoint
                 depth != null && depth.trackingState == TrackingState.TRACKING
             }

@@ -42,6 +42,9 @@ apps/android/
 - Colocación 3D: al cargar cada GLB se ajustan sus límites a largo × ancho × alto del preset,
   se centra la huerta alrededor del toque y se corrige el origen vertical para apoyar la base
   sobre el plano AR, incluso después de orientar el largo hacia adelante.
+- “Ver en 3D” solo acepta planos horizontales confirmados (profundidad sobre muebles o paredes
+  ya no puede dejar el modelo suspendido). Los GLB se generan con medidas exactas, origen
+  centrado y materiales mate con color más estable bajo la iluminación estimada de ARCore.
 
 ## Cómo se conecta el web con las actividades nativas
 

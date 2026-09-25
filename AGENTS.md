@@ -31,7 +31,7 @@
 ## ARCore 1.44 (hechos caros de reaprender)
 - `TrackingState` = solo `TRACKING`/`PAUSED`/`STOPPED` (no existe `LIMITED`).
 - `TrackingFailureReason` = `NONE`, `BAD_STATE`, `INSUFFICIENT_LIGHT`, `EXCESSIVE_MOTION`, `INSUFFICIENT_FEATURES`, `CAMERA_UNAVAILABLE`.
-- `Session.configure`: `InstantPlacementMode.DISABLED` + `DepthMode.AUTOMATIC` solo cuando el HW lo soporta + planeFinding `HORIZONTAL_AND_VERTICAL`; los hit tests priorizan planos horizontales confirmados y usan DepthPoint como respaldo. Lógica y textos de guía en `ArGuias.kt`; el HUD en vivo (tracking · falla · planos) lo usan `ArMedicionActivity` y `ArModeloActivity`.
+- `Session.configure`: `InstantPlacementMode.DISABLED` + `DepthMode.AUTOMATIC` solo cuando el HW lo soporta + planeFinding `HORIZONTAL_AND_VERTICAL`; medición prioriza planos horizontales confirmados y usa DepthPoint como respaldo, mientras que la colocación del modelo exige un plano horizontal confirmado. Lógica y textos de guía en `ArGuias.kt`; el HUD en vivo (tracking · falla · planos) lo usan `ArMedicionActivity` y `ArModeloActivity`.
 
 ## Herramientas
 - `npm run model*` regenera GLB/USDZ/posters (`tools/generar_modelo.mjs`, `generar_usdz.py`, `generar_poster.mjs`). El paso USDZ necesita `tools/.venv` (gitignored). `node_modules` (three) es solo para estas tools, no para el web.
