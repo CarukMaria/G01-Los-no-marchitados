@@ -6,13 +6,13 @@ import android.opengl.Matrix
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.View
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.Anchor
-import com.google.ar.core.Config
 import com.google.ar.core.Plane
+import com.google.ar.core.TrackingFailureReason
 import com.google.ar.core.TrackingState
 import com.hidroplan.app.R
 import io.github.sceneview.ar.ARSceneView
@@ -38,6 +38,7 @@ class ArMedicionActivity : AppCompatActivity() {
     private lateinit var arSceneView: ARSceneView
     private lateinit var overlay: MedicionOverlay
     private lateinit var status: TextView
+    private lateinit var diag: TextView
     private lateinit var btnUse: Button
 
     private val points = mutableListOf<FloatArray>()
@@ -47,9 +48,11 @@ class ArMedicionActivity : AppCompatActivity() {
     private var rect: RectInfo? = null
 
     private val ui = Handler(Looper.getMainLooper())
+    private var tickCount = 0
     private val tick = object : Runnable {
         override fun run() {
             overlay.invalidate()
+            if (++tickCount % 10 == 0) updateLiveHints()
             ui.postDelayed(this, 33)
         }
     }
@@ -62,11 +65,12 @@ class ArMedicionActivity : AppCompatActivity() {
         arSceneView = findViewById(R.id.arView)
         overlay = findViewById(R.id.overlay)
         status = findViewById(R.id.status)
+        diag = findViewById(R.id.diag)
         btnUse = findViewById(R.id.btnUse)
 
         arSceneView.lifecycle = lifecycle
         arSceneView.configureSession { _, config ->
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            ArGuias.applySessionConfig(config)
         }
 
         overlay.provider = ::project
@@ -97,6 +101,16 @@ class ArMedicionActivity : AppCompatActivity() {
     }
 
     private fun onTap(x: Float, y: Float) {
+        val camera = arSceneView.frame?.camera
+        if (camera == null) {
+            status.text = "ARCore no está listo todavía. Esperá un instante y tocá de nuevo."
+            return
+        }
+        if (!ArGuias.isTracking(camera)) {
+            status.text = ArGuias.reasonGuide(camera.trackingFailureReason)
+                ?: "El tracking está iniciando. Mové el teléfono suavemente y probá de nuevo."
+            return
+        }
         val hit = arSceneView.hitTestAR(
             xPx = x,
             yPx = y,
@@ -106,11 +120,34 @@ class ArMedicionActivity : AppCompatActivity() {
             instantPlacementPoint = true
         )
         if (hit == null) {
-            status.text = "No detectó superficie. Mové el teléfono despacio y probá de nuevo."
+            status.text = if (ArGuias.planeCount(arSceneView.session) > 0) {
+                "No cayó en el piso detectado. Apuntá al piso y tocá sobre él."
+            } else {
+                "Todavía no detecta el piso: barré la cámara sobre una zona con textura y tocá de nuevo."
+            }
             return
         }
         val anchor = hit.createAnchorOrNull() ?: return
         addPoint(anchor)
+    }
+
+    /** Feedback en vivo (<400ms) mientras no se haya marcado ningún punto: qué hace ARCore y qué hacer. */
+    private fun updateLiveHints() {
+        val camera = arSceneView.frame?.camera
+        if (camera == null) {
+            diag.visibility = View.VISIBLE
+            diag.text = "ARCore inicializando…"
+            status.text = "Inicializando la cámara AR… mové el teléfono con movimientos suaves."
+            return
+        }
+        val reason = camera.trackingFailureReason
+        val falla = reason?.takeIf { it != TrackingFailureReason.NONE }?.name ?: "ninguna"
+        diag.visibility = View.VISIBLE
+        diag.text = "tracking: ${ArGuias.trackingLabel(camera)} · falla: $falla · " +
+            "planos: ${ArGuias.planeCount(arSceneView.session)}"
+        if (points.isEmpty()) {
+            status.text = ArGuias.statusHint(arSceneView, points.size)
+        }
     }
 
     private fun addPoint(anchor: Anchor) {

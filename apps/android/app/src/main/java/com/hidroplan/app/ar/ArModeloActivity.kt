@@ -1,6 +1,8 @@
 package com.hidroplan.app.ar
 
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
@@ -9,7 +11,6 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.google.ar.core.Anchor
-import com.google.ar.core.Config
 import com.google.ar.core.Plane
 import com.google.ar.core.Pose
 import com.hidroplan.app.R
@@ -35,6 +36,16 @@ class ArModeloActivity : AppCompatActivity() {
     private var placedAnchor: Anchor? = null
     private lateinit var preset: ARPreset
 
+    private val ui = Handler(Looper.getMainLooper())
+    private val hint = object : Runnable {
+        override fun run() {
+            if (placed == null) {
+                status.text = ArGuias.statusHint(arSceneView, 0)
+                ui.postDelayed(this, 500)
+            }
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_ar_modelo)
@@ -48,7 +59,7 @@ class ArModeloActivity : AppCompatActivity() {
 
         arSceneView.lifecycle = lifecycle
         arSceneView.configureSession { _, config ->
-            config.planeFindingMode = Config.PlaneFindingMode.HORIZONTAL_AND_VERTICAL
+            ArGuias.applySessionConfig(config)
         }
 
         val tapArea = findViewById<View>(R.id.tapArea)
@@ -69,12 +80,32 @@ class ArModeloActivity : AppCompatActivity() {
         findViewById<Button>(R.id.btnClose).setOnClickListener { finish() }
     }
 
+    override fun onResume() {
+        super.onResume()
+        ui.post(hint)
+    }
+
+    override fun onPause() {
+        ui.removeCallbacks(hint)
+        super.onPause()
+    }
+
     override fun onDestroy() {
         releasePlaced()
         super.onDestroy()
     }
 
     private fun place(x: Float, y: Float) {
+        val camera = arSceneView.frame?.camera
+        if (camera == null) {
+            status.text = "ARCore no está listo todavía. Esperá un instante y tocá de nuevo."
+            return
+        }
+        if (!ArGuias.isTracking(camera)) {
+            status.text = ArGuias.reasonGuide(camera.trackingFailureReason)
+                ?: "El tracking está iniciando. Mové el teléfono suavemente y probá de nuevo."
+            return
+        }
         val hit = arSceneView.hitTestAR(
             xPx = x,
             yPx = y,
@@ -84,7 +115,11 @@ class ArModeloActivity : AppCompatActivity() {
             instantPlacementPoint = true
         )
         if (hit == null) {
-            status.text = "Todavía no detecta superficie. Mové el teléfono despacio por el piso."
+            status.text = if (ArGuias.planeCount(arSceneView.session) > 0) {
+                "No cayó en el piso detectado. Apuntá al piso y tocá de nuevo."
+            } else {
+                "Todavía no detecta el piso: barré la cámara sobre una zona con textura y tocá de nuevo."
+            }
             return
         }
         placeModel(hit.createAnchorOrNull())
