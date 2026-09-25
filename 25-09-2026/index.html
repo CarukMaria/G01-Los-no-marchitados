@@ -1,0 +1,2854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brota — Planificación y acompañamiento para hidroponía</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #059669;
+      --primary-dark: #047857;
+      --primary-light: #10b981;
+      --primary-subtle: #ecfdf5;
+      --accent: #0284c7;
+      --accent-subtle: #f0f9ff;
+      --warning: #d97706;
+      --warning-subtle: #fffbeb;
+      --danger: #dc2626;
+      --danger-subtle: #fef2f2;
+      --bg: #f8fafc;
+      --surface: #ffffff;
+      --border: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --text: #0f172a;
+      --text-muted: #64748b;
+      --text-subtle: #94a3b8;
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+      --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+      --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.07), 0 2px 4px -2px rgba(0,0,0,0.05);
+      --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.08), 0 4px 6px -4px rgba(0,0,0,0.04);
+      --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+    }
+
+    /* TOP NAVBAR */
+    header.navbar {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-sm);
+    }
+    .nav-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      text-decoration: none;
+      color: inherit;
+      cursor: pointer;
+    }
+    .brand-logo {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-weight: 800;
+      font-size: 1.25rem;
+      box-shadow: 0 2px 8px rgba(5,150,105,0.3);
+    }
+    .brand-text h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      color: var(--text);
+      line-height: 1.1;
+    }
+    .brand-text span {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      background: var(--bg);
+      padding: 0.25rem;
+      border-radius: var(--radius-md);
+      border: 1px solid var(--border);
+    }
+    .nav-tab-btn {
+      border: none;
+      background: transparent;
+      padding: 0.5rem 1rem;
+      font-family: inherit;
+      font-size: 0.88rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .nav-tab-btn:hover {
+      color: var(--text);
+    }
+    .nav-tab-btn.active {
+      background: var(--surface);
+      color: var(--primary-dark);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .project-pill {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+      background: var(--primary-subtle);
+      border: 1px solid rgba(5,150,105,0.2);
+      padding: 0.4rem 0.85rem;
+      border-radius: 9999px;
+      font-size: 0.82rem;
+      color: var(--primary-dark);
+      font-weight: 600;
+    }
+    .project-pill select {
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: inherit;
+      color: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      outline: none;
+    }
+
+    /* MAIN CONTAINER */
+    main.main-content {
+      flex: 1;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 1.5rem;
+    }
+
+    /* DISCLAIMER BANNER */
+    .disclaimer-banner {
+      background: #f8fafc;
+      border-left: 4px solid var(--primary);
+      padding: 0.6rem 1rem;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .disclaimer-banner strong {
+      color: var(--text);
+    }
+
+    /* BADGES */
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.3rem;
+      padding: 0.2rem 0.6rem;
+      border-radius: 9999px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .badge-success { background: var(--primary-subtle); color: var(--primary-dark); border: 1px solid rgba(5,150,105,0.25); }
+    .badge-warning { background: var(--warning-subtle); color: var(--warning); border: 1px solid rgba(217,119,6,0.25); }
+    .badge-info { background: var(--accent-subtle); color: var(--accent); border: 1px solid rgba(2,132,199,0.25); }
+    .badge-neutral { background: #f1f5f9; color: var(--text-muted); border: 1px solid var(--border); }
+    .badge-danger { background: var(--danger-subtle); color: var(--danger); border: 1px solid rgba(220,38,38,0.25); }
+
+    /* BUTTONS */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      padding: 0.65rem 1.25rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      border-radius: var(--radius-md);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      border: 1px solid transparent;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+    .btn-primary:hover {
+      background: var(--primary-dark);
+      box-shadow: 0 4px 12px rgba(5,150,105,0.25);
+    }
+    .btn-secondary {
+      background: var(--surface);
+      color: var(--text);
+      border-color: var(--border-strong);
+    }
+    .btn-secondary:hover {
+      background: var(--bg);
+      border-color: var(--text-muted);
+    }
+    .btn-outline-primary {
+      background: transparent;
+      color: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-outline-primary:hover {
+      background: var(--primary-subtle);
+    }
+    .btn-sm {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      border-radius: var(--radius-sm);
+    }
+
+    /* CARD STYLES */
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 1.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.25rem;
+    }
+    .card-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .card-subtitle {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    /* VIEWS */
+    .view-section {
+      display: none;
+    }
+    .view-section.active {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* HOME HERO VIEW */
+    .hero-banner {
+      background: linear-gradient(135deg, #064e3b 0%, #065f46 60%, #047857 100%);
+      color: white;
+      padding: 3rem 2.5rem;
+      border-radius: var(--radius-xl);
+      margin-bottom: 2rem;
+      position: relative;
+      overflow: hidden;
+      box-shadow: var(--shadow-lg);
+    }
+    .hero-banner::after {
+      content: "";
+      position: absolute;
+      right: -30px;
+      bottom: -40px;
+      width: 280px;
+      height: 280px;
+      background: radial-gradient(circle, rgba(16,185,129,0.25) 0%, transparent 70%);
+      border-radius: 50%;
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(8px);
+      padding: 0.35rem 0.8rem;
+      border-radius: 9999px;
+      font-size: 0.78rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+    .hero-title {
+      font-size: 2.25rem;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 0.85rem;
+      max-width: 650px;
+    }
+    .hero-description {
+      font-size: 1.05rem;
+      color: rgba(255,255,255,0.85);
+      max-width: 600px;
+      line-height: 1.5;
+      margin-bottom: 1.75rem;
+    }
+
+    /* 3 ACTION CARDS OF HOME (AS DEFINED IN PROJECT.MD) */
+    .home-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 2.5rem;
+    }
+    .action-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: all 0.2s ease;
+      cursor: pointer;
+      position: relative;
+    }
+    .action-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary-light);
+      box-shadow: var(--shadow-lg);
+    }
+    .action-icon {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.6rem;
+      margin-bottom: 1.2rem;
+    }
+    .action-card.evaluar .action-icon { background: #d1fae5; color: #047857; }
+    .action-card.productos .action-icon { background: #e0f2fe; color: #0369a1; }
+    .action-card.guia .action-icon { background: #fef3c7; color: #b45309; }
+
+    .action-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+    .action-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.45;
+      margin-bottom: 1.5rem;
+    }
+
+    /* DEMO PROJECTS SECTION IN HOME */
+    .demo-projects-section {
+      margin-top: 2.5rem;
+    }
+    .section-header-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+    }
+    .demo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 1rem;
+    }
+    .demo-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.2rem;
+      transition: all 0.15s ease;
+      cursor: pointer;
+    }
+    .demo-card:hover {
+      border-color: var(--primary);
+      box-shadow: var(--shadow-sm);
+    }
+    .demo-card.active-demo {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+    .demo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 0.75rem;
+    }
+
+    /* RECORRIDO A: WIZARD STYLES */
+    .wizard-container {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      gap: 1.5rem;
+    }
+    @media (max-width: 860px) {
+      .wizard-container { grid-template-columns: 1fr; }
+    }
+    .wizard-sidebar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem;
+      height: fit-content;
+      position: sticky;
+      top: 5rem;
+    }
+    .wizard-steps-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+    }
+    .step-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 0.8rem;
+      border-radius: var(--radius-md);
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .step-item:hover {
+      background: var(--bg);
+      color: var(--text);
+    }
+    .step-item.active {
+      background: var(--primary-subtle);
+      color: var(--primary-dark);
+      font-weight: 700;
+    }
+    .step-item.completed .step-number {
+      background: var(--primary);
+      color: white;
+    }
+    .step-number {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: #e2e8f0;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .step-item.active .step-number {
+      background: var(--primary-dark);
+      color: white;
+    }
+
+    .wizard-content {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 2rem;
+      min-height: 520px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 0.4rem;
+    }
+    .form-hint {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-top: 0.3rem;
+    }
+    .form-control {
+      width: 100%;
+      padding: 0.65rem 0.85rem;
+      font-family: inherit;
+      font-size: 0.9rem;
+      border: 1px solid var(--border-strong);
+      border-radius: var(--radius-md);
+      background: var(--surface);
+      color: var(--text);
+      transition: border-color 0.15s ease;
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(5,150,105,0.15);
+    }
+
+    /* OPTION CARDS SELECTOR (Crops, Systems, Situations) */
+    .selection-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    .selectable-card {
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--surface);
+      position: relative;
+    }
+    .selectable-card:hover {
+      border-color: var(--primary-light);
+      background: #fafdfb;
+    }
+    .selectable-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-subtle);
+    }
+    .selectable-card h4 {
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.3rem;
+    }
+    .selectable-card p {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      line-height: 1.4;
+    }
+
+    /* COMPATIBILITY NOTICE */
+    .compat-warning {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: var(--radius-md);
+      padding: 1rem;
+      color: #92400e;
+      font-size: 0.85rem;
+      margin-top: 1rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+
+    /* WIZARD ACTIONS BAR */
+    .wizard-actions {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* BLUEPRINT SVG / CROQUIS */
+    .blueprint-wrapper {
+      background: #0f172a;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      color: white;
+      margin: 1.5rem 0;
+      position: relative;
+    }
+    .blueprint-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 0.75rem;
+    }
+    .blueprint-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #38bdf8;
+      font-family: var(--font-mono);
+    }
+    .svg-container {
+      width: 100%;
+      overflow-x: auto;
+      display: flex;
+      justify-content: center;
+    }
+
+    /* CATALOG & CART */
+    .catalog-layout {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 960px) {
+      .catalog-layout { grid-template-columns: 1fr; }
+    }
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .product-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+    .product-card.necesario {
+      border-color: #059669;
+      box-shadow: 0 0 0 1px #059669;
+    }
+    .product-status-tag {
+      position: absolute;
+      top: 0.75rem;
+      right: 0.75rem;
+    }
+    .price-box {
+      background: var(--bg);
+      padding: 0.6rem 0.8rem;
+      border-radius: var(--radius-sm);
+      margin: 0.75rem 0;
+    }
+    .price-main {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: var(--primary-dark);
+    }
+    .price-ref {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 0.2rem;
+    }
+
+    .cart-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      position: sticky;
+      top: 5rem;
+      height: fit-content;
+    }
+    .cart-items-list {
+      max-height: 380px;
+      overflow-y: auto;
+      margin: 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+    .cart-item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .cart-qty-ctrl {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .cart-qty-btn {
+      width: 22px;
+      height: 22px;
+      border: 1px solid var(--border-strong);
+      background: var(--surface);
+      border-radius: 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* GUIDE & CHECKLIST */
+    .guide-tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 0.5rem;
+      overflow-x: auto;
+    }
+    .guide-tab-btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: transparent;
+      font-family: inherit;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      border-radius: var(--radius-sm);
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .guide-tab-btn.active {
+      background: var(--primary-subtle);
+      color: var(--primary-dark);
+    }
+    .checklist-progress-bar {
+      height: 8px;
+      background: #e2e8f0;
+      border-radius: 4px;
+      overflow: hidden;
+      margin: 0.75rem 0 1.25rem;
+    }
+    .checklist-progress-fill {
+      height: 100%;
+      background: var(--primary);
+      width: 0%;
+      transition: width 0.3s ease;
+    }
+    .checklist-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.75rem 0.5rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+      cursor: pointer;
+    }
+    .checklist-item.done {
+      text-decoration: line-through;
+      color: var(--text-subtle);
+    }
+    .checklist-item input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--primary);
+      cursor: pointer;
+      margin-top: 2px;
+    }
+
+    /* AI AGENT PLACEHOLDER */
+    .agent-placeholder {
+      background: linear-gradient(135deg, #f0fdf4 0%, #e0f2fe 100%);
+      border: 1px dashed #0284c7;
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    /* TABLES (TCO, Infrastructure) */
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      margin: 1rem 0;
+    }
+    table.data-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      text-align: left;
+    }
+    table.data-table th {
+      background: #f8fafc;
+      padding: 0.65rem 0.85rem;
+      font-weight: 700;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    table.data-table td {
+      padding: 0.65rem 0.85rem;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    /* FOOTER */
+    footer.footer {
+      background: var(--surface);
+      border-top: 1px solid var(--border);
+      padding: 2rem 1.5rem;
+      margin-top: 3rem;
+      text-align: center;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(15,23,42,0.6);
+      backdrop-filter: blur(4px);
+      z-index: 100;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .modal-overlay.open {
+      display: flex;
+    }
+    .modal-card {
+      background: var(--surface);
+      border-radius: var(--radius-xl);
+      max-width: 600px;
+      width: 100%;
+      padding: 2rem;
+      box-shadow: var(--shadow-lg);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .tco-badge-year {
+      display: inline-block;
+      padding: 0.2rem 0.5rem;
+      background: #e2e8f0;
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="brand" onclick="BrotaUI.switchView('home')">
+        <div class="brand-logo">B</div>
+        <div class="brand-text">
+          <h1>Brota</h1>
+          <span>Planificación hidropónica</span>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Recorridos) -->
+      <nav class="nav-tabs">
+        <button class="nav-tab-btn active" data-view="home" onclick="BrotaUI.switchView('home')">
+          <span>🏠</span> Inicio
+        </button>
+        <button class="nav-tab-btn" data-view="evaluacion" onclick="BrotaUI.switchView('evaluacion')">
+          <span>🌱</span> Evaluar proyecto
+        </button>
+        <button class="nav-tab-btn" data-view="catalogo" onclick="BrotaUI.switchView('catalogo')">
+          <span>📦</span> Catálogo y Carrito
+        </button>
+        <button class="nav-tab-btn" data-view="guia" onclick="BrotaUI.switchView('guia')">
+          <span>📖</span> Guía y Checklist
+        </button>
+      </nav>
+
+      <!-- Active Project Selector Badge -->
+      <div class="project-pill">
+        <span>Proyecto:</span>
+        <select id="headerProjectSelector" onchange="BrotaUI.onHeaderProjectChange(this.value)">
+          <!-- Injected dynamically -->
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN BODY -->
+  <main class="main-content">
+
+    <!-- Cross-cutting legal disclaimer banner (contract.md Sec. 4) -->
+    <div class="disclaimer-banner">
+      <span>ℹ️</span>
+      <div>
+        <strong>Nota de estimación:</strong> Todo cálculo de producción, inversión, factibilidad y retorno se presenta como estimación orientativa según los datos ingresados y supuestos técnicos de referencia. No reemplaza asesoramiento profesional.
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- VIEW 1: HOME (Pantalla de inicio project.md Sec. 10) -->
+    <!-- ========================================== -->
+    <section id="view-home" class="view-section active">
+      <div class="hero-banner">
+        <div class="hero-badge">Prototipo de Hackatón • Brota v1.0</div>
+        <h2 class="hero-title">Planificá, aprendé y prepará tu proyecto hidropónico.</h2>
+        <p class="hero-description">
+          Acompañamos a productores iniciales y personas que evalúan iniciar o ampliar un emprendimiento hidropónico a tomar decisiones técnicas, espaciales y económicas con confianza.
+        </p>
+        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+          <button class="btn btn-primary" onclick="BrotaUI.startNewProject()">
+            <span>✨</span> Iniciar nueva evaluación
+          </button>
+          <button class="btn btn-secondary" onclick="BrotaUI.switchView('catalogo')">
+            Explorar catálogo de insumos
+          </button>
+        </div>
+      </div>
+
+      <!-- The 3 Journeys (Recorridos) as specified in project.md Section 10 -->
+      <div class="home-grid">
+        <div class="action-card evaluar" onclick="BrotaUI.switchView('evaluacion')">
+          <div>
+            <div class="action-icon">📐</div>
+            <h3 class="action-title">Evaluar mi proyecto</h3>
+            <p class="action-desc">
+              Analizá tu espacio, orientación del terreno, selección de cultivo, sistema hidropónico (NFT, DWC, Goteo), infraestructura e inversión requerida.
+            </p>
+          </div>
+          <button class="btn btn-outline-primary btn-sm">Iniciar recorrido A →</button>
+        </div>
+
+        <div class="action-card productos" onclick="BrotaUI.switchView('catalogo')">
+          <div>
+            <div class="action-icon">🛒</div>
+            <h3 class="action-title">Explorar productos</h3>
+            <p class="action-desc">
+              Encontrá productos y componentes mock adaptados a tu configuración, compará con precios de referencia y armá tu carrito estimativo sin compromiso.
+            </p>
+          </div>
+          <button class="btn btn-outline-primary btn-sm">Explorar catálogo B →</button>
+        </div>
+
+        <div class="action-card guia" onclick="BrotaUI.switchView('guia')">
+          <div>
+            <div class="action-icon">📋</div>
+            <h3 class="action-title">Guía de hidroponía</h3>
+            <p class="action-desc">
+              Aprendé los fundamentos (pH, nutrientes, oxigenación) y seguí una checklist paso a paso adaptada al sistema específico de tu proyecto.
+            </p>
+          </div>
+          <button class="btn btn-outline-primary btn-sm">Ver guía y checklist C →</button>
+        </div>
+      </div>
+
+      <!-- DEMO PROJECTS (Spec 10, Sec 6.6) -->
+      <div class="demo-projects-section">
+        <div class="section-header-row">
+          <div>
+            <h3 style="font-size: 1.15rem; font-weight: 700;">Proyectos precargados de demostración</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">
+              Cargados con datos técnicos para probar los 3 recorridos de forma inmediata:
+            </p>
+          </div>
+          <button class="btn btn-secondary btn-sm" onclick="BrotaUI.resetDemoData()">
+            <span>🔄</span> Restablecer datos demo
+          </button>
+        </div>
+
+        <div class="demo-grid" id="homeDemoCardsContainer">
+          <!-- Injected by JS -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 2: EVALUACIÓN Y PLANIFICACIÓN (Recorrido A) -->
+    <!-- ========================================== -->
+    <section id="view-evaluacion" class="view-section">
+      <div class="wizard-container">
+        <!-- Sidebar Navigation -->
+        <aside class="wizard-sidebar">
+          <div style="font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-subtle); margin-bottom: 0.75rem; letter-spacing: 0.05em;">
+            Pasos de evaluación
+          </div>
+          <ul class="wizard-steps-list">
+            <li class="step-item active" data-step="1" onclick="BrotaUI.goToStep(1)">
+              <span class="step-number">1</span>
+              <span>Proyecto y situación</span>
+            </li>
+            <li class="step-item" data-step="2" onclick="BrotaUI.goToStep(2)">
+              <span class="step-number">2</span>
+              <span>Ubicación y terreno</span>
+            </li>
+            <li class="step-item" data-step="3" onclick="BrotaUI.goToStep(3)">
+              <span class="step-number">3</span>
+              <span>Cultivo y sistema</span>
+            </li>
+            <li class="step-item" data-step="4" onclick="BrotaUI.goToStep(4)">
+              <span class="step-number">4</span>
+              <span>Escala y objetivo</span>
+            </li>
+            <li class="step-item" data-step="5" onclick="BrotaUI.goToStep(5)">
+              <span class="step-number">5</span>
+              <span>Infraestructura</span>
+            </li>
+            <li class="step-item" data-step="6" onclick="BrotaUI.goToStep(6)">
+              <span class="step-number">6</span>
+              <span>Inversión y costos</span>
+            </li>
+            <li class="step-item" data-step="7" onclick="BrotaUI.goToStep(7)">
+              <span class="step-number">7</span>
+              <span>Retorno y TCO</span>
+            </li>
+            <li class="step-item" data-step="8" onclick="BrotaUI.goToStep(8)">
+              <span class="step-number">8</span>
+              <span>Propuesta visual</span>
+            </li>
+          </ul>
+        </aside>
+
+        <!-- Wizard Dynamic Step Content -->
+        <div class="wizard-content">
+          <div id="step-content-area">
+            <!-- Dynamically populated based on current step -->
+          </div>
+
+          <!-- Wizard Actions Navigation Bar -->
+          <div class="wizard-actions">
+            <button id="wizardPrevBtn" class="btn btn-secondary" onclick="BrotaUI.wizardPrev()">
+              ← Anterior
+            </button>
+            <div id="wizardStepIndicator" style="font-size: 0.85rem; color: var(--text-muted); font-weight: 600;">
+              Paso 1 de 8
+            </div>
+            <button id="wizardNextBtn" class="btn btn-primary" onclick="BrotaUI.wizardNext()">
+              Siguiente →
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 3: PRODUCTOS Y CARRITO (Recorrido B) -->
+    <!-- ========================================== -->
+    <section id="view-catalogo" class="view-section">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Catálogo de productos e insumos</h2>
+          <p class="card-subtitle">
+            Proveedores locales registrados y precios de referencia para comparar tu configuración.
+          </p>
+        </div>
+        <div style="display: flex; gap: 0.5rem; align-items: center;">
+          <label style="font-size: 0.82rem; font-weight: 600; color: var(--text-muted);">Filtrar categoría:</label>
+          <select id="catalogCategoryFilter" class="form-control" style="width: auto; padding: 0.4rem 0.8rem;" onchange="BrotaUI.renderCatalog()">
+            <option value="todos">Todas las categorías</option>
+            <option value="estructura">Estructura</option>
+            <option value="hidraulico">Hidráulico</option>
+            <option value="produccion">Producción</option>
+            <option value="equipamiento">Equipamiento</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="catalog-layout">
+        <!-- Products Grid -->
+        <div>
+          <div class="product-grid" id="catalogProductsContainer">
+            <!-- Injected by JS -->
+          </div>
+        </div>
+
+        <!-- Cart Panel (Spec 07) -->
+        <aside class="cart-card">
+          <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 0.75rem;">
+            <h3 style="font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 0.4rem;">
+              <span>🛒</span> Carrito de insumos
+            </h3>
+            <span id="cartCountBadge" class="badge badge-neutral">0 ítems</span>
+          </div>
+
+          <div class="cart-items-list" id="cartItemsList">
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+              El carrito está vacío. Agregá productos desde el catálogo.
+            </div>
+          </div>
+
+          <div style="border-top: 1px solid var(--border); padding-top: 0.85rem; margin-top: 0.5rem;">
+            <div style="display: flex; justify-content: space-between; font-size: 0.9rem; margin-bottom: 0.35rem;">
+              <span>Subtotal estimado:</span>
+              <span id="cartSubtotalText" style="font-weight: 700;">$0</span>
+            </div>
+            <div style="display: flex; justify-content: space-between; font-size: 1.15rem; font-weight: 800; color: var(--primary-dark); margin-bottom: 1rem;">
+              <span>Total presupuestado:</span>
+              <span id="cartTotalText">$0</span>
+            </div>
+
+            <!-- Disclaimer Cart (RN-025) -->
+            <div style="font-size: 0.75rem; color: var(--text-muted); background: #f8fafc; padding: 0.6rem; border-radius: var(--radius-sm); margin-bottom: 0.85rem; border: 1px solid var(--border);">
+              ⚠️ Carrito simulado con fines de estimación. Brota no efectúa cobros ni transacciones bancarias reales.
+            </div>
+
+            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="BrotaUI.clearCart()">
+              Vaciar carrito
+            </button>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- ========================================== -->
+    <!-- VIEW 4: GUÍA Y CHECKLIST (Recorrido C) -->
+    <!-- ========================================== -->
+    <section id="view-guia" class="view-section">
+      <div class="card-header">
+        <div>
+          <h2 class="card-title">Mini guía de hidroponía y checklist adaptado</h2>
+          <p class="card-subtitle">
+            Conceptos clave para principiantes y plan de acción adaptado a tu proyecto activo.
+          </p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs Guide vs Checklist -->
+      <div class="guide-tabs">
+        <button class="guide-tab-btn active" onclick="BrotaUI.switchGuideTab('checklist')">
+          📋 Checklist del proyecto
+        </button>
+        <button class="guide-tab-btn" onclick="BrotaUI.switchGuideTab('fundamentos')">
+          💡 Fundamentos hidropónicos
+        </button>
+        <button class="guide-tab-btn" onclick="BrotaUI.switchGuideTab('sistemas')">
+          🔄 Tipos de sistemas (NFT, DWC, Goteo)
+        </button>
+        <button class="guide-tab-btn" onclick="BrotaUI.switchGuideTab('ph')">
+          🧪 Solución nutritiva y pH
+        </button>
+      </div>
+
+      <!-- TAB CONTENT: CHECKLIST -->
+      <div id="guide-tab-checklist" class="card">
+        <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <h3 style="font-size: 1.1rem; font-weight: 700;" id="checklistSystemTitle">
+              Checklist para sistema NFT
+            </h3>
+            <p style="font-size: 0.82rem; color: var(--text-muted);">
+              Marcá los pasos a medida que avances con la instalación de tu sistema.
+            </p>
+          </div>
+          <span id="checklistProgressText" class="badge badge-success">0 de 11 completados</span>
+        </div>
+
+        <div class="checklist-progress-bar">
+          <div id="checklistProgressBarFill" class="checklist-progress-fill"></div>
+        </div>
+
+        <div id="checklistItemsContainer" style="margin-top: 1rem;">
+          <!-- Dynamically populated -->
+        </div>
+
+        <!-- AI Agent Placeholder (RF-029, RN-030) -->
+        <div class="agent-placeholder">
+          <div style="display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.5rem;">
+            <div style="font-size: 1.5rem;">🤖</div>
+            <div>
+              <h4 style="font-size: 0.95rem; font-weight: 800; color: #0369a1;">
+                Asistente de consultas Brota (Próximamente)
+              </h4>
+              <p style="font-size: 0.8rem; color: var(--text-muted);">
+                Espacio preparado para integración futura con agente de IA especializado en hidroponía.
+              </p>
+            </div>
+            <span class="badge badge-info" style="margin-left: auto;">Demo / Placeholder</span>
+          </div>
+
+          <p style="font-size: 0.84rem; color: #334155; margin-bottom: 0.75rem;">
+            En versiones futuras, podrás hacer preguntas libres sobre:
+          </p>
+          <div style="display: flex; flex-wrap: wrap; gap: 0.4rem; margin-bottom: 0.85rem;">
+            <span class="badge badge-neutral">Dosificación de nutrientes</span>
+            <span class="badge badge-neutral">Calibración de pH y electroconductividad</span>
+            <span class="badge badge-neutral">Manejo de plagas en hojas</span>
+            <span class="badge badge-neutral">Cálculo de caudal de bomba</span>
+          </div>
+          <div style="display: flex; gap: 0.5rem;">
+            <input type="text" class="form-control" placeholder="Escribí una consulta para Brota..." disabled style="background: white; opacity: 0.7;">
+            <button class="btn btn-secondary btn-sm" disabled style="opacity: 0.7;">Consultar</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT: FUNDAMENTOS -->
+      <div id="guide-tab-fundamentos" class="card" style="display: none;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">¿Qué es la hidroponía y por qué iniciar?</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.6; margin-bottom: 1rem;">
+          La hidroponía es un método de cultivo sin suelo donde las raíces de las plantas reciben una solución de agua enriquecida con nutrientes minerales esenciales. Permite ahorrar hasta un 90% de agua comparado con la agricultura tradicional y acelerar los ciclos productivos en un 30% a 50%.
+        </p>
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1rem; margin-top: 1rem;">
+          <div style="background: var(--bg); padding: 1rem; border-radius: var(--radius-md);">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);">💧 Ahorro hídrico</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">El agua recircula en circuitos cerrados, minimizando la evaporación e infiltración en tierra.</p>
+          </div>
+          <div style="background: var(--bg); padding: 1rem; border-radius: var(--radius-md);">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);">🌱 Mayor densidad</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">Permite producir de 3 a 4 veces más plantas por metro cuadrado que en suelo común.</p>
+          </div>
+          <div style="background: var(--bg); padding: 1rem; border-radius: var(--radius-md);">
+            <h4 style="font-size: 0.9rem; font-weight: 700; color: var(--primary-dark);">🛡️ Menos malezas y plagas</h4>
+            <p style="font-size: 0.82rem; color: var(--text-muted); margin-top: 0.25rem;">Al prescindir de tierra, se eliminan malezas y patógenos de raíz habituales.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT: SISTEMAS -->
+      <div id="guide-tab-sistemas" class="card" style="display: none;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.75rem;">Comparativa de sistemas hidropónicos</h3>
+        <div style="display: flex; flex-direction: column; gap: 1rem;">
+          <div style="border-left: 4px solid #059669; padding-left: 1rem;">
+            <h4 style="font-weight: 700;">NFT (Nutrient Film Technique)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Una lámina delgada de solución circula constantemente por caños o canales inclinados (pendiente 1.5% a 2%). Ideal para hortalizas de hoja rápida (lechuga, rúcula, albahaca).</p>
+          </div>
+          <div style="border-left: 4px solid #0284c7; padding-left: 1rem;">
+            <h4 style="font-weight: 700;">DWC (Deep Water Culture / Raíz Flotante)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">Las raíces están sumergidas permanentemente en un tanque con agua altamente oxigenada con un soplador o bomba de aire. Muy estable ante cortes de luz breves.</p>
+          </div>
+          <div style="border-left: 4px solid #d97706; padding-left: 1rem;">
+            <h4 style="font-weight: 700;">Goteo con Sustrato (Drip System)</h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted);">La solución se administra por goteros a macetas o canaletas con sustrato inerte (perlita, fibra de coco). Indispensable para cultivos de fruto pesado como tomate o frutilla.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT: PH -->
+      <div id="guide-tab-ph" class="card" style="display: none;">
+        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 0.5rem;">Control de pH y Electroconductividad (EC)</h3>
+        <p style="font-size: 0.9rem; color: var(--text-muted); line-height: 1.5; margin-bottom: 1rem;">
+          El pH regula la capacidad de la raíz para asimilar los nutrientes. Si el pH es incorrecto, la planta sufrirá carencias aunque el agua contenga fertilizante en abundancia.
+        </p>
+        <div class="table-responsive">
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Parámetro</th>
+                <th>Rango óptimo general</th>
+                <th>Consecuencia si está bajo</th>
+                <th>Consecuencia si está alto</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>pH</strong></td>
+                <td>5.5 – 6.5</td>
+                <td>Toxicidad por micronutrientes, daño de raíces</td>
+                <td>Bloqueo de hierro, calcio y fósforo (hojas amarillas)</td>
+              </tr>
+              <tr>
+                <td><strong>EC (Conductividad)</strong></td>
+                <td>1.2 – 2.2 mS/cm</td>
+                <td>Crecimiento lento por falta de nutrientes</td>
+                <td>Quemadura de puntas de hojas por exceso de sales</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- MODAL: DEMO MAP DIALOG (RF-011) -->
+  <div id="mapModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Selección de terreno en mapa (Demo)</h3>
+          <p class="card-subtitle">Punto de extensión preparado para Google Maps o SIG.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="BrotaUI.closeMapModal()">✕</button>
+      </div>
+
+      <div style="background: #e2e8f0; height: 260px; border-radius: var(--radius-md); display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden; border: 2px dashed #94a3b8;">
+        <!-- Simple grid pattern simulating map -->
+        <div style="position: absolute; inset: 0; background: radial-gradient(#cbd5e1 15%, transparent 16%) 0 0/20px 20px;"></div>
+        <div style="z-index: 2; text-align: center; background: rgba(255,255,255,0.92); padding: 1rem; border-radius: var(--radius-md); box-shadow: var(--shadow-md);">
+          <div style="font-size: 1.8rem; margin-bottom: 0.25rem;">📍</div>
+          <div style="font-weight: 700; font-size: 0.95rem;">Apóstoles, Misiones</div>
+          <div style="font-size: 0.8rem; color: var(--text-muted); font-family: var(--font-mono); margin-top: 0.2rem;">
+            Lat: -27.9142 • Long: -55.7554
+          </div>
+          <div class="badge badge-info" style="margin-top: 0.5rem;">Criterio INTA Misiones activo</div>
+        </div>
+      </div>
+
+      <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end; gap: 0.5rem;">
+        <button class="btn btn-secondary" onclick="BrotaUI.closeMapModal()">Cancelar</button>
+        <button class="btn btn-primary" onclick="BrotaUI.confirmMapSelection()">Confirmar coordenadas mock</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: DEMO AR VIEWER (Spec 09, RF-033) -->
+  <div id="arModal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Visualización AR / 3D (Demostración)</h3>
+          <p class="card-subtitle">Simulación de proyección en espacio real.</p>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="BrotaUI.closeArModal()">✕</button>
+      </div>
+
+      <div style="background: #090d16; border-radius: var(--radius-md); padding: 1.5rem; text-align: center; color: white;">
+        <div style="font-size: 2.5rem; margin-bottom: 0.5rem;">🥽</div>
+        <h4 style="color: #38bdf8; margin-bottom: 0.5rem;">Módulo de Realidad Aumentada</h4>
+        <p style="font-size: 0.85rem; color: #94a3b8; max-width: 400px; margin: 0 auto 1.25rem;">
+          Esta función proyectará el croquis de los racks hidropónicos y el tanque de reserva a escala 1:1 en el terreno mediante WebXR o cámara móvil.
+        </p>
+
+        <div style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-md); font-family: var(--font-mono); font-size: 0.78rem; text-align: left; color: #a5f3fc;">
+          > Escala proyectada: 1:1<br>
+          > Módulos detectados: <span id="arModalModules">3</span><br>
+          > Sensores requeridos: Giroscopio + Cámara ARCore (disponible en versión móvil)
+        </div>
+      </div>
+
+      <div style="margin-top: 1.25rem; display: flex; justify-content: flex-end;">
+        <button class="btn btn-primary" onclick="BrotaUI.closeArModal()">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="footer">
+    <p style="font-weight: 700; color: var(--text); margin-bottom: 0.25rem;">Brota — Prototipo de Hackatón (G01 Los no marchitados)</p>
+    <p style="margin-bottom: 0.5rem;">Construido bajo el contrato técnico y especificaciones funcionales RF-001 a RF-034.</p>
+    <p style="font-size: 0.72rem; color: var(--text-subtle);">
+      Desafíos #1 (¿Cómo iniciar?), #3 (Componentes/Catálogo) y #6 (Acompañamiento técnico). Datos 100% precargados y ejecutables sin conexión.
+    </p>
+  </footer>
+
+  <!-- ============================================================== -->
+  <!-- JAVASCRIPT: DATA (Spec 10) + CORE LOGIC + PRESENTATION (BrotaUI) -->
+  <!-- ============================================================== -->
+  <script>
+    /**
+     * BROTA_DATA — Spec 10: Datos iniciales y mocks
+     * Totalmente desacoplado de la UI.
+     */
+    const BROTA_DATA = {
+      // 6.1 Cultivos (7 cultivos con rendimiento y ciclo)
+      cultivos: [
+        {
+          id: 'lechuga',
+          nombre: 'Lechuga (Crespa / Mantecosa)',
+          descripcionBreve: 'Ciclo rápido y excelente adaptación a película nutritiva.',
+          cicloDias: '30-45 días',
+          diasPromedio: 35,
+          rendimientoPorModuloCicloKg: 18, // kg por rack por cosecha
+          cosechasPorMes: 0.85,
+          precioReferenciaKg: 2800,
+          sistemasCompatibles: ['nft', 'dwc']
+        },
+        {
+          id: 'rucula',
+          nombre: 'Rúcula',
+          descripcionBreve: 'Ciclo muy corto, alta demanda comercial y rápido retorno.',
+          cicloDias: '25-35 días',
+          diasPromedio: 28,
+          rendimientoPorModuloCicloKg: 14,
+          cosechasPorMes: 1.05,
+          precioReferenciaKg: 3400,
+          sistemasCompatibles: ['nft', 'dwc']
+        },
+        {
+          id: 'espinaca',
+          nombre: 'Espinaca',
+          descripcionBreve: 'Ciclo medio, gran desarrollo radicular y alta demanda nutricional.',
+          cicloDias: '35-45 días',
+          diasPromedio: 40,
+          rendimientoPorModuloCicloKg: 16,
+          cosechasPorMes: 0.75,
+          precioReferenciaKg: 3100,
+          sistemasCompatibles: ['dwc', 'nft']
+        },
+        {
+          id: 'acelga',
+          nombre: 'Acelga',
+          descripcionBreve: 'Ciclo medio a largo, resistente y con hojas de gran porte.',
+          cicloDias: '40-55 días',
+          diasPromedio: 48,
+          rendimientoPorModuloCicloKg: 22,
+          cosechasPorMes: 0.62,
+          precioReferenciaKg: 2400,
+          sistemasCompatibles: ['nft', 'goteo']
+        },
+        {
+          id: 'albahaca',
+          nombre: 'Albahaca Genovesa',
+          descripcionBreve: 'Aromática de alto valor por kilo, ideal para cortes sucesivos.',
+          cicloDias: '30-40 días',
+          diasPromedio: 35,
+          rendimientoPorModuloCicloKg: 12,
+          cosechasPorMes: 0.90,
+          precioReferenciaKg: 4200,
+          sistemasCompatibles: ['nft', 'goteo']
+        },
+        {
+          id: 'frutilla',
+          nombre: 'Frutilla / Fresa',
+          descripcionBreve: 'Fruto de alto valor comercial, requiere sustrato y riego localizado.',
+          cicloDias: '60-90 días',
+          diasPromedio: 75,
+          rendimientoPorModuloCicloKg: 25,
+          cosechasPorMes: 0.50,
+          precioReferenciaKg: 6500,
+          sistemasCompatibles: ['goteo', 'nft']
+        },
+        {
+          id: 'tomate',
+          nombre: 'Tomate Cherry / Perita',
+          descripcionBreve: 'Ciclo largo, exige soporte estructural y conducción por tutores.',
+          cicloDias: '70-90 días',
+          diasPromedio: 80,
+          rendimientoPorModuloCicloKg: 40,
+          cosechasPorMes: 0.40,
+          precioReferenciaKg: 3800,
+          sistemasCompatibles: ['goteo']
+        }
+      ],
+
+      // 6.2 Sistemas Hidropónicos (3 sistemas)
+      sistemas: [
+        {
+          id: 'nft',
+          nombre: 'NFT (Nutrient Film Technique)',
+          descripcionBreve: 'Una fina lámina de solución nutritiva recircula continuamente por canales de PVC inclinados.',
+          componentesBase: ['tanque', 'bomba', 'canales_nft', 'filtro', 'medidor_ph', 'estructura_invernadero', 'cubierta'],
+          cultivosCompatibles: ['lechuga', 'rucula', 'espinaca', 'acelga', 'albahaca', 'frutilla'],
+          consumoKwhMesPorModulo: 18,
+          consumoAguaLitrosMesPorModulo: 120
+        },
+        {
+          id: 'dwc',
+          nombre: 'DWC (Deep Water Culture / Raíz Flotante)',
+          descripcionBreve: 'Las raíces permanecen sumergidas en bateas oxigenadas activamente mediante bomba de aire.',
+          componentesBase: ['tanque', 'bomba_aireacion', 'contenedor_dwc', 'medidor_ph', 'estructura_invernadero', 'cubierta'],
+          cultivosCompatibles: ['lechuga', 'rucula', 'espinaca'],
+          consumoKwhMesPorModulo: 22,
+          consumoAguaLitrosMesPorModulo: 140
+        },
+        {
+          id: 'goteo',
+          nombre: 'Goteo con Sustrato',
+          descripcionBreve: 'Riego localizado directamente en bolsas o canaletas con sustrato (fibra de coco / perlita).',
+          componentesBase: ['tanque', 'bomba', 'lineas_goteo', 'filtro', 'medidor_ph', 'estructura_invernadero', 'cubierta'],
+          cultivosCompatibles: ['frutilla', 'tomate', 'acelga', 'albahaca'],
+          consumoKwhMesPorModulo: 15,
+          consumoAguaLitrosMesPorModulo: 160
+        }
+      ],
+
+      // 6.3 Componentes Base (10 componentes con vida útil y mantenimiento)
+      componentes: [
+        { id: 'estructura_invernadero', nombre: 'Estructura metálica/madera', categoria: 'estructura', unidad: 'm²', costoUnitario: 14500, vidaUtilMeses: 120, mantenimientoFreq: 'Revisión anual', costoMantenimientoAnual: 12000, escala: 'por_superficie' },
+        { id: 'cubierta', nombre: 'Cubierta film térmico 150 mic.', categoria: 'estructura', unidad: 'm²', costoUnitario: 3800, vidaUtilMeses: 36, mantenimientoFreq: 'Reemplazo cada 3 años', costoMantenimientoAnual: 0, escala: 'por_superficie' },
+        { id: 'tanque', nombre: 'Tanque de reserva bicapa 500L', categoria: 'hidraulico', unidad: 'unidad', costoUnitario: 95000, vidaUtilMeses: 96, mantenimientoFreq: 'Limpieza semestral', costoMantenimientoAnual: 8000, escala: 'por_umbral_modulos', umbral: 6 },
+        { id: 'bomba', nombre: 'Bomba sumergible recirculación', categoria: 'equipamiento', unidad: 'unidad', costoUnitario: 68000, vidaUtilMeses: 24, mantenimientoFreq: 'Revisión semestral', costoMantenimientoAnual: 15000, escala: 'por_umbral_modulos', umbral: 6 },
+        { id: 'bomba_aireacion', nombre: 'Compresor / Bomba de aireación', categoria: 'equipamiento', unidad: 'unidad', costoUnitario: 52000, vidaUtilMeses: 24, mantenimientoFreq: 'Limpieza de difusores mensual', costoMantenimientoAnual: 9000, escala: 'por_umbral_modulos', umbral: 4 },
+        { id: 'canales_nft', nombre: 'Canales NFT con caballete (rack)', categoria: 'produccion', unidad: 'módulo', costoUnitario: 110000, vidaUtilMeses: 60, mantenimientoFreq: 'Lavado post-cosecha', costoMantenimientoAnual: 6000, escala: '1_a_1' },
+        { id: 'contenedor_dwc', nombre: 'Batea DWC con planchas de EPS', categoria: 'produccion', unidad: 'módulo', costoUnitario: 92000, vidaUtilMeses: 60, mantenimientoFreq: 'Desinfección periódica', costoMantenimientoAnual: 5000, escala: '1_a_1' },
+        { id: 'lineas_goteo', nombre: 'Líneas de goteo autocompensante', categoria: 'hidraulico', unidad: 'módulo', costoUnitario: 48000, vidaUtilMeses: 36, mantenimientoFreq: 'Purga trimestral', costoMantenimientoAnual: 7000, escala: '1_a_1' },
+        { id: 'filtro', nombre: 'Filtro de discos para impurezas', categoria: 'hidraulico', unidad: 'unidad', costoUnitario: 26000, vidaUtilMeses: 6, mantenimientoFreq: 'Reemplazo de discos semestral', costoMantenimientoAnual: 14000, escala: 'fijo_1' },
+        { id: 'medidor_ph', nombre: 'Medidor digital pH & Conductividad', categoria: 'equipamiento', unidad: 'unidad', costoUnitario: 45000, vidaUtilMeses: 12, mantenimientoFreq: 'Calibración con buffer mensual', costoMantenimientoAnual: 12000, escala: 'fijo_1' }
+      ],
+
+      // 6.5 Proveedores (4 proveedores locales del NEA/Misiones)
+      proveedores: [
+        { id: 'p1', nombre: 'Proveedor Agro Misiones', ubicacion: 'Apóstoles, Misiones', categorias: ['estructura', 'hidraulico'] },
+        { id: 'p2', nombre: 'Hidro Insumos NEA', ubicacion: 'Posadas, Misiones', categorias: ['equipamiento', 'produccion'] },
+        { id: 'p3', nombre: 'Vivero Técnico Apóstoles', ubicacion: 'Apóstoles, Misiones', categorias: ['produccion', 'insumos'] },
+        { id: 'p4', nombre: 'TecnoAgro Litoral', ubicacion: 'Oberá, Misiones', categorias: ['equipamiento', 'hidraulico'] }
+      ],
+
+      // 6.4 Productos en catálogo (12 productos representativos con comparación de precio)
+      productos: [
+        { id: 'pr-1', nombre: 'Estructura modular galvanizada 15m²', categoria: 'estructura', componenteId: 'estructura_invernadero', proveedorId: 'p1', precio: 217500, unidad: 'kit 15m²', disponible: true, precioRef: { monto: 245000, fuente: 'Mercado Agro Web (demo)', fecha: '2026-09-15' } },
+        { id: 'pr-2', nombre: 'Film polietileno difusor 150 mic. (30m²)', categoria: 'estructura', componenteId: 'cubierta', proveedorId: 'p1', precio: 114000, unidad: 'rollo 30m²', disponible: true, precioRef: { monto: 128000, fuente: 'Distribuidor Nacional (demo)', fecha: '2026-09-18' } },
+        { id: 'pr-3', nombre: 'Tanque 500L bicapa virgen reforzado', categoria: 'hidraulico', componenteId: 'tanque', proveedorId: 'p1', precio: 95000, unidad: 'unidad', disponible: true, precioRef: { monto: 104000, fuente: 'Ferretería Regional (demo)', fecha: '2026-09-10' } },
+        { id: 'pr-4', nombre: 'Bomba sumergible 2500 L/h eje cerámico', categoria: 'equipamiento', componenteId: 'bomba', proveedorId: 'p2', precio: 68000, unidad: 'unidad', disponible: true, precioRef: { monto: 76000, fuente: 'Comercio Online (demo)', fecha: '2026-09-20' } },
+        { id: 'pr-5', nombre: 'Kit Rack NFT 3 pisos 75 plantas', categoria: 'produccion', componenteId: 'canales_nft', proveedorId: 'p2', precio: 110000, unidad: 'rack completo', disponible: true, precioRef: { monto: 125000, fuente: 'Hidro Web Sur (demo)', fecha: '2026-09-12' } },
+        { id: 'pr-6', nombre: 'Batea DWC 100 plantas c/plancha alta densidad', categoria: 'produccion', componenteId: 'contenedor_dwc', proveedorId: 'p3', precio: 92000, unidad: 'batea', disponible: true, precioRef: { monto: 101000, fuente: 'Mercado Agro Web (demo)', fecha: '2026-09-14' } },
+        { id: 'pr-7', nombre: 'Kit Riego por Goteo 100 goteros autocomp.', categoria: 'hidraulico', componenteId: 'lineas_goteo', proveedorId: 'p4', precio: 48000, unidad: 'kit', disponible: true, precioRef: { monto: 54000, fuente: 'Riego Litoral (demo)', fecha: '2026-09-17' } },
+        { id: 'pr-8', nombre: 'Filtro de discos anillas 1 pulgada', categoria: 'hidraulico', componenteId: 'filtro', proveedorId: 'p4', precio: 26000, unidad: 'unidad', disponible: true, precioRef: { monto: 29500, fuente: 'Distribuidor Nacional (demo)', fecha: '2026-09-08' } },
+        { id: 'pr-9', nombre: 'Medidor Combo digital pH / EC / Temp', categoria: 'equipamiento', componenteId: 'medidor_ph', proveedorId: 'p2', precio: 45000, unidad: 'unidad', disponible: true, precioRef: { monto: 53000, fuente: 'Importador Directo (demo)', fecha: '2026-09-19' } },
+        { id: 'pr-10', nombre: 'Compresor de aireación diafragma 45 L/min', categoria: 'equipamiento', componenteId: 'bomba_aireacion', proveedorId: 'p2', precio: 52000, unidad: 'unidad', disponible: true, precioRef: { monto: 58000, fuente: 'Comercio Online (demo)', fecha: '2026-09-11' } },
+        { id: 'pr-11', nombre: 'Solución Nutritiva A+B Concentrada (500L)', categoria: 'insumos', componenteId: null, proveedorId: 'p3', precio: 32000, unidad: 'bidón', disponible: true, precioRef: { monto: 35000, fuente: 'Química Agro (demo)', fecha: '2026-09-21' } },
+        { id: 'pr-12', nombre: 'Sustrato Fibra de Coco tamizada 50L', categoria: 'insumos', componenteId: null, proveedorId: 'p3', precio: 18500, unidad: 'bolsa', disponible: true, precioRef: { monto: 21000, fuente: 'Vivero Mayorista (demo)', fecha: '2026-09-16' } }
+      ],
+
+      // 6.7 Ubicaciones mock (con foco en Apóstoles, Misiones)
+      ubicaciones: [
+        {
+          id: 'apostoles',
+          nombre: 'Apóstoles, Misiones',
+          lat: -27.9142,
+          lng: -55.7554,
+          orientacionOptima: 'N-NE',
+          clima: 'Subtropical húmedo. Veranos cálidos con alta radiación. Vientos predominantes del este.',
+          criterioINTA: 'Requiere ventilación cenital y malla sombra al 35% en los meses de diciembre a febrero.',
+          riesgoInundacionSugerido: 'bajo'
+        },
+        {
+          id: 'posadas',
+          nombre: 'Posadas, Misiones',
+          lat: -27.3671,
+          lng: -55.8961,
+          orientacionOptima: 'N-NE',
+          clima: 'Cálido fluvial. Alta humedad relativa ambiente.',
+          criterioINTA: 'Priorizar circulación de aire constante para evitar hongos en hoja.',
+          riesgoInundacionSugerido: 'bajo'
+        },
+        {
+          id: 'obera',
+          nombre: 'Oberá, Misiones (Zona serrana)',
+          lat: -27.4859,
+          lng: -55.1206,
+          orientacionOptima: 'N',
+          clima: 'Relieve ondulado con microclimas de menor temperatura nocturna.',
+          criterioINTA: 'Revisar pendiente del terreno para nivelar bases de tanques.',
+          riesgoInundacionSugerido: 'medio'
+        }
+      ],
+
+      // 6.10 Checklists por Sistema (Spec 10)
+      checklists: {
+        nft: [
+          'Preparar y nivelar el espacio del invernadero',
+          'Verificar orientación del invernadero (hacia el Norte/Noreste)',
+          'Instalar estructura y cubierta con ventilación lateral',
+          'Instalar y fijar tanque de reserva en zona protegida del sol directo',
+          'Colocar y conectar bomba sumergible en el tanque',
+          'Tender cañerías de impulsión y retornos colectores',
+          'Montar módulos/canales NFT asegurando pendiente del 1.5% al 2%',
+          'Realizar prueba hidráulica de estanqueidad y circulación con agua limpia',
+          'Preparar la solución nutritiva y homogeneizar',
+          'Calibrar y verificar pH (5.8 a 6.2) y electroconductividad',
+          'Realizar trasplante de plantines con cepellón a los orificios del canal'
+        ],
+        dwc: [
+          'Preparar y nivelar la solera del terreno',
+          'Verificar orientación y sombreado para evitar sobrecalentamiento del agua',
+          'Armar las bateas o piletas impermeabilizadas con geomembrana',
+          'Instalar el compresor o bomba de aireación en sector seco y elevado',
+          'Distribuir mangueras y piedras difusoras en el fondo de las bateas',
+          'Llenar las bateas con agua y probar burbujeo constante y uniforme',
+          'Preparar y disolver sales nutritivas hasta la conductividad requerida',
+          'Medir y ajustar el pH de la solución (5.8 – 6.3)',
+          'Colocar planchas de poliestireno extruido (EPS) con perforaciones',
+          'Montar canastillas con plantines asegurando contacto inicial de raíces',
+          'Programar temporizador para oxigenación continua 24hs'
+        ],
+        goteo: [
+          'Limpiar y despejar el suelo o bancales de cultivo',
+          'Montar estructura de invernadero con altura suficiente para tutores',
+          'Colocar tanque de reserva con filtro de discos en la salida',
+          'Instalar bomba de presurización y electroválvula de control',
+          'Tender tubería troncal y ramales secundarios de riego',
+          'Colocar macetas o bolsas de sustrato (fibra de coco / perlita)',
+          'Insertar goteros autocompensantes y microtubos con estaca',
+          'Efectuar lavado inicial del sustrato con agua pura para eliminar polvo',
+          'Preparar la solución nutritiva concentrada',
+          'Medir pH del agua de drenaje tras el primer riego de prueba',
+          'Sembrar o plantar y colocar tutores o guías verticales'
+        ]
+      },
+
+      // 6.6 Proyectos de Demostración Completos (Spec 10, Sec 6.6)
+      proyectosDemo: [
+        {
+          id: 'demo-1',
+          nombre: 'Huerta familiar — Lechuga NFT',
+          situacionInicial: 'desde_cero',
+          infraestructuraExistente: [],
+          ubicacionId: 'apostoles',
+          ubicacionTexto: 'Apóstoles, Misiones',
+          superficie: 24,
+          ancho: 4,
+          largo: 6,
+          orientacion: 'N-NE',
+          disponibilidadAgua: true,
+          disponibilidadElectrica: true,
+          riesgoInundacion: 'bajo',
+          cultivoId: 'lechuga',
+          sistemaId: 'nft',
+          cantidadModulos: 3,
+          presupuestoDisponible: 950000,
+          objetivoProduccion: 40, // kg/mes
+          checklistProgress: [0, 1, 2, 3, 4], // pasos completados
+          fechaCreacion: '2026-09-24'
+        },
+        {
+          id: 'demo-2',
+          nombre: 'Ampliación frutilla — Riego por Goteo',
+          situacionInicial: 'infraestructura_parcial',
+          infraestructuraExistente: ['terreno', 'invernadero', 'tanque'],
+          ubicacionId: 'apostoles',
+          ubicacionTexto: 'Apóstoles, Misiones',
+          superficie: 45,
+          ancho: 5,
+          largo: 9,
+          orientacion: 'N',
+          disponibilidadAgua: true,
+          disponibilidadElectrica: true,
+          riesgoInundacion: 'bajo',
+          cultivoId: 'frutilla',
+          sistemaId: 'goteo',
+          cantidadModulos: 4,
+          presupuestoDisponible: 1200000,
+          objetivoProduccion: 50,
+          checklistProgress: [0, 1, 2],
+          fechaCreacion: '2026-09-24'
+        },
+        {
+          id: 'demo-3',
+          nombre: 'Nueva inversión — Tomate intensivo',
+          situacionInicial: 'nueva_inversion',
+          infraestructuraExistente: [],
+          ubicacionId: 'obera',
+          ubicacionTexto: 'Oberá, Misiones',
+          superficie: 70,
+          ancho: 7,
+          largo: 10,
+          orientacion: 'N-NE',
+          disponibilidadAgua: true,
+          disponibilidadElectrica: true,
+          riesgoInundacion: 'medio',
+          cultivoId: 'tomate',
+          sistemaId: 'goteo',
+          cantidadModulos: 6,
+          presupuestoDisponible: 2800000,
+          objetivoProduccion: 180,
+          checklistProgress: [],
+          fechaCreacion: '2026-09-24'
+        }
+      ]
+    };
+
+    /**
+     * STORAGE & REPOSITORIES (Spec 01)
+     * Abstracción desacoplada con persistencia en localStorage y fallback en memoria.
+     */
+    const BrotaStorage = {
+      KEY_PROJECTS: 'brota_proyectos_v1',
+      KEY_ACTIVE_PID: 'brota_active_pid_v1',
+      KEY_CART: 'brota_cart_v1',
+
+      getProjects() {
+        const stored = localStorage.getItem(this.KEY_PROJECTS);
+        if (stored) {
+          try { return JSON.parse(stored); } catch (e) { console.error(e); }
+        }
+        // Seed default projects
+        const clones = JSON.parse(JSON.stringify(BROTA_DATA.proyectosDemo));
+        this.saveProjects(clones);
+        return clones;
+      },
+
+      saveProjects(projects) {
+        localStorage.setItem(this.KEY_PROJECTS, JSON.stringify(projects));
+      },
+
+      getActiveProject() {
+        const projects = this.getProjects();
+        const activeId = localStorage.getItem(this.KEY_ACTIVE_PID);
+        const found = projects.find(p => p.id === activeId);
+        return found || projects[0];
+      },
+
+      setActiveProjectId(id) {
+        localStorage.setItem(this.KEY_ACTIVE_PID, id);
+      },
+
+      saveProject(project) {
+        const projects = this.getProjects();
+        const index = projects.findIndex(p => p.id === project.id);
+        if (index >= 0) {
+          projects[index] = project;
+        } else {
+          projects.push(project);
+        }
+        this.saveProjects(projects);
+      },
+
+      getCart() {
+        const stored = localStorage.getItem(this.KEY_CART);
+        return stored ? JSON.parse(stored) : [];
+      },
+
+      saveCart(cart) {
+        localStorage.setItem(this.KEY_CART, JSON.stringify(cart));
+      },
+
+      resetAll() {
+        localStorage.removeItem(this.KEY_PROJECTS);
+        localStorage.removeItem(this.KEY_ACTIVE_PID);
+        localStorage.removeItem(this.KEY_CART);
+      }
+    };
+
+    /**
+     * BROTA_CORE — Motores de cálculo de negocio (independiente de la UI)
+     */
+    const BrotaCore = {
+      // Spec 02 & RN-005: Verificar compatibilidad cultivo y sistema
+      esCompatible(cultivoId, sistemaId) {
+        const cultivo = BROTA_DATA.cultivos.find(c => c.id === cultivoId);
+        if (!cultivo) return true;
+        return cultivo.sistemasCompatibles.includes(sistemaId);
+      },
+
+      // Spec 03: Evaluación preliminar de factibilidad (RN-008 a RN-011)
+      evaluarFactibilidad(proyecto) {
+        const alertas = [];
+        let estado = 'favorable'; // favorable | limitada | critica
+
+        const supDisponible = proyecto.superficie || (proyecto.ancho * proyecto.largo) || 0;
+        const supRequerida = (proyecto.cantidadModulos || 1) * 6; // 6 m² por módulo aprox con pasillos
+
+        if (supDisponible < supRequerida) {
+          alertas.push(`Superficie disponible (${supDisponible} m²) insuficiente para la escala seleccionada (${supRequerida} m² requeridos).`);
+          estado = 'limitada';
+        }
+
+        if (!proyecto.disponibilidadAgua || !proyecto.disponibilidadElectrica) {
+          alertas.push('Sin disponibilidad directa de agua de red/pozo o electricidad continua.');
+          estado = 'critica';
+        }
+
+        if (proyecto.riesgoInundacion === 'alto') {
+          alertas.push('Riesgo de inundación alto en la zona. Requiere sobreelevación de bancales y tanques.');
+          if (estado !== 'critica') estado = 'limitada';
+        }
+
+        return { estado, alertas, supDisponible, supRequerida };
+      },
+
+      // Spec 04: Componentes requeridos descontando existentes (RF-012, RN-012, RN-013)
+      calcularComponentesRequeridos(proyecto) {
+        const sistema = BROTA_DATA.sistemas.find(s => s.id === proyecto.sistemaId);
+        if (!sistema) return [];
+
+        const existentes = proyecto.infraestructuraExistente || [];
+        const tieneInvernadero = existentes.includes('invernadero');
+        const tieneTanque = existentes.includes('tanque');
+        const tieneRacks = existentes.includes('racks');
+        const tieneBombas = existentes.includes('bombas');
+
+        const superficie = proyecto.superficie || (proyecto.cantidadModulos * 6);
+        const modulos = proyecto.cantidadModulos || 1;
+
+        const resultado = [];
+
+        sistema.componentesBase.forEach(compId => {
+          const comp = BROTA_DATA.componentes.find(c => c.id === compId);
+          if (!comp) return;
+
+          let cantidad = 1;
+          if (comp.escala === '1_a_1') {
+            cantidad = modulos;
+          } else if (comp.escala === 'por_superficie') {
+            cantidad = Math.ceil(superficie);
+          } else if (comp.escala === 'por_umbral_modulos') {
+            cantidad = Math.ceil(modulos / (comp.umbral || 4));
+          }
+
+          // Descuento según infraestructura declarada
+          let yaContemplado = false;
+          if (tieneInvernadero && (comp.id === 'estructura_invernadero' || comp.id === 'cubierta')) yaContemplado = true;
+          if (tieneTanque && comp.id === 'tanque') yaContemplado = true;
+          if (tieneRacks && (comp.id === 'canales_nft' || comp.id === 'contenedor_dwc' || comp.id === 'lineas_goteo')) yaContemplado = true;
+          if (tieneBombas && (comp.id === 'bomba' || comp.id === 'bomba_aireacion')) yaContemplado = true;
+
+          const costoUnitario = comp.costoUnitario;
+          const costoTotal = yaContemplado ? 0 : (cantidad * costoUnitario);
+
+          resultado.push({
+            componente: comp,
+            cantidad,
+            origen: yaContemplado ? 'ya_contemplado' : 'requerido',
+            costoUnitario,
+            costoTotal
+          });
+        });
+
+        return resultado;
+      },
+
+      // Spec 05: Estimación Económica (RF-014, RN-015, RN-016)
+      calcularEstimacionEconomica(proyecto, componentesCalculados) {
+        const costoComponentes = componentesCalculados
+          .filter(c => c.origen === 'requerido')
+          .reduce((sum, c) => sum + c.costoTotal, 0);
+
+        // Regla RN-016: Instalación (12% componentes) y Mano de Obra ($35.000 por módulo + $40.000 base)
+        const costoInstalacion = Math.round(costoComponentes * 0.12);
+        const costoManoDeObra = Math.round(40000 + ((proyecto.cantidadModulos || 1) * 35000));
+        const inversionInicial = costoComponentes + costoInstalacion + costoManoDeObra;
+
+        let estadoPresupuesto = 'sin_definir';
+        let diferenciaPresupuesto = 0;
+
+        if (proyecto.presupuestoDisponible && proyecto.presupuestoDisponible > 0) {
+          diferenciaPresupuesto = proyecto.presupuestoDisponible - inversionInicial;
+          estadoPresupuesto = diferenciaPresupuesto >= 0 ? 'dentro' : 'supera';
+        }
+
+        return {
+          costoComponentes,
+          costoInstalacion,
+          costoManoDeObra,
+          inversionInicial,
+          estadoPresupuesto,
+          diferenciaPresupuesto
+        };
+      },
+
+      // Spec 06: Producción, Ingresos, Retorno y TCO (RF-017, RF-018, RN-019, RN-020)
+      calcularProduccionYRetorno(proyecto, economia) {
+        const cultivo = BROTA_DATA.cultivos.find(c => c.id === proyecto.cultivoId);
+        const sistema = BROTA_DATA.sistemas.find(s => s.id === proyecto.sistemaId);
+        if (!cultivo || !sistema) return null;
+
+        const modulos = proyecto.cantidadModulos || 1;
+        // Producción mensual estimada
+        const produccionKgMes = Math.round(cultivo.rendimientoPorModuloCicloKg * modulos * cultivo.cosechasPorMes);
+        const ingresoBrutoMensual = Math.round(produccionKgMes * cultivo.precioReferenciaKg);
+
+        // Costos recurrentes mensuales: Nutrientes + Electricidad + Agua + Insumos de limpieza
+        const costoNutrientes = modulos * 14000;
+        const costoLuzAgua = Math.round((sistema.consumoKwhMesPorModulo * modulos * 180) + (sistema.consumoAguaLitrosMesPorModulo * modulos * 15));
+        const costoMantenimientoMensual = Math.round(modulos * 6000);
+        const costosMensualesTotales = costoNutrientes + costoLuzAgua + costoMantenimientoMensual;
+
+        const margenNetoMensual = ingresoBrutoMensual - costosMensualesTotales;
+
+        let recuperacionMeses = null;
+        let esViable = true;
+
+        if (margenNetoMensual > 0) {
+          recuperacionMeses = Math.ceil(economia.inversionInicial / margenNetoMensual);
+        } else {
+          esViable = false;
+        }
+
+        return {
+          produccionKgMes,
+          frecuenciaCosecha: cultivo.cicloDias,
+          ingresoBrutoMensual,
+          costosMensualesTotales,
+          margenNetoMensual,
+          recuperacionMeses,
+          esViable
+        };
+      },
+
+      // Spec 06 / RN-020: Proyección TCO a 5 años (Matriz de mantenimiento y reposición)
+      generarMatrizTCO(componentesCalculados) {
+        const matriz = [];
+        const horizonteMeses = 60; // 5 años
+
+        componentesCalculados.forEach(item => {
+          const c = item.componente;
+          const vidaUtil = c.vidaUtilMeses;
+
+          // Eventos de reposición programados dentro de 5 años
+          for (let m = vidaUtil; m <= horizonteMeses; m += vidaUtil) {
+            const anio = Math.round((m / 12) * 10) / 10;
+            matriz.push({
+              componente: c.nombre,
+              tipo: 'Reposición programada por fin de vida útil',
+              mes: m,
+              anio: `Año ${anio}`,
+              costo: c.costoUnitario * item.cantidad
+            });
+          }
+
+          // Mantenimientos anuales
+          if (c.costoMantenimientoAnual > 0) {
+            matriz.push({
+              componente: c.nombre,
+              tipo: `${c.mantenimientoFreq} (Mantenimiento preventivo)`,
+              mes: 12,
+              anio: 'Anual (acum. 5 años)',
+              costo: c.costoMantenimientoAnual * 5
+            });
+          }
+        });
+
+        // Ordenar por año
+        return matriz;
+      },
+
+      // Spec 07 / RF-022: Estado contextual del producto para el proyecto activo
+      obtenerEstadoProducto(producto, proyecto, componentesCalculados) {
+        if (!proyecto || !componentesCalculados) return null;
+
+        if (!producto.componenteId) return 'recomendado';
+
+        const match = componentesCalculados.find(c => c.componente.id === producto.componenteId);
+        if (match) {
+          return match.origen === 'ya_contemplado' ? 'ya_contemplado' : 'necesario';
+        }
+        return null;
+      }
+    };
+
+    /**
+     * BROTA_UI — Controlador de presentación y vistas interactivas
+     */
+    const BrotaUI = {
+      currentView: 'home',
+      currentWizardStep: 1,
+      currentProject: null,
+      activeGuideTab: 'checklist',
+
+      init() {
+        this.currentProject = BrotaStorage.getActiveProject();
+        this.renderHeaderProjectSelector();
+        this.renderHomeDemoCards();
+        this.renderWizardStep(1);
+        this.renderCatalog();
+        this.renderCart();
+        this.renderChecklist();
+      },
+
+      switchView(viewName) {
+        this.currentView = viewName;
+        document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+        const targetView = document.getElementById(`view-${viewName}`);
+        if (targetView) targetView.classList.add('active');
+
+        document.querySelectorAll('.nav-tab-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.getAttribute('data-view') === viewName);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+
+        if (viewName === 'catalogo') this.renderCatalog();
+        if (viewName === 'guia') this.renderChecklist();
+        if (viewName === 'evaluacion') this.renderWizardStep(this.currentWizardStep);
+      },
+
+      renderHeaderProjectSelector() {
+        const select = document.getElementById('headerProjectSelector');
+        const projects = BrotaStorage.getProjects();
+        select.innerHTML = projects.map(p => `
+          <option value="${p.id}" ${p.id === this.currentProject.id ? 'selected' : ''}>
+            ${p.nombre}
+          </option>
+        `).join('') + '<option value="__new__">+ Crear nuevo...</option>';
+      },
+
+      onHeaderProjectChange(value) {
+        if (value === '__new__') {
+          this.startNewProject();
+          return;
+        }
+        BrotaStorage.setActiveProjectId(value);
+        this.currentProject = BrotaStorage.getActiveProject();
+        this.refreshAll();
+      },
+
+      refreshAll() {
+        this.renderHeaderProjectSelector();
+        this.renderHomeDemoCards();
+        this.renderWizardStep(this.currentWizardStep);
+        this.renderCatalog();
+        this.renderChecklist();
+      },
+
+      startNewProject() {
+        const newProj = {
+          id: 'proj-' + Date.now(),
+          nombre: 'Mi nuevo proyecto',
+          situacionInicial: 'desde_cero',
+          infraestructuraExistente: [],
+          ubicacionId: 'apostoles',
+          ubicacionTexto: 'Apóstoles, Misiones',
+          superficie: 24,
+          ancho: 4,
+          largo: 6,
+          orientacion: 'N-NE',
+          disponibilidadAgua: true,
+          disponibilidadElectrica: true,
+          riesgoInundacion: 'bajo',
+          cultivoId: 'lechuga',
+          sistemaId: 'nft',
+          cantidadModulos: 2,
+          presupuestoDisponible: 800000,
+          objetivoProduccion: 30,
+          checklistProgress: [],
+          fechaCreacion: new Date().toISOString().split('T')[0]
+        };
+        BrotaStorage.saveProject(newProj);
+        BrotaStorage.setActiveProjectId(newProj.id);
+        this.currentProject = newProj;
+        this.refreshAll();
+        this.switchView('evaluacion');
+        this.goToStep(1);
+      },
+
+      resetDemoData() {
+        if (confirm('¿Restablecer proyectos precargados a su estado inicial?')) {
+          BrotaStorage.resetAll();
+          this.init();
+          alert('Proyectos de demostración restablecidos.');
+        }
+      },
+
+      renderHomeDemoCards() {
+        const container = document.getElementById('homeDemoCardsContainer');
+        const projects = BrotaStorage.getProjects();
+        container.innerHTML = projects.map(p => {
+          const cultivo = BROTA_DATA.cultivos.find(c => c.id === p.cultivoId);
+          const sistema = BROTA_DATA.sistemas.find(s => s.id === p.sistemaId);
+          const isActive = p.id === this.currentProject.id;
+          return `
+            <div class="demo-card ${isActive ? 'active-demo' : ''}" onclick="BrotaUI.selectDemoProject('${p.id}')">
+              <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                <h4 style="font-size: 0.95rem; font-weight: 700;">${p.nombre}</h4>
+                ${isActive ? '<span class="badge badge-success">Activo</span>' : ''}
+              </div>
+              <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem;">
+                ${p.ubicacionTexto} • ${p.superficie} m²
+              </p>
+              <div class="demo-meta">
+                <span class="badge badge-neutral">${cultivo ? cultivo.nombre.split(' ')[0] : 'Cultivo'}</span>
+                <span class="badge badge-info">${sistema ? sistema.nombre.split(' ')[0] : 'Sistema'}</span>
+                <span class="badge badge-warning">${p.cantidadModulos} módulos</span>
+              </div>
+            </div>
+          `;
+        }).join('');
+      },
+
+      selectDemoProject(id) {
+        BrotaStorage.setActiveProjectId(id);
+        this.currentProject = BrotaStorage.getActiveProject();
+        this.refreshAll();
+      },
+
+      // ===============================================
+      // WIZARD CONTROLLER (Recorrido A)
+      // ===============================================
+      goToStep(stepNumber) {
+        this.currentWizardStep = stepNumber;
+        document.querySelectorAll('.step-item').forEach(item => {
+          const s = parseInt(item.getAttribute('data-step'));
+          item.classList.toggle('active', s === stepNumber);
+          item.classList.toggle('completed', s < stepNumber);
+        });
+        document.getElementById('wizardStepIndicator').innerText = `Paso ${stepNumber} de 8`;
+        document.getElementById('wizardPrevBtn').style.visibility = stepNumber === 1 ? 'hidden' : 'visible';
+        document.getElementById('wizardNextBtn').innerText = stepNumber === 8 ? 'Finalizar evaluación' : 'Siguiente →';
+        this.renderWizardStep(stepNumber);
+      },
+
+      wizardNext() {
+        if (this.currentWizardStep < 8) {
+          this.goToStep(this.currentWizardStep + 1);
+        } else {
+          this.switchView('propuesta');
+        }
+      },
+
+      wizardPrev() {
+        if (this.currentWizardStep > 1) {
+          this.goToStep(this.currentWizardStep - 1);
+        }
+      },
+
+      renderWizardStep(step) {
+        const area = document.getElementById('step-content-area');
+        const p = this.currentProject;
+
+        if (step === 1) {
+          // Spec 01: Proyecto y situación inicial
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 1: Nombre y situación inicial</h3>
+                <p class="card-subtitle">Indicá cómo iniciás tu proyecto para adaptar los cálculos.</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Nombre del proyecto *</label>
+              <input type="text" class="form-control" value="${p.nombre}" onchange="BrotaUI.updateField('nombre', this.value)">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Situación inicial *</label>
+              <div class="selection-grid">
+                <div class="selectable-card ${p.situacionInicial === 'desde_cero' ? 'selected' : ''}" onclick="BrotaUI.updateField('situacionInicial', 'desde_cero')">
+                  <h4>🌱 Partir desde cero</h4>
+                  <p>No poseo infraestructura y necesito conocer todo lo necesario para comenzar.</p>
+                </div>
+                <div class="selectable-card ${p.situacionInicial === 'infraestructura_parcial' ? 'selected' : ''}" onclick="BrotaUI.updateField('situacionInicial', 'infraestructura_parcial')">
+                  <h4>🏗️ Infraestructura parcial</h4>
+                  <p>Ya dispongo de algunos elementos (terreno, estructura, tanques) y quiero aprovecharlos.</p>
+                </div>
+                <div class="selectable-card ${p.situacionInicial === 'nueva_inversion' ? 'selected' : ''}" onclick="BrotaUI.updateField('situacionInicial', 'nueva_inversion')">
+                  <h4>📈 Nueva inversión</h4>
+                  <p>Busco planificar y proyectar el retorno y TCO para una escala comercial.</p>
+                </div>
+              </div>
+            </div>
+            ${p.situacionInicial === 'infraestructura_parcial' ? `
+              <div class="card" style="background: var(--bg); border: 1px dashed var(--border-strong); margin-top: 1rem;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem;">Declarar elementos ya existentes:</h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.5rem; font-size: 0.85rem;">
+                  <label><input type="checkbox" ${p.infraestructuraExistente.includes('terreno') ? 'checked' : ''} onchange="BrotaUI.toggleInfraExistente('terreno')"> Terreno nivelado</label>
+                  <label><input type="checkbox" ${p.infraestructuraExistente.includes('invernadero') ? 'checked' : ''} onchange="BrotaUI.toggleInfraExistente('invernadero')"> Invernadero / Estructura</label>
+                  <label><input type="checkbox" ${p.infraestructuraExistente.includes('tanque') ? 'checked' : ''} onchange="BrotaUI.toggleInfraExistente('tanque')"> Tanque de agua</label>
+                  <label><input type="checkbox" ${p.infraestructuraExistente.includes('racks') ? 'checked' : ''} onchange="BrotaUI.toggleInfraExistente('racks')"> Racks / Canales</label>
+                  <label><input type="checkbox" ${p.infraestructuraExistente.includes('bombas') ? 'checked' : ''} onchange="BrotaUI.toggleInfraExistente('bombas')"> Bombas de impulsión</label>
+                </div>
+                <p class="form-hint">Los elementos marcados serán excluidos automáticamente de la inversión inicial.</p>
+              </div>
+            ` : ''}
+          `;
+        } else if (step === 2) {
+          // Spec 03: Ubicación y factibilidad
+          const factibilidad = BrotaCore.evaluarFactibilidad(p);
+          const ubicacionData = BROTA_DATA.ubicaciones.find(u => u.id === p.ubicacionId) || BROTA_DATA.ubicaciones[0];
+
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 2: Ubicación, orientación y terreno</h3>
+                <p class="card-subtitle">Evaluación preliminar de factibilidad basada en criterios técnicos del INTA.</p>
+              </div>
+              <button class="btn btn-secondary btn-sm" onclick="BrotaUI.openMapModal()">
+                <span>🗺️</span> Ver en mapa (Demo)
+              </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Zona de referencia</label>
+                <select class="form-control" onchange="BrotaUI.updateUbicacion(this.value)">
+                  ${BROTA_DATA.ubicaciones.map(u => `
+                    <option value="${u.id}" ${u.id === p.ubicacionId ? 'selected' : ''}>${u.nombre}</option>
+                  `).join('')}
+                </select>
+                <p class="form-hint">${ubicacionData.clima}</p>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Orientación del terreno / invernadero</label>
+                <select class="form-control" onchange="BrotaUI.updateField('orientacion', this.value)">
+                  <option value="N-NE" ${p.orientacion === 'N-NE' ? 'selected' : ''}>Norte - Noreste (Recomendada INTA)</option>
+                  <option value="N" ${p.orientacion === 'N' ? 'selected' : ''}>Norte puro</option>
+                  <option value="E" ${p.orientacion === 'E' ? 'selected' : ''}>Este</option>
+                  <option value="O" ${p.orientacion === 'O' ? 'selected' : ''}>Oeste</option>
+                  <option value="S" ${p.orientacion === 'S' ? 'selected' : ''}>Sur</option>
+                </select>
+                <p class="form-hint">Sugerida para la zona: <strong>${ubicacionData.orientacionOptima}</strong></p>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+              <div class="form-group">
+                <label class="form-label">Superficie disponible (m²)</label>
+                <input type="number" class="form-control" value="${p.superficie}" onchange="BrotaUI.updateField('superficie', parseFloat(this.value))">
+              </div>
+              <div class="form-group">
+                <label class="form-label">Disponibilidad de agua</label>
+                <select class="form-control" onchange="BrotaUI.updateField('disponibilidadAgua', this.value === 'true')">
+                  <option value="true" ${p.disponibilidadAgua ? 'selected' : ''}>Sí (Pozo / Red)</option>
+                  <option value="false" ${!p.disponibilidadAgua ? 'selected' : ''}>No disponible</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Disponibilidad eléctrica</label>
+                <select class="form-control" onchange="BrotaUI.updateField('disponibilidadElectrica', this.value === 'true')">
+                  <option value="true" ${p.disponibilidadElectrica ? 'selected' : ''}>Sí continua</option>
+                  <option value="false" ${!p.disponibilidadElectrica ? 'selected' : ''}>No continua</option>
+                </select>
+              </div>
+            </div>
+            <div class="card" style="background: ${factibilidad.estado === 'favorable' ? 'var(--primary-subtle)' : factibilidad.estado === 'limitada' ? 'var(--warning-subtle)' : 'var(--danger-subtle)'}; border-color: ${factibilidad.estado === 'favorable' ? '#a7f3d0' : factibilidad.estado === 'limitada' ? '#fde68a' : '#fecaca'};">
+              <div style="display: flex; align-items: center; justify-content: space-between;">
+                <strong>Evaluación de factibilidad preliminar:</strong>
+                <span class="badge ${factibilidad.estado === 'favorable' ? 'badge-success' : factibilidad.estado === 'limitada' ? 'badge-warning' : 'badge-danger'}">
+                  ${factibilidad.estado.toUpperCase()}
+                </span>
+              </div>
+              ${factibilidad.alertas.length > 0 ? `
+                <ul style="font-size: 0.82rem; margin-top: 0.5rem; padding-left: 1.25rem;">
+                  ${factibilidad.alertas.map(a => `<li>${a}</li>`).join('')}
+                </ul>
+              ` : `
+                <p style="font-size: 0.82rem; margin-top: 0.4rem; color: #065f46;">
+                  El terreno cuenta con superficie adecuada, orientación compatible y servicios esenciales.
+                </p>
+              `}
+            </div>
+          `;
+        } else if (step === 3) {
+          // Spec 02: Cultivo y sistema hidropónico con validación
+          const esCompat = BrotaCore.esCompatible(p.cultivoId, p.sistemaId);
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 3: Cultivo y sistema hidropónico</h3>
+                <p class="card-subtitle">Elegí qué producirás y la tecnología de recirculación adecuada.</p>
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Seleccioná un cultivo (Spec 10 - 7 cultivos)</label>
+              <div class="selection-grid">
+                ${BROTA_DATA.cultivos.map(c => `
+                  <div class="selectable-card ${p.cultivoId === c.id ? 'selected' : ''}" onclick="BrotaUI.updateField('cultivoId', '${c.id}')">
+                    <h4>${c.nombre}</h4>
+                    <p>${c.descripcionBreve}</p>
+                    <div style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted);">
+                      Ciclo: <strong>${c.cicloDias}</strong>
+                    </div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            <div class="form-group" style="margin-top: 1.5rem;">
+              <label class="form-label">Seleccioná el sistema hidropónico</label>
+              <div class="selection-grid">
+                ${BROTA_DATA.sistemas.map(s => `
+                  <div class="selectable-card ${p.sistemaId === s.id ? 'selected' : ''}" onclick="BrotaUI.updateField('sistemaId', '${s.id}')">
+                    <h4>${s.nombre}</h4>
+                    <p>${s.descripcionBreve}</p>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+            ${!esCompat ? `
+              <div class="compat-warning">
+                <span style="font-size: 1.25rem;">⚠️</span>
+                <div>
+                  <strong>Advertencia de compatibilidad (RN-005):</strong> La combinación de <em>${p.cultivoId}</em> con sistema <em>${p.sistemaId.toUpperCase()}</em> no es la más recomendada técnicamente debido al tamaño de raíz o soporte. Podés continuar bajo tu propio criterio, pero recomendamos evaluar un sistema más afín.
+                </div>
+              </div>
+            ` : ''}
+          `;
+        } else if (step === 4) {
+          // Spec 02 & 05: Escala y presupuesto / objetivo
+          const cultivo = BROTA_DATA.cultivos.find(c => c.id === p.cultivoId);
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 4: Escala productiva y metas</h3>
+                <p class="card-subtitle">Definí la cantidad de módulos o dejá que el sistema sugiera según tu objetivo.</p>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+              <div class="card" style="background: var(--bg);">
+                <div class="form-group">
+                  <label class="form-label">Cantidad de módulos / racks productivos *</label>
+                  <input type="number" min="1" max="50" class="form-control" value="${p.cantidadModulos}" onchange="BrotaUI.updateField('cantidadModulos', parseInt(this.value) || 1)">
+                  <p class="form-hint">Cada módulo rinde aprox. ${cultivo.rendimientoPorModuloCicloKg} kg por ciclo y ocupa ~6 m².</p>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Presupuesto estimado disponible ($ opcional)</label>
+                  <input type="number" class="form-control" value="${p.presupuestoDisponible || ''}" placeholder="Ej: 1000000" onchange="BrotaUI.updateField('presupuestoDisponible', parseFloat(this.value) || 0)">
+                  <p class="form-hint">Permite verificar si tu configuración entra en presupuesto.</p>
+                </div>
+              </div>
+              <div class="card" style="background: var(--bg);">
+                <div class="form-group">
+                  <label class="form-label">Meta de producción deseada (kg/mes opcional)</label>
+                  <input type="number" class="form-control" value="${p.objetivoProduccion || ''}" placeholder="Ej: 50" onchange="BrotaUI.updateField('objetivoProduccion', parseFloat(this.value) || 0)">
+                  <p class="form-hint">Calcula la escala mínima para cubrir esta meta comercial.</p>
+                </div>
+                ${p.objetivoProduccion > 0 ? `
+                  <div style="background: white; padding: 0.85rem; border-radius: var(--radius-md); border: 1px solid var(--border);">
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">Sugerencia según tu meta de ${p.objetivoProduccion} kg/mes:</div>
+                    <div style="font-size: 1.1rem; font-weight: 700; color: var(--primary-dark); margin: 0.25rem 0;">
+                      Requerís ~${Math.ceil(p.objetivoProduccion / (cultivo.rendimientoPorModuloCicloKg * cultivo.cosechasPorMes))} módulos
+                    </div>
+                    <button class="btn btn-outline-primary btn-sm" onclick="BrotaUI.updateField('cantidadModulos', ${Math.ceil(p.objetivoProduccion / (cultivo.rendimientoPorModuloCicloKg * cultivo.cosechasPorMes))})">
+                      Aplicar esta escala
+                    </button>
+                  </div>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        } else if (step === 5) {
+          // Spec 04: Infraestructura y equipamiento calculados
+          const componentes = BrotaCore.calcularComponentesRequeridos(p);
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 5: Infraestructura y equipamiento calculados</h3>
+                <p class="card-subtitle">Desglose de componentes según sistema y escala, descontando lo existente.</p>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Componente</th>
+                    <th>Categoría</th>
+                    <th>Cantidad</th>
+                    <th>Estado de provisión</th>
+                    <th>Vida útil</th>
+                    <th>Mantenimiento</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${componentes.map(c => `
+                    <tr>
+                      <td><strong>${c.componente.nombre}</strong></td>
+                      <td><span class="badge badge-neutral">${c.componente.categoria}</span></td>
+                      <td>${c.cantidad} ${c.componente.unidad}</td>
+                      <td>
+                        ${c.origen === 'ya_contemplado' 
+                          ? '<span class="badge badge-info">Ya contemplado (existente)</span>' 
+                          : '<span class="badge badge-warning">Requerido</span>'}
+                      </td>
+                      <td>${c.componente.vidaUtilMeses} meses</td>
+                      <td>${c.componente.mantenimientoFreq}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else if (step === 6) {
+          // Spec 05: Inversión y comparación de presupuesto
+          const componentes = BrotaCore.calcularComponentesRequeridos(p);
+          const economia = BrotaCore.calcularEstimacionEconomica(p, componentes);
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 6: Inversión inicial estimada</h3>
+                <p class="card-subtitle">Presupuesto inicial detallado por componentes, instalación y mano de obra.</p>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Suma de componentes</div>
+                <div style="font-size: 1.3rem; font-weight: 800;">$${economia.costoComponentes.toLocaleString('es-AR')}</div>
+              </div>
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Instalación y armado (12%)</div>
+                <div style="font-size: 1.3rem; font-weight: 800;">$${economia.costoInstalacion.toLocaleString('es-AR')}</div>
+              </div>
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Mano de obra estimada</div>
+                <div style="font-size: 1.3rem; font-weight: 800;">$${economia.costoManoDeObra.toLocaleString('es-AR')}</div>
+              </div>
+              <div class="card" style="background: var(--primary-subtle); border-color: #a7f3d0;">
+                <div style="font-size: 0.8rem; color: var(--primary-dark); font-weight: 700;">INVERSIÓN TOTAL REQUERIDA</div>
+                <div style="font-size: 1.5rem; font-weight: 800; color: var(--primary-dark);">$${economia.inversionInicial.toLocaleString('es-AR')}</div>
+              </div>
+            </div>
+            ${p.presupuestoDisponible > 0 ? `
+              <div class="card" style="background: ${economia.estadoPresupuesto === 'dentro' ? 'var(--primary-subtle)' : 'var(--danger-subtle)'};">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                  <div>
+                    <strong>Comparativa con tu presupuesto disponible ($${p.presupuestoDisponible.toLocaleString('es-AR')}):</strong>
+                    <div style="font-size: 0.85rem; margin-top: 0.25rem;">
+                      ${economia.estadoPresupuesto === 'dentro'
+                        ? `Tu configuración entra en presupuesto con un remanente a favor de <strong>$${economia.diferenciaPresupuesto.toLocaleString('es-AR')}</strong>.`
+                        : `La inversión supera tu presupuesto fijado por <strong>$${Math.abs(economia.diferenciaPresupuesto).toLocaleString('es-AR')}</strong>. Se sugiere reducir módulos o reutilizar infraestructura.`}
+                    </div>
+                  </div>
+                  <span class="badge ${economia.estadoPresupuesto === 'dentro' ? 'badge-success' : 'badge-danger'}">
+                    ${economia.estadoPresupuesto === 'dentro' ? 'DENTRO DE PRESUPUESTO' : 'SUPERA PRESUPUESTO'}
+                  </span>
+                </div>
+              </div>
+            ` : ''}
+          `;
+        } else if (step === 7) {
+          // Spec 06: Producción, retorno y proyección TCO
+          const componentes = BrotaCore.calcularComponentesRequeridos(p);
+          const economia = BrotaCore.calcularEstimacionEconomica(p, componentes);
+          const retorno = BrotaCore.calcularProduccionYRetorno(p, economia);
+          const matrizTCO = BrotaCore.generarMatrizTCO(componentes);
+
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 7: Producción estimada, retorno y TCO a 5 años</h3>
+                <p class="card-subtitle">Estimación orientativa de flujo operativo y costos de reposición.</p>
+              </div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Producción mensual estimada</div>
+                <div style="font-size: 1.25rem; font-weight: 800;">${retorno.produccionKgMes} kg / mes</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Ciclo: ${retorno.frecuenciaCosecha}</div>
+              </div>
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Ingreso bruto mensual est.</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--primary-dark);">$${retorno.ingresoBrutoMensual.toLocaleString('es-AR')}</div>
+              </div>
+              <div class="card" style="background: var(--bg);">
+                <div style="font-size: 0.8rem; color: var(--text-muted);">Costos mensuales est.</div>
+                <div style="font-size: 1.25rem; font-weight: 800; color: var(--danger);">$${retorno.costosMensualesTotales.toLocaleString('es-AR')}</div>
+              </div>
+              <div class="card" style="background: var(--accent-subtle);">
+                <div style="font-size: 0.8rem; color: var(--accent); font-weight: 700;">RECUPERACIÓN ESTIMADA</div>
+                <div style="font-size: 1.35rem; font-weight: 800; color: var(--accent);">
+                  ${retorno.esViable ? `~${retorno.recuperacionMeses} meses` : 'No recupera'}
+                </div>
+                <div style="font-size: 0.72rem; color: var(--text-muted); margin-top: 0.2rem;">Margen neto: $${retorno.margenNetoMensual.toLocaleString('es-AR')}/mes</div>
+              </div>
+            </div>
+            <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.5rem;">Proyección TCO (Costo Total de Propiedad a 5 años)</h4>
+            <div class="table-responsive">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Componente</th>
+                    <th>Concepto de mantenimiento / reposición</th>
+                    <th>Momento proyectado</th>
+                    <th>Costo estimado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${matrizTCO.slice(0, 6).map(m => `
+                    <tr>
+                      <td><strong>${m.componente}</strong></td>
+                      <td>${m.tipo}</td>
+                      <td><span class="tco-badge-year">${m.anio}</span></td>
+                      <td>$${m.costo.toLocaleString('es-AR')}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+          `;
+        } else if (step === 8) {
+          // Spec 09: Propuesta Visual integrada (Resumen + Croquis SVG superior y lateral + AR)
+          const componentes = BrotaCore.calcularComponentesRequeridos(p);
+          const economia = BrotaCore.calcularEstimacionEconomica(p, componentes);
+          const retorno = BrotaCore.calcularProduccionYRetorno(p, economia);
+          const cultivo = BROTA_DATA.cultivos.find(c => c.id === p.cultivoId);
+          const sistema = BROTA_DATA.sistemas.find(s => s.id === p.sistemaId);
+
+          area.innerHTML = `
+            <div class="card-header" style="margin-bottom: 1rem;">
+              <div>
+                <h3 class="card-title">Paso 8: Propuesta visual integral del proyecto</h3>
+                <p class="card-subtitle">Resumen ejecutivo consolidado y croquis conceptual de distribución.</p>
+              </div>
+              <button class="btn btn-outline-primary btn-sm" onclick="BrotaUI.openArModal(${p.cantidadModulos})">
+                <span>🥽</span> Ver en AR (Demostración)
+              </button>
+            </div>
+
+            <!-- Resumen ejecutivo tarjetas -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem;">
+              <div style="background: var(--bg); padding: 0.85rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Cultivo & Sistema</div>
+                <div style="font-weight: 700; font-size: 0.95rem;">${cultivo.nombre.split(' ')[0]} • ${sistema.nombre.split(' ')[0]}</div>
+              </div>
+              <div style="background: var(--bg); padding: 0.85rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Escala instalada</div>
+                <div style="font-weight: 700; font-size: 0.95rem;">${p.cantidadModulos} módulos (~${p.superficie} m²)</div>
+              </div>
+              <div style="background: var(--bg); padding: 0.85rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Inversión inicial</div>
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--primary-dark);">$${economia.inversionInicial.toLocaleString('es-AR')}</div>
+              </div>
+              <div style="background: var(--bg); padding: 0.85rem; border-radius: var(--radius-md);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">Retorno estimado</div>
+                <div style="font-weight: 700; font-size: 0.95rem; color: var(--accent);">~${retorno.recuperacionMeses} meses</div>
+              </div>
+            </div>
+
+            <!-- CROQUIS CONCEPTUAL SVG VISTA SUPERIOR (RF-031) -->
+            <div class="blueprint-wrapper">
+              <div class="blueprint-header">
+                <div class="blueprint-title">
+                  <span>📐</span> CROQUIS CONCEPTUAL — VISTA SUPERIOR (PLANTA)
+                </div>
+                <span class="badge badge-info">Orientación: ${p.orientacion}</span>
+              </div>
+              <div class="svg-container">
+                ${this.generateTopViewSVG(p)}
+              </div>
+              <div style="display: flex; gap: 1rem; justify-content: center; font-size: 0.75rem; margin-top: 0.75rem; color: #94a3b8;">
+                <span>🟢 Módulos / Racks</span>
+                <span>🔵 Tanque & Bomba</span>
+                <span>🟡 Acceso & Pasillos</span>
+              </div>
+            </div>
+
+            <!-- CROQUIS CONCEPTUAL SVG VISTA LATERAL (RF-032) -->
+            <div class="blueprint-wrapper" style="margin-top: 1rem;">
+              <div class="blueprint-header">
+                <div class="blueprint-title">
+                  <span>📐</span> CROQUIS CONCEPTUAL — VISTA ELEVACIÓN LATERAL
+                </div>
+                <span class="badge badge-neutral">Altura cumbrera: 2.8m</span>
+              </div>
+              <div class="svg-container">
+                ${this.generateSideViewSVG(p)}
+              </div>
+            </div>
+          `;
+        }
+      },
+
+      // Croquis SVG Vista Superior Dinámica
+      generateTopViewSVG(proyecto) {
+        const modulos = proyecto.cantidadModulos || 2;
+        const width = 640;
+        const height = 300;
+        const moduleWidth = Math.min(120, (width - 180) / modulos);
+
+        let racksSVG = '';
+        for (let i = 0; i < modulos; i++) {
+          const x = 70 + (i * (moduleWidth + 25));
+          racksSVG += `
+            <g transform="translate(${x}, 60)">
+              <rect width="${moduleWidth}" height="160" rx="4" fill="#065f46" stroke="#10b981" stroke-width="2" />
+              <line x1="0" y1="40" x2="${moduleWidth}" y2="40" stroke="#047857" stroke-dasharray="2,2"/>
+              <line x1="0" y1="80" x2="${moduleWidth}" y2="80" stroke="#047857" stroke-dasharray="2,2"/>
+              <line x1="0" y1="120" x2="${moduleWidth}" y2="120" stroke="#047857" stroke-dasharray="2,2"/>
+              <text x="${moduleWidth/2}" y="85" fill="#ecfdf5" font-size="11" font-weight="bold" text-anchor="middle">Rack ${i+1}</text>
+            </g>
+          `;
+        }
+
+        return `
+          <svg viewBox="0 0 ${width} ${height}" width="100%" height="240" style="max-width: 650px;">
+            <!-- Cuadrícula de fondo -->
+            <defs>
+              <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+                <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#1e293b" stroke-width="1"/>
+              </pattern>
+            </defs>
+            <rect width="100%" height="100%" fill="url(#grid)" />
+
+            <!-- Perímetro del invernadero -->
+            <rect x="30" y="30" width="${width - 60}" height="${height - 60}" rx="8" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="4,4" />
+            <text x="45" y="50" fill="#38bdf8" font-size="10" font-family="monospace">LÍMITE INVERNADERO (${proyecto.superficie} m²)</text>
+
+            <!-- Acceso / Puerta -->
+            <rect x="30" y="120" width="8" height="50" fill="#facc15" />
+            <text x="18" y="150" fill="#facc15" font-size="9" transform="rotate(-90 18,150)" text-anchor="middle">ACCESO</text>
+
+            <!-- Racks de cultivo -->
+            ${racksSVG}
+
+            <!-- Tanque y Bomba al final del circuito -->
+            <circle cx="${width - 70}" cy="140" r="32" fill="#0369a1" stroke="#38bdf8" stroke-width="2" />
+            <text x="${width - 70}" y="144" fill="#ffffff" font-size="10" font-weight="bold" text-anchor="middle">TANQUE</text>
+            <text x="${width - 70}" y="156" fill="#bae6fd" font-size="8" text-anchor="middle">500L</text>
+
+            <!-- Línea de recirculación -->
+            <path d="M ${width - 102} 140 L ${width - 140} 140" stroke="#0284c7" stroke-width="3" marker-end="url(#arrow)" />
+
+            <!-- Brújula Orientación -->
+            <g transform="translate(${width - 55}, 55)">
+              <circle r="14" fill="#1e293b" stroke="#64748b" />
+              <text y="4" fill="#f8fafc" font-size="9" font-weight="bold" text-anchor="middle">N</text>
+              <polygon points="0,-12 3,-4 -3,-4" fill="#ef4444" />
+            </g>
+          </svg>
+        `;
+      },
+
+      // Croquis SVG Vista Lateral
+      generateSideViewSVG(proyecto) {
+        return `
+          <svg viewBox="0 0 600 160" width="100%" height="150" style="max-width: 600px;">
+            <!-- Suelo -->
+            <line x1="20" y1="140" x2="580" y2="140" stroke="#64748b" stroke-width="2" />
+            
+            <!-- Estructura Invernadero a 2 aguas -->
+            <path d="M 40 140 L 40 60 L 300 20 L 560 60 L 560 140" fill="none" stroke="#38bdf8" stroke-width="2" stroke-dasharray="3,3" />
+
+            <!-- Racks en cascada / inclinados -->
+            <g transform="translate(80, 50)">
+              <rect x="0" y="20" width="340" height="8" rx="2" fill="#10b981" transform="rotate(2)" />
+              <rect x="0" y="50" width="340" height="8" rx="2" fill="#10b981" transform="rotate(2)" />
+              <rect x="0" y="80" width="340" height="8" rx="2" fill="#10b981" transform="rotate(2)" />
+              <!-- Soportes / patas del rack -->
+              <line x1="30" y1="20" x2="30" y2="90" stroke="#94a3b8" stroke-width="3" />
+              <line x1="170" y1="25" x2="170" y2="90" stroke="#94a3b8" stroke-width="3" />
+              <line x1="310" y1="30" x2="310" y2="90" stroke="#94a3b8" stroke-width="3" />
+            </g>
+
+            <!-- Tanque lateral -->
+            <rect x="460" y="70" width="55" height="70" rx="4" fill="#0284c7" stroke="#38bdf8" stroke-width="2" />
+            <text x="487" y="110" fill="#ffffff" font-size="9" text-anchor="middle" font-weight="bold">Tanque</text>
+          </svg>
+        `;
+      },
+
+      updateField(fieldName, val) {
+        this.currentProject[fieldName] = val;
+        BrotaStorage.saveProject(this.currentProject);
+        this.renderWizardStep(this.currentWizardStep);
+      },
+
+      updateUbicacion(ubicacionId) {
+        const u = BROTA_DATA.ubicaciones.find(x => x.id === ubicacionId);
+        if (u) {
+          this.currentProject.ubicacionId = u.id;
+          this.currentProject.ubicacionTexto = u.nombre;
+          this.currentProject.orientacion = u.orientacionOptima;
+          this.currentProject.riesgoInundacion = u.riesgoInundacionSugerido;
+          BrotaStorage.saveProject(this.currentProject);
+          this.renderWizardStep(this.currentWizardStep);
+        }
+      },
+
+      toggleInfraExistente(item) {
+        const arr = this.currentProject.infraestructuraExistente || [];
+        const index = arr.indexOf(item);
+        if (index >= 0) arr.splice(index, 1);
+        else arr.push(item);
+        this.currentProject.infraestructuraExistente = arr;
+        BrotaStorage.saveProject(this.currentProject);
+        this.renderWizardStep(this.currentWizardStep);
+      },
+
+      // ===============================================
+      // CATALOG & CART CONTROLLER (Recorrido B)
+      // ===============================================
+      renderCatalog() {
+        const container = document.getElementById('catalogProductsContainer');
+        const filter = document.getElementById('catalogCategoryFilter')?.value || 'todos';
+        const p = this.currentProject;
+        const componentes = BrotaCore.calcularComponentesRequeridos(p);
+
+        const filtered = BROTA_DATA.productos.filter(pr => {
+          if (filter === 'todos') return true;
+          return pr.categoria === filter;
+        });
+
+        container.innerHTML = filtered.map(pr => {
+          const prov = BROTA_DATA.proveedores.find(pv => pv.id === pr.proveedorId);
+          const estado = BrotaCore.obtenerEstadoProducto(pr, p, componentes);
+
+          let badgeHtml = '';
+          if (estado === 'necesario') {
+            badgeHtml = '<span class="badge badge-success product-status-tag">Necesario para tu proyecto</span>';
+          } else if (estado === 'ya_contemplado') {
+            badgeHtml = '<span class="badge badge-info product-status-tag">Ya contemplado</span>';
+          } else if (estado === 'recomendado') {
+            badgeHtml = '<span class="badge badge-warning product-status-tag">Recomendado</span>';
+          }
+
+          return `
+            <div class="product-card ${estado === 'necesario' ? 'necesario' : ''}">
+              ${badgeHtml}
+              <div>
+                <span class="badge badge-neutral" style="margin-bottom: 0.4rem;">${pr.categoria}</span>
+                <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem;">${pr.nombre}</h4>
+                <p style="font-size: 0.8rem; color: var(--text-muted);">${prov ? prov.nombre : 'Proveedor local'}</p>
+                
+                <div class="price-box">
+                  <div class="price-main">$${pr.precio.toLocaleString('es-AR')}</div>
+                  <div class="price-ref">
+                    Ref. Web: $${pr.precioRef.monto.toLocaleString('es-AR')} <span style="font-size: 0.68rem; color: var(--text-subtle);">(${pr.precioRef.fuente})</span>
+                  </div>
+                </div>
+              </div>
+
+              <button class="btn btn-outline-primary btn-sm" style="width: 100%;" onclick="BrotaUI.addToCart('${pr.id}')">
+                <span>+</span> Agregar al carrito
+              </button>
+            </div>
+          `;
+        }).join('');
+      },
+
+      addToCart(productId) {
+        const cart = BrotaStorage.getCart();
+        const existing = cart.find(i => i.productoId === productId);
+        if (existing) {
+          existing.cantidad += 1;
+        } else {
+          cart.push({ productoId: productId, cantidad: 1 });
+        }
+        BrotaStorage.saveCart(cart);
+        this.renderCart();
+      },
+
+      updateCartQty(productId, delta) {
+        let cart = BrotaStorage.getCart();
+        const item = cart.find(i => i.productoId === productId);
+        if (item) {
+          item.cantidad += delta;
+          if (item.cantidad <= 0) {
+            cart = cart.filter(i => i.productoId !== productId);
+          }
+        }
+        BrotaStorage.saveCart(cart);
+        this.renderCart();
+      },
+
+      clearCart() {
+        BrotaStorage.saveCart([]);
+        this.renderCart();
+      },
+
+      renderCart() {
+        const cart = BrotaStorage.getCart();
+        const list = document.getElementById('cartItemsList');
+        const badge = document.getElementById('cartCountBadge');
+        const subtotalEl = document.getElementById('cartSubtotalText');
+        const totalEl = document.getElementById('cartTotalText');
+
+        badge.innerText = `${cart.reduce((s, i) => s + i.cantidad, 0)} ítems`;
+
+        if (cart.length === 0) {
+          list.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); font-size: 0.85rem; padding: 2rem 0;">
+              El carrito está vacío. Agregá productos desde el catálogo.
+            </div>
+          `;
+          subtotalEl.innerText = '$0';
+          totalEl.innerText = '$0';
+          return;
+        }
+
+        let total = 0;
+        list.innerHTML = cart.map(item => {
+          const pr = BROTA_DATA.productos.find(p => p.id === item.productoId);
+          if (!pr) return '';
+          const sub = pr.precio * item.cantidad;
+          total += sub;
+
+          return `
+            <div class="cart-item-row">
+              <div style="max-width: 170px;">
+                <div style="font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${pr.nombre}</div>
+                <div style="font-size: 0.75rem; color: var(--text-muted);">$${pr.precio.toLocaleString('es-AR')} c/u</div>
+              </div>
+              <div class="cart-qty-ctrl">
+                <button class="cart-qty-btn" onclick="BrotaUI.updateCartQty('${pr.id}', -1)">-</button>
+                <span style="font-weight: 700; width: 18px; text-align: center;">${item.cantidad}</span>
+                <button class="cart-qty-btn" onclick="BrotaUI.updateCartQty('${pr.id}', 1)">+</button>
+              </div>
+              <div style="font-weight: 700;">$${sub.toLocaleString('es-AR')}</div>
+            </div>
+          `;
+        }).join('');
+
+        subtotalEl.innerText = `$${total.toLocaleString('es-AR')}`;
+        totalEl.innerText = `$${total.toLocaleString('es-AR')}`;
+      },
+
+      // ===============================================
+      // GUIDE & CHECKLIST CONTROLLER (Recorrido C)
+      // ===============================================
+      switchGuideTab(tabName) {
+        this.activeGuideTab = tabName;
+        document.querySelectorAll('.guide-tab-btn').forEach(btn => btn.classList.remove('active'));
+        event.target.classList.add('active');
+
+        ['checklist', 'fundamentos', 'sistemas', 'ph'].forEach(t => {
+          const el = document.getElementById(`guide-tab-${t}`);
+          if (el) el.style.display = t === tabName ? 'block' : 'none';
+        });
+      },
+
+      renderChecklist() {
+        const p = this.currentProject;
+        const systemId = p.sistemaId || 'nft';
+        const steps = BROTA_DATA.checklists[systemId] || BROTA_DATA.checklists.nft;
+        const progress = p.checklistProgress || [];
+
+        document.getElementById('checklistSystemTitle').innerText = `Checklist de puesta en marcha — Sistema ${systemId.toUpperCase()}`;
+        document.getElementById('checklistProgressText').innerText = `${progress.length} de ${steps.length} completados`;
+
+        const pct = Math.round((progress.length / steps.length) * 100);
+        document.getElementById('checklistProgressBarFill').style.width = `${pct}%`;
+
+        const container = document.getElementById('checklistItemsContainer');
+        container.innerHTML = steps.map((step, idx) => {
+          const isDone = progress.includes(idx);
+          return `
+            <label class="checklist-item ${isDone ? 'done' : ''}">
+              <input type="checkbox" ${isDone ? 'checked' : ''} onchange="BrotaUI.toggleChecklistStep(${idx})">
+              <span>${idx + 1}. ${step}</span>
+            </label>
+          `;
+        }).join('');
+      },
+
+      toggleChecklistStep(idx) {
+        const p = this.currentProject;
+        let progress = p.checklistProgress || [];
+        if (progress.includes(idx)) {
+          progress = progress.filter(i => i !== idx);
+        } else {
+          progress.push(idx);
+        }
+        p.checklistProgress = progress;
+        BrotaStorage.saveProject(p);
+        this.renderChecklist();
+      },
+
+      // Modals
+      openMapModal() { document.getElementById('mapModal').classList.add('open'); },
+      closeMapModal() { document.getElementById('mapModal').classList.remove('open'); },
+      confirmMapSelection() {
+        this.updateUbicacion('apostoles');
+        this.closeMapModal();
+      },
+
+      openArModal(modules) {
+        document.getElementById('arModalModules').innerText = modules || 3;
+        document.getElementById('arModal').classList.add('open');
+      },
+      closeArModal() { document.getElementById('arModal').classList.remove('open'); }
+    };
+
+    // Auto-init on DOM loaded
+    document.addEventListener('DOMContentLoaded', () => {
+      BrotaUI.init();
+    });
+  </script>
+</body>
+</html>

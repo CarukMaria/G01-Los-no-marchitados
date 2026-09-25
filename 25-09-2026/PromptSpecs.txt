@@ -1,0 +1,1425 @@
+# PROMPT MAESTRO — ESPECIFICACIÓN DEL PROTOTIPO
+
+> *Contexto del proyecto*
+>
+> Somos un equipo interdisciplinario formado por estudiantes de Ingeniería Informática, Sistemas de Información, Ingeniería/área Forestal y formación técnica agropecuaria.
+>
+> Participamos en un hackatón orientado a resolver desafíos relacionados con la producción hidropónica.
+>
+> El desafío principal seleccionado es el *Desafío #1: ¿Cómo iniciar?, complementado con aspectos puntuales de los **Desafíos #3 y #6*.
+>
+> La solución propuesta es un sistema de asistencia para la *planificación inicial, evaluación de factibilidad y estimación económica de emprendimientos hidropónicos*, orientado principalmente a productores que desean iniciar una producción o planificar una nueva inversión.
+>
+> El sistema no pretende reemplazar el asesoramiento profesional ni garantizar resultados económicos. Sus resultados deben presentarse como *estimaciones orientativas basadas en los parámetros ingresados y en información de referencia*.
+
+---
+
+# 1. Objetivo general
+
+Desarrollar un sistema que permita a una persona interesada en iniciar o ampliar un emprendimiento hidropónico obtener una *propuesta inicial de producción*, considerando:
+
+* ubicación;
+* espacio disponible;
+* condiciones del terreno;
+* orientación y condiciones ambientales;
+* cultivo y modalidad de producción;
+* escala productiva;
+* infraestructura necesaria;
+* equipamiento;
+* presupuesto disponible;
+* inversión inicial;
+* costos de mantenimiento y reposición;
+* producción estimada;
+* ingresos potenciales;
+* tiempo estimado de recuperación/amortización de la inversión.
+
+El sistema debe transformar estos datos en una *propuesta integral comprensible para un productor*, incluyendo una representación visual de la distribución propuesta.
+
+---
+
+# 2. Problema que resuelve
+
+Un productor que desea iniciar un emprendimiento hidropónico debe tomar simultáneamente decisiones técnicas, espaciales y económicas.
+
+No basta con conocer cuánto cuesta construir un invernadero. Debe determinar:
+
+* qué superficie necesita;
+* qué sistema productivo utilizar;
+* cuántos módulos puede instalar;
+* qué infraestructura necesita;
+* qué equipamiento debe adquirir;
+* cómo orientar y distribuir la instalación;
+* qué inversión inicial requiere;
+* qué componentes deberán reemplazarse;
+* qué producción puede esperar;
+* cuánto podría obtener por sus ventas;
+* y en cuánto tiempo podría recuperar la inversión.
+
+El sistema busca *centralizar y relacionar estas variables*, proporcionando una primera aproximación antes de que el productor realice una inversión.
+
+---
+
+# 3. Alcance conceptual
+
+El sistema debe contemplar tres situaciones de entrada:
+
+### Situación A — Partir desde cero
+
+El usuario no posee infraestructura y desea conocer qué necesita para comenzar.
+
+### Situación B — Poseer infraestructura parcial
+
+El usuario ya dispone, por ejemplo, de:
+
+* terreno;
+* invernadero;
+* tanque;
+* racks;
+* bombas;
+* equipamiento;
+* instalación eléctrica;
+
+y desea determinar qué necesita agregar.
+
+### Situación C — Planificar una nueva inversión
+
+El productor ya conoce aproximadamente qué quiere producir y utiliza el sistema para comparar configuraciones y estimar costos.
+
+---
+
+# 4. Dos modalidades principales de planificación
+
+El sistema debe permitir conceptualmente dos enfoques:
+
+### Planificación según presupuesto
+
+El usuario establece:
+
+> "Dispongo de aproximadamente $X."
+
+El sistema determina una configuración productiva posible dentro de ese límite.
+
+### Planificación según objetivo
+
+El usuario establece:
+
+> "Quiero producir aproximadamente X."
+
+El sistema estima la infraestructura y la inversión necesaria para alcanzar ese objetivo.
+
+Ambas modalidades deben utilizar un mismo motor de configuración y estimación.
+
+Para el MVP puede implementarse completamente una modalidad y representar la otra de forma simplificada o simulada.
+
+---
+
+# 5. Información de ubicación
+
+La ubicación debe formar parte del proceso de planificación.
+
+El sistema debe contemplar el uso futuro de información proveniente de:
+
+* fuentes oficiales;
+* información técnica del *INTA*;
+* datos climáticos;
+* información geográfica;
+* mapas;
+* datos de elevación/topografía;
+* información relacionada con riesgo de inundación;
+* condiciones ambientales relevantes.
+
+La información técnica del INTA debe utilizarse como referencia para establecer criterios de diseño y emplazamiento, especialmente:
+
+* orientación del invernadero;
+* aprovechamiento de radiación solar;
+* condiciones climáticas de la zona;
+* criterios de diseño productivo;
+* otros parámetros agronómicos pertinentes.
+
+*Importante:* el sistema no debe asumir que una única orientación es universalmente correcta. La orientación propuesta debe depender de la ubicación, del diseño y de los criterios técnicos utilizados.
+
+Para el MVP, los datos pueden encontrarse *precargados o hardcodeados* para determinadas ubicaciones.
+
+En una versión futura, el sistema deberá poder consultar fuentes externas y actualizar esta información.
+
+---
+
+# 6. Evaluación de factibilidad del terreno
+
+El sistema deberá contemplar un módulo de evaluación preliminar del espacio disponible.
+
+Variables posibles:
+
+* ubicación;
+* superficie;
+* largo;
+* ancho;
+* pendiente;
+* orientación;
+* exposición solar;
+* riesgo de inundación;
+* características generales del terreno;
+* disponibilidad de agua;
+* disponibilidad eléctrica;
+* espacio necesario para infraestructura;
+* posibilidad de instalar tanques;
+* profundidad disponible para infraestructura subterránea.
+
+### MVP
+
+La evaluación puede utilizar datos ingresados manualmente y datos precargados.
+
+### Sistema completo
+
+Se contempla la integración con:
+
+* mapas;
+* APIs geográficas;
+* datos topográficos;
+* datos climáticos;
+* imágenes satelitales;
+* información pública;
+* herramientas de medición mediante cámara/dispositivo móvil.
+
+El resultado debe expresarse como una *evaluación preliminar*, no como una certificación de factibilidad constructiva.
+
+---
+
+# 7. Configuración del sistema productivo
+
+El usuario debe seleccionar o configurar:
+
+* cultivo;
+* modalidad de producción;
+* escala;
+* cantidad de módulos/racks;
+* superficie destinada a producción;
+* dimensiones generales;
+* infraestructura existente;
+* infraestructura requerida.
+
+El sistema debe asociar cada configuración con los requerimientos técnicos correspondientes.
+
+Los parámetros agronómicos y técnicos deberán almacenarse como *datos configurables*, evitando que queden completamente incrustados en el código.
+
+---
+
+# 8. Infraestructura
+
+El sistema debe contemplar conceptualmente componentes como:
+
+### Estructura
+
+* paredes;
+* techo;
+* cubierta;
+* estructura principal;
+* ventilación;
+* iluminación cuando corresponda.
+
+### Sistema hidráulico
+
+* tanques;
+* cañerías;
+* filtros;
+* conexiones;
+* bombas;
+* distribución de agua.
+
+### Producción
+
+* racks;
+* módulos;
+* canales/sistemas de cultivo;
+* separación entre módulos.
+
+### Equipamiento
+
+* medidores de pH;
+* sensores;
+* bombas de aireación/oxigenación;
+* ventilación;
+* otros elementos necesarios según la configuración.
+
+El nivel de detalle debe ser configurable según el tipo de producción.
+
+No es necesario implementar inicialmente todos los parámetros relacionados con:
+
+* nutrientes;
+* enfermedades;
+* hongos;
+* control avanzado;
+* automatización;
+* IoT.
+
+Estos quedan contemplados como ampliaciones.
+
+---
+
+# 9. Generación de croquis
+
+La propuesta generada por el sistema debe incluir una representación visual simplificada de la configuración.
+
+El alcance del croquis debe definirse explícitamente.
+
+## Vista superior
+
+Debe representar:
+
+* límites aproximados del invernadero;
+* orientación;
+* accesos;
+* ubicación de racks/módulos;
+* circulación;
+* ubicación de tanques;
+* infraestructura principal;
+* distribución general.
+
+## Vista frontal/lateral
+
+Debe representar:
+
+* estructura del invernadero;
+* altura aproximada;
+* racks;
+* elementos principales;
+* ubicación relativa de tanques;
+* componentes relevantes de la instalación.
+
+## No forma parte del croquis del MVP
+
+No debe pretender representar:
+
+* planos arquitectónicos profesionales;
+* cálculos estructurales;
+* instalaciones constructivas detalladas;
+* ingeniería hidráulica;
+* modelo 3D constructivo;
+* documentación apta para obra.
+
+El croquis es una *representación conceptual generada a partir de la configuración del proyecto*.
+
+---
+
+# 10. Realidad aumentada
+
+Se contempla como funcionalidad del sistema propuesto y como elemento demostrativo del prototipo.
+
+La funcionalidad futura permitirá visualizar sobre el espacio físico una representación de:
+
+* dimensiones aproximadas;
+* ubicación del invernadero;
+* racks;
+* tanques;
+* infraestructura;
+* distribución productiva.
+
+La realidad aumentada debe utilizarse principalmente como *herramienta de visualización y validación espacial*, no como componente necesario para realizar los cálculos económicos.
+
+### MVP
+
+La implementación puede limitarse a una demostración controlada de AR o a una experiencia simplificada.
+
+El sistema debe seguir funcionando aunque la funcionalidad AR no esté disponible.
+
+---
+
+# 11. Cálculo de inversión inicial
+
+El sistema debe estimar el costo de:
+
+* estructura;
+* cubierta;
+* racks;
+* tanques;
+* cañerías;
+* filtros;
+* bombas;
+* sensores;
+* instrumentos;
+* instalación;
+* mano de obra;
+* otros componentes relevantes.
+
+Cada componente debe poder asociarse con:
+
+* costo;
+* unidad;
+* cantidad;
+* proveedor/fuente;
+* fecha de actualización;
+* vida útil;
+* frecuencia de reposición;
+* costo estimado de mantenimiento.
+
+---
+
+# 12. Presupuesto y comparación de alternativas
+
+El sistema debe permitir comparar una configuración con:
+
+### Presupuesto disponible
+
+> "¿Qué puedo instalar con este presupuesto?"
+
+y:
+
+### Configuración requerida
+
+> "¿Cuánto necesito invertir para alcanzar este objetivo?"
+
+La interfaz debe mostrar claramente cuándo una configuración:
+
+* se encuentra dentro del presupuesto;
+* supera el presupuesto;
+* requiere reducir escala;
+* requiere infraestructura adicional.
+
+---
+
+# 13. Producción estimada
+
+A partir de:
+
+* cultivo;
+* superficie;
+* cantidad de módulos;
+* configuración productiva;
+* parámetros técnicos;
+
+el sistema debe estimar:
+
+* volumen de producción;
+* frecuencia aproximada de cosecha;
+* capacidad productiva;
+* rendimiento estimado.
+
+Estos valores deben ser presentados como *estimaciones*, no como resultados garantizados.
+
+---
+
+# 14. Ingresos y retorno de inversión
+
+El sistema debe incorporar una estimación económica simplificada.
+
+Debe contemplar:
+
+* producción estimada;
+* precio de referencia;
+* ingresos brutos potenciales;
+* costos relevantes;
+* inversión inicial;
+* costos recurrentes;
+* reposiciones.
+
+El resultado debe permitir estimar:
+
+> *Tiempo aproximado de recuperación/amortización de la inversión inicial bajo el modelo seleccionado.*
+
+Ejemplo conceptual:
+
+text
+Inversión inicial: $X
+
+Producción estimada: Y kg/mes
+Ingreso bruto estimado: $Z/mes
+Costos estimados: $W/mes
+
+Recuperación estimada:
+X meses / X años
+
+
+La interfaz debe aclarar que la estimación depende de los supuestos utilizados.
+
+No debe presentarse como una garantía de rentabilidad.
+
+---
+
+# 15. TCO — Costo Total de Propiedad
+
+Además de la inversión inicial, el sistema debe representar los costos asociados al mantenimiento de la infraestructura a lo largo del tiempo.
+
+Ejemplos:
+
+| Componente | Inversión | Vida útil | Reposición |
+| ---------- | --------: | --------: | ---------: |
+| Estructura |        $X |   10 años |     Año 10 |
+| Bomba      |        $X |    2 años |      Año 2 |
+| Filtro     |        $X |   6 meses |  Semestral |
+| Sonda pH   |        $X |  12 meses |      Anual |
+
+Debe generarse una visión temporal de:
+
+* mantenimiento;
+* reposición;
+* calibración;
+* reemplazo.
+
+El objetivo es evitar que el productor considere únicamente el costo inicial.
+
+---
+
+# 16. Calibración y mantenimiento
+
+El sistema debe contemplar determinados costos y eventos asociados al mantenimiento de equipamiento.
+
+Ejemplos:
+
+* calibración de sondas;
+* reemplazo de sensores;
+* recambio de filtros;
+* mantenimiento de bombas;
+* sustitución de componentes.
+
+En el MVP estos eventos pueden representarse mediante una matriz de:
+
+text
+Componente
+Vida útil
+Frecuencia de mantenimiento
+Costo
+Próxima fecha
+
+
+No se requiere inicialmente monitoreo IoT.
+
+---
+
+# 17. Catálogo de proveedores
+
+El sistema podrá incorporar proveedores de:
+
+* equipamiento;
+* infraestructura;
+* sensores;
+* bombas;
+* filtros;
+* componentes hidráulicos;
+* servicios especializados.
+
+La información puede incluir:
+
+* producto;
+* precio;
+* proveedor;
+* ubicación;
+* características;
+* compatibilidad;
+* fecha de actualización.
+
+En el MVP puede utilizarse un catálogo precargado.
+
+En una versión futura, los precios podrán actualizarse mediante fuentes externas o integración con proveedores.
+
+---
+
+# 18. Modelo de negocio
+
+El acceso básico al sistema debe ser gratuito para productores.
+
+Se contempla monetización mediante funcionalidades y servicios complementarios.
+
+### Proveedores
+
+Los proveedores podrán pagar por:
+
+* publicar productos;
+* ofrecer productos compatibles con configuraciones;
+* destacar sus productos;
+* incorporar información comercial;
+* acceder a determinadas herramientas comerciales.
+
+La publicación patrocinada debe diferenciarse claramente de la recomendación técnica del sistema.
+
+### Consultoría especializada
+
+Se contempla una funcionalidad de pago mediante la cual el productor pueda solicitar asistencia profesional.
+
+Ejemplos:
+
+* evaluación de suelo;
+* evaluación del terreno;
+* análisis de profundidad disponible para tanques;
+* evaluación de instalación;
+* asesoramiento agronómico;
+* asesoramiento técnico;
+* validación de una propuesta.
+
+El sistema actuaría como *plataforma de conexión entre productor y profesional*, sin que la plataforma sustituya al profesional.
+
+---
+
+# 19. Fuentes externas
+
+El sistema debe contemplar fuentes de información externas para mejorar las estimaciones.
+
+Especialmente:
+
+* INTA;
+* información climática;
+* fuentes geográficas;
+* proveedores;
+* precios;
+* información técnica.
+
+Para el prototipo se permite utilizar:
+
+* datos precargados;
+* datos simulados;
+* valores hardcodeados;
+* mocks de APIs.
+
+La arquitectura debe permitir reemplazar posteriormente esos datos por integraciones reales.
+
+---
+
+# 20. Alcance del MVP
+
+El prototipo debe priorizar:
+
+1. creación de proyecto;
+2. selección de situación inicial;
+3. ingreso de ubicación;
+4. configuración básica del terreno;
+5. selección de cultivo;
+6. selección/configuración de escala;
+7. selección de infraestructura;
+8. cálculo de inversión;
+9. cálculo de producción estimada;
+10. estimación de ingresos;
+11. estimación de recuperación de inversión;
+12. TCO simplificado;
+13. generación de croquis conceptual;
+14. visualización de resultados.
+
+Las funcionalidades complejas pueden ser simuladas.
+
+---
+
+# 21. Fuera del MVP
+
+Quedan fuera de la implementación inicial:
+
+* IoT;
+* control automático;
+* monitoreo en tiempo real;
+* detección avanzada de enfermedades;
+* gestión completa de nutrientes;
+* gestión integral de stock;
+* trazabilidad completa;
+* comercialización avanzada;
+* análisis avanzado de mercado;
+* automatización de invernaderos;
+* integración completa de mapas;
+* análisis profesional de suelo;
+* cálculo estructural;
+* ingeniería constructiva;
+* AR avanzada dependiente de múltiples sensores.
+
+Estas funcionalidades pueden formar parte del sistema completo o de futuras ampliaciones.
+
+---
+
+# 22. Principio arquitectónico
+
+El sistema debe diseñarse de manera modular.
+
+Los datos de:
+
+* cultivos;
+* componentes;
+* precios;
+* vidas útiles;
+* costos;
+* parámetros productivos;
+* criterios técnicos;
+
+deben mantenerse separados de la lógica de presentación.
+
+El prototipo puede utilizar datos estáticos o una base de datos simple, pero debe permitir su reemplazo por una fuente dinámica.
+
+---
+
+# 23. Requerimiento fundamental para el prototipo
+
+El objetivo del prototipo no es demostrar que todas las integraciones están terminadas.
+
+Debe demostrar que:
+
+> *A partir de las características de un proyecto hidropónico, el sistema puede construir una propuesta coherente que relacione espacio, producción, infraestructura, inversión y costos futuros.*
+
+La demo debe permitir recorrer ese proceso de extremo a extremo.
+
+---
+
+# Los módulos que yo especificaría AHORA
+
+Y acá viene lo importante: *NO hagan specs de todo lo anterior.*
+
+Para la primera iteración yo haría estos *8 módulos*:
+
+### M01 — Gestión del proyecto
+
+* crear proyecto;
+* editar;
+* situación inicial;
+* presupuesto;
+* ubicación;
+* superficie.
+
+### M02 — Configuración productiva
+
+* cultivo;
+* modalidad;
+* escala;
+* objetivo productivo;
+* módulos/racks.
+
+### M03 — Planificación de infraestructura
+
+* estructura;
+* racks;
+* tanques;
+* hidráulica;
+* bombas;
+* filtros;
+* sensores/equipamiento.
+
+### M04 — Evaluación de ubicación
+
+* ubicación;
+* orientación;
+* superficie;
+* condiciones básicas;
+* criterios INTA;
+* resultado de factibilidad.
+
+*Este módulo puede funcionar con datos mockeados.*
+
+### M05 — Motor de estimación económica
+
+* cantidades;
+* precios;
+* inversión inicial;
+* presupuesto;
+* costos de instalación.
+
+### M06 — Producción y retorno
+
+* producción estimada;
+* precio de referencia;
+* ingresos;
+* costos;
+* tiempo de recuperación.
+
+### M07 — TCO y mantenimiento
+
+* vida útil;
+* reposiciones;
+* calibraciones;
+* mantenimiento;
+* proyección temporal.
+
+### M08 — Generador de propuesta visual
+
+* resumen;
+* croquis superior;
+* vista frontal;
+* resultados;
+* eventualmente AR.
+
+---
+
+## Y dejaría estos para la segunda tanda de specs
+
+*M09 — Proveedores*
+
+*M10 — Servicios profesionales/consultoría*
+
+*M11 — Integraciones externas*
+
+*M12 — AR avanzada*
+
+*M13 — IoT*
+
+*M14 — Comercialización*
+
+Porque aunque *proveedores y consultoría forman parte del modelo de negocio*, no necesitan bloquear la generación de la propuesta principal.
+
+---
+
+# Y sobre las tecnologías: todavía NO se las cerraría
+
+Esto es importante.
+
+No quiero que el spec diga:
+
+> "vamos a usar React + Firebase + PostgreSQL + AWS + API X + Docker + nosequé"
+
+antes de saber qué necesita realmente el prototipo.
+
+Primero:
+
+*requerimientos → arquitectura lógica → necesidades técnicas → tecnología.*
+
+Después sí podemos decidir juntos algo del estilo:
+
+text
+                 ┌───────────────┐
+                 │   FRONTEND    │
+                 │ HTML/CSS/JS   │
+                 │ + Figma       │
+                 └───────┬───────┘
+                         │
+                         ↓
+                 ┌───────────────┐
+                 │    API /      │
+                 │    BACKEND    │
+                 └───────┬───────┘
+                         │
+              ┌──────────┴──────────┐
+              ↓                     ↓
+        ┌──────────┐          ┌───────────┐
+        │   BDD    │          │ Datos/API │
+        └──────────┘          └───────────┘
+
+
+Y ahí vemos si para *este hackatón* realmente necesitan una BDD externa, nube, backend persistente, etc., o si es mucho más inteligente tener algo liviano.
+
+Lo mismo con Figma: *no asumiría que "exportar HTML de Figma" significa que el código generado está listo para producción*. Lo vamos a tratar como fuente visual y después adaptamos la implementación al stack elegido.
+
+Y con Antigravity, la estrategia debería ser:
+
+> *GitHub = fuente de verdad → specs = contrato → IA = implementador → humano = validador/integrador.*
+
+No dejar que Antigravity invente requisitos.
+
+---
+
+## Finalmente, el flujo que me guardaría para después
+
+Sí: *después hacemos el flujo simulado completo y las pantallas*.
+
+Y yo lo haría pensando directamente en la demo:
+
+*"Tengo un terreno en Apóstoles + quiero producir X + tengo $X"*
+
+→ ubicación
+→ condiciones
+→ cultivo
+→ escala
+→ configuración
+→ propuesta
+→ croquis
+→ inversión
+→ producción
+→ TCO
+→ *"recuperarías aproximadamente la inversión en X años bajo estos supuestos"*
+→ opción *"ver en AR"*
+→ opción *"consultar a un especialista"*.
+
+
+
+
+
+
+INSTRUCCIÓN ESPECÍFICA: GENERACIÓN DE SPECS DEL PROTOTIPO
+Utilizando exclusivamente el contexto, alcance y decisiones proporcionados en el prompt maestro anterior, generar la documentación técnica mínima necesaria para que un equipo humano y una IA de programación puedan desarrollar el prototipo funcional del hackatón.
+El objetivo NO es documentar el sistema completo.
+El objetivo es generar un conjunto pequeño, coherente y accionable de especificaciones que permitan implementar el flujo principal del prototipo sin que la IA tenga que inventar requisitos, reglas de negocio o estructuras fundamentales.
+1. PRINCIPIO GENERAL
+El prototipo debe demostrar el siguiente flujo:
+Crear proyecto → definir situación inicial → definir ubicación/espacio → definir objetivo productivo → configurar producción e infraestructura → estimar inversión → estimar producción e ingresos → calcular recuperación aproximada de inversión → visualizar TCO/mantenimiento → generar propuesta visual/croquis.
+Las funcionalidades que no sean necesarias para completar este flujo NO deben convertirse en specs del prototipo.
+Las funcionalidades futuras deben mencionarse únicamente cuando sea necesario establecer un punto de extensión o aclarar que una funcionalidad está fuera del MVP.
+2. ARCHIVOS A GENERAR
+Generar únicamente los siguientes archivos:
+
+```text
+project.md
+
+contract.md
+
+specs/
+├── 01-proyecto-y-configuracion.md
+├── 02-planificacion-productiva.md
+├── 03-ubicacion-y-factibilidad.md
+├── 04-infraestructura-y-equipamiento.md
+├── 05-estimacion-economica.md
+├── 06-produccion-retorno-y-tco.md
+├── 07-propuesta-visual.md
+└── 08-datos-iniciales-y-mocks.md
+
+```
+
+No crear otros archivos salvo que sean estrictamente necesarios.
+3. project.md
+Crear `project.md` como descripción general del proyecto.
+Debe contener:
+3.1 Nombre provisional
+Proponer un nombre de trabajo para el sistema.
+3.2 Problema
+Explicar el problema que enfrenta una persona que desea iniciar o ampliar un emprendimiento hidropónico.
+3.3 Objetivo
+Explicar qué permite hacer el sistema.
+3.4 Usuarios principales
+Principalmente:
+
+* productor inicial;
+* productor que ya posee infraestructura y desea ampliarla o reorganizarla.
+
+Mencionar otros actores solamente si son necesarios para el prototipo.
+3.5 Desafíos abordados
+Explicar:
+
+* Desafío #1 como desafío principal;
+* aspectos incorporados de #3;
+* aspectos incorporados de #6.
+
+3.6 Alcance del prototipo
+Describir claramente qué estará funcionando en el prototipo.
+3.7 Alcance del sistema completo
+Describir brevemente qué funcionalidades podrían incorporarse posteriormente.
+3.8 Fuera del prototipo
+Enumerar funcionalidades deliberadamente excluidas.
+3.9 Flujo principal
+Describir el flujo extremo a extremo que debe poder demostrarse ante el jurado.
+3.10 Supuestos y limitaciones
+Aclarar que:
+
+* los cálculos son estimaciones;
+* los precios pueden ser datos precargados;
+* las APIs externas pueden estar simuladas;
+* la evaluación de factibilidad no constituye una certificación profesional;
+* el período de amortización es una proyección basada en supuestos;
+* el croquis es conceptual.
+
+4. contract.md
+Crear `contract.md` como contrato técnico común a TODO el proyecto.
+Debe contener solamente reglas que deben respetarse transversalmente en todos los módulos y specs.
+No debe describir funcionalidades específicas de un módulo.
+Incluir como mínimo:
+4.1 Principios de desarrollo
+
+* arquitectura modular;
+* separación entre datos, lógica y presentación;
+* código preparado para ampliación;
+* evitar duplicación;
+* no introducir funcionalidades no especificadas.
+
+4.2 Fuente de verdad
+Establecer que:
+
+* `project.md` define el propósito y alcance general;
+* los archivos de `specs/` definen el comportamiento funcional;
+* `contract.md` define las restricciones técnicas comunes;
+* ante contradicciones, deben señalarse antes de implementar.
+
+4.3 Datos configurables
+Los parámetros de cultivos, componentes, precios, vidas útiles y demás datos de referencia deben mantenerse separados de la lógica de cálculo.
+El prototipo puede utilizar datos hardcodeados/seed/mock, pero estos deben poder reemplazarse posteriormente.
+4.4 Estimaciones
+Toda estimación económica o productiva debe identificarse como estimación.
+No presentar como certeza:
+
+* producción;
+* ingresos;
+* rentabilidad;
+* amortización;
+* factibilidad.
+
+4.5 Integraciones externas
+Las integraciones con APIs externas deben poder ser reemplazadas por mocks durante el prototipo.
+El prototipo NO debe depender de la disponibilidad de servicios externos para ejecutar el flujo principal.
+4.6 Seguridad
+Establecer requisitos mínimos razonables para:
+
+* validación de entradas;
+* manejo de errores;
+* no exponer secretos;
+* configuración de credenciales mediante variables de entorno si fueran necesarias.
+
+4.7 Convenciones
+Definir convenciones básicas de:
+
+* nombres;
+* estructura;
+* identificadores;
+* formato de datos;
+* unidades.
+
+No imponer tecnologías concretas que todavía no hayan sido decididas por el equipo.
+4.8 Restricción de alcance
+Una IA de programación NO debe implementar funcionalidades futuras simplemente porque aparezcan mencionadas en `project.md`.
+5. Estructura común de cada SPEC
+Cada archivo dentro de `specs/` debe utilizar una estructura similar a la documentación técnica proporcionada como referencia.
+Cuando corresponda, utilizar:
+
+```text
+# Nombre del módulo
+
+## 1. Objetivo
+
+## 2. Historias de usuario / casos de uso
+
+## 3. Requisitos funcionales
+
+## 4. Reglas de negocio
+
+## 5. Restricciones técnicas específicas
+
+## 6. Modelo de datos
+
+## 7. Entradas y salidas
+
+## 8. Plan de tareas
+
+## 9. Criterios de aceptación
+
+## 10. Estrategia de verificación
+
+```
+
+No incluir secciones vacías.
+No repetir información que ya esté definida en `contract.md`.
+6. SPEC 01 — Proyecto y configuración
+Archivo:
+`specs/01-proyecto-y-configuracion.md`
+Debe especificar:
+
+* creación de un proyecto;
+* nombre;
+* ubicación;
+* superficie disponible;
+* situación inicial;
+* presupuesto disponible;
+* infraestructura existente;
+* objetivo general.
+
+Debe contemplar las situaciones:
+
+1. comenzar desde cero;
+2. disponer de infraestructura parcial;
+3. planificar una nueva inversión.
+
+Debe permitir guardar la configuración necesaria para continuar con los módulos posteriores.
+7. SPEC 02 — Planificación productiva
+Archivo:
+`specs/02-planificacion-productiva.md`
+Debe especificar:
+
+* selección de cultivo;
+* modalidad de producción;
+* escala;
+* objetivo productivo;
+* cantidad de módulos/racks;
+* superficie productiva;
+* parámetros productivos relevantes.
+
+Debe permitir dos enfoques conceptuales:
+Presupuesto → producción posible
+El usuario indica cuánto puede invertir y el sistema determina una configuración posible.
+Producción → inversión necesaria
+El usuario establece un objetivo productivo y el sistema estima los recursos necesarios.
+Para el prototipo, si implementar ambas modalidades aumenta demasiado la complejidad, especificar una como flujo funcional principal y la segunda como variante simplificada.
+8. SPEC 03 — Ubicación y factibilidad
+Archivo:
+`specs/03-ubicacion-y-factibilidad.md`
+Debe especificar:
+
+* ubicación;
+* orientación;
+* superficie;
+* dimensiones;
+* condiciones básicas del terreno;
+* disponibilidad de agua;
+* disponibilidad eléctrica;
+* pendiente;
+* riesgo de inundación;
+* condiciones relevantes para infraestructura.
+
+Debe contemplar el uso de información técnica del INTA como fuente de referencia para criterios de planificación, especialmente orientación y condiciones de emplazamiento.
+Para el prototipo:
+
+* los datos externos pueden estar precargados;
+* la consulta a APIs puede ser simulada;
+* el resultado puede ser calculado mediante reglas simplificadas.
+
+Debe quedar definido claramente qué significa "factibilidad" en el prototipo.
+No debe presentarse como un estudio profesional de suelo, ingeniería o construcción.
+También debe contemplarse como extensión futura:
+
+* mapas;
+* datos topográficos;
+* imágenes satelitales;
+* medición con cámara;
+* análisis avanzado del terreno.
+
+9. SPEC 04 — Infraestructura y equipamiento
+Archivo:
+`specs/04-infraestructura-y-equipamiento.md`
+Debe especificar los componentes necesarios para la configuración seleccionada.
+Como mínimo contemplar:
+Infraestructura
+
+* estructura del invernadero;
+* cubierta;
+* racks/módulos;
+* tanques;
+* cañerías;
+* filtros.
+
+Equipamiento
+
+* bombas;
+* aireación/oxigenación;
+* medidores de pH;
+* sensores básicos;
+* otros componentes necesarios según la configuración.
+
+Cada componente debe poder tener:
+
+* nombre;
+* categoría;
+* unidad;
+* costo;
+* cantidad;
+* vida útil;
+* frecuencia de mantenimiento;
+* frecuencia de reposición.
+
+No implementar en este módulo:
+
+* control IoT;
+* automatización;
+* monitoreo en tiempo real;
+* control avanzado de nutrientes;
+* detección avanzada de enfermedades.
+
+10. SPEC 05 — Estimación económica
+Archivo:
+`specs/05-estimacion-economica.md`
+Debe especificar:
+
+* cálculo de cantidades;
+* costos unitarios;
+* costos de infraestructura;
+* costos de equipamiento;
+* mano de obra;
+* instalación;
+* inversión inicial;
+* comparación contra presupuesto.
+
+Debe documentar explícitamente las fórmulas.
+Ejemplo conceptual:
+`costoComponente = cantidad × costoUnitario`
+`inversionInicial = Σ costosComponentes + costosInstalacion + manoDeObra`
+Debe indicar qué datos son:
+
+* ingresados;
+* derivados;
+* hardcodeados;
+* simulados.
+
+Los precios externos no deben ser necesarios para ejecutar el prototipo.
+11. SPEC 06 — Producción, retorno y TCO
+Archivo:
+`specs/06-produccion-retorno-y-tco.md`
+Este módulo es prioritario.
+Debe especificar tres resultados:
+11.1 Producción
+Estimar:
+
+* producción por período;
+* frecuencia de cosecha;
+* rendimiento;
+* capacidad productiva.
+
+11.2 Retorno
+Estimar:
+
+* precio de referencia;
+* ingreso bruto;
+* costos relevantes;
+* flujo simplificado;
+* período aproximado de recuperación de la inversión.
+
+El resultado debe expresarse como:
+"Con los supuestos utilizados, la inversión inicial se recuperaría aproximadamente en X meses/años."
+No presentarlo como garantía.
+11.3 TCO
+Representar:
+
+* inversión inicial;
+* mantenimiento;
+* reposición;
+* calibración;
+* costos acumulados a lo largo del tiempo.
+
+Debe contemplar componentes como:
+
+* bomba;
+* filtro;
+* sonda de pH;
+* sensores;
+* otros equipamientos con vida útil limitada.
+
+Debe poder generar una proyección temporal simplificada.
+12. SPEC 07 — Propuesta visual
+Archivo:
+`specs/07-propuesta-visual.md`
+Debe especificar la generación de la propuesta final.
+Debe incluir:
+12.1 Resumen
+
+* configuración seleccionada;
+* superficie;
+* cultivo;
+* escala;
+* inversión;
+* producción;
+* recuperación estimada;
+* TCO.
+
+12.2 Croquis superior
+Debe representar conceptualmente:
+
+* límites del invernadero;
+* orientación;
+* acceso;
+* circulación;
+* racks;
+* módulos;
+* tanques;
+* infraestructura principal.
+
+12.3 Vista frontal o lateral
+Debe representar:
+
+* estructura;
+* altura aproximada;
+* racks;
+* tanque;
+* componentes principales.
+
+El croquis NO debe ser un plano arquitectónico ni constructivo.
+Debe especificarse cómo los parámetros de configuración determinan los elementos visuales.
+12.4 Realidad aumentada
+La AR debe quedar definida como una capacidad opcional de visualización.
+El prototipo puede:
+
+* simularla;
+* implementar una demostración mínima;
+* o dejar un punto de integración preparado.
+
+La ausencia de AR no debe impedir el flujo principal.
+13. SPEC 08 — Datos iniciales y mocks
+Archivo:
+`specs/08-datos-iniciales-y-mocks.md`
+Este archivo es especialmente importante para el prototipo.
+Definir los datos mínimos necesarios para ejecutar una demostración sin depender de servicios externos.
+Incluir datos de ejemplo para:
+Cultivos
+Por ejemplo:
+
+* cultivo;
+* rendimiento estimado;
+* ciclo;
+* requerimientos;
+* modalidad compatible.
+
+Componentes
+
+* nombre;
+* categoría;
+* precio;
+* unidad;
+* vida útil;
+* mantenimiento;
+* reposición.
+
+Criterios de ubicación
+
+* ubicación;
+* orientación recomendada;
+* parámetros de referencia;
+* condiciones climáticas;
+* criterios derivados de fuentes técnicas como INTA.
+
+Precios
+Utilizar valores de referencia claramente identificados como datos de demostración.
+Mocks
+Definir respuestas simuladas para:
+
+* consulta geográfica;
+* factibilidad;
+* datos externos;
+* AR si corresponde.
+
+Los mocks deben tener una estructura que permita posteriormente reemplazarlos por APIs reales.
+14. Historias de usuario
+No generar historias de usuario para cada microacción.
+Generar solamente las necesarias para describir el flujo principal.
+Como mínimo:
+
+* crear/configurar proyecto;
+* definir objetivo productivo;
+* configurar producción;
+* evaluar ubicación;
+* configurar infraestructura;
+* consultar inversión;
+* consultar producción y retorno;
+* consultar TCO;
+* visualizar propuesta.
+
+15. Requisitos funcionales
+Utilizar identificadores estables:
+
+```text
+RF-001
+RF-002
+RF-003
+...
+
+```
+
+Cada RF debe contener como mínimo:
+
+* nombre;
+* descripción;
+* entradas;
+* procesamiento;
+* salida;
+* reglas relacionadas;
+* prioridad;
+* criterio de aceptación.
+
+No crear RF para funcionalidades exclusivamente futuras.
+16. Reglas de negocio
+Utilizar identificadores:
+
+```text
+RN-001
+RN-002
+...
+
+```
+
+Las reglas deben cubrir únicamente decisiones necesarias para el prototipo.
+Ejemplos:
+
+* una configuración debe ser compatible con el cultivo seleccionado;
+* una configuración no puede superar determinado límite físico del espacio;
+* el costo total debe reflejar cantidades y precios;
+* el resultado económico depende de supuestos explícitos;
+* una estimación de amortización no constituye garantía;
+* una propuesta de ubicación debe indicar sus limitaciones.
+
+17. Modelo de datos
+Definir solamente las entidades mínimas necesarias.
+No crear una entidad únicamente porque pueda ser necesaria en una futura versión.
+Como punto de partida evaluar entidades como:
+
+```text
+Proyecto
+Ubicacion
+Cultivo
+ConfiguracionProductiva
+Componente
+ConfiguracionComponente
+EstimacionEconomica
+EstimacionProduccion
+ProyeccionTCO
+Mantenimiento
+
+```
+
+Si una entidad no es necesaria para ejecutar el prototipo, no incorporarla.
+Para cada entidad indicar:
+
+* atributos;
+* tipo conceptual;
+* obligatoriedad;
+* relación con otras entidades.
+
+18. Plan de tareas
+Cada módulo debe incluir un pequeño plan de tareas implementables.
+Usar el formato:
+IDTareaDescripciónArchivos/componentes afectados
+Las tareas deben ser suficientemente concretas para que una IA de programación pueda ejecutarlas.
+No generar planes de tareas para funcionalidades futuras.
+19. Criterios de aceptación
+Cada funcionalidad debe tener criterios verificables.
+Ejemplo:
+RF-001 — Crear proyecto
+
+* CA-01: El usuario puede ingresar los datos mínimos requeridos.
+* CA-02: El sistema valida los campos obligatorios.
+* CA-03: El proyecto queda disponible para continuar con la planificación.
+* CA-04: Los datos ingresados se utilizan posteriormente en los cálculos.
+
+Los criterios deben servir posteriormente para pruebas manuales y/o automatizadas.
+20. Estrategia de verificación
+Para cada módulo indicar pruebas mínimas.
+Priorizar:
+
+* casos normales;
+* entradas inválidas;
+* límites;
+* presupuesto insuficiente;
+* superficie insuficiente;
+* configuración incompatible;
+* datos faltantes.
+
+No crear una estrategia de testing excesivamente extensa para el hackatón.
+21. Dependencias entre specs
+Al final de cada spec indicar:
+Depende de
+
+* otros specs necesarios previamente.
+
+Es utilizado por
+
+* specs posteriores.
+
+Esto debe permitir implementar el sistema incrementalmente.
+La dependencia principal esperada es:
+
+```text
+01 Proyecto
+   ↓
+02 Planificación productiva
+   ↓
+03 Ubicación
+   ↓
+04 Infraestructura
+   ↓
+05 Estimación económica
+   ↓
+06 Producción / Retorno / TCO
+   ↓
+07 Propuesta visual
+
+```
+
+`08 Datos iniciales y mocks` debe servir como soporte transversal.
+22. Restricción fundamental
+El resultado debe ser pequeño y accionable.
+No convertir el sistema completo propuesto en requisitos del prototipo.
+El prototipo debe ser capaz de demostrar un único flujo completo y coherente.
+Si una funcionalidad futura no es necesaria para ese flujo, debe quedar fuera de los specs funcionales del MVP.
+Antes de finalizar, revisar que:
+
+1. todos los RF tengan criterio de aceptación;
+2. todos los cálculos tengan variables de entrada y salida;
+3. todos los datos utilizados por los cálculos estén definidos;
+4. ninguna pantalla dependa de información que no esté disponible;
+5. ninguna funcionalidad externa sea indispensable;
+6. no existan contradicciones entre los specs;
+7. el flujo completo pueda ejecutarse con datos mock/hardcodeados;
+8. una IA de programación pueda implementar el prototipo leyendo `project.md`, `contract.md` y los specs sin tener que inventar reglas fundamentales.
+
+Al finalizar, incluir una sección:
+DECISIONES PENDIENTES
+con solamente las decisiones que realmente deban ser tomadas por el equipo antes de implementar.
+No tomar esas decisiones automáticamente.
