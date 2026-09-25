@@ -192,7 +192,6 @@
             display: grid;
             place-items: center;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-            backdrop-filter: blur(6px);
         }
 
         .brand .logo svg {
@@ -208,7 +207,6 @@
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 0.2px;
-            backdrop-filter: blur(8px);
         }
 
         .stepper {
@@ -469,18 +467,6 @@
             width: 58px;
             height: 58px;
             margin: 0 auto 14px
-        }
-
-        @keyframes float {
-
-            0%,
-            100% {
-                transform: translateY(0)
-            }
-
-            50% {
-                transform: translateY(-9px)
-            }
         }
 
         /* iOS-style list items */
@@ -769,7 +755,7 @@
             position: relative;
             border-radius: var(--r);
             overflow: hidden;
-            background: linear-gradient(170deg, #0b1220, #16233b);
+            background: #0b1220;
             height: 280px;
             box-shadow: var(--sh);
             margin-bottom: 14px
@@ -1292,7 +1278,7 @@
         }
 
         .budget-fill.over {
-            background: linear-gradient(90deg, #ff9f0a, #ff3b30)
+            background: #ff3b30
         }
 
         /* kpis */
@@ -3087,7 +3073,7 @@
                     document.getElementById('inAncho').value = a;
                     document.getElementById('inAlto').value = h;
                     calcularMedidas();
-                    swalNotify('✅ Croquis analizado correctamente', 'success');
+                    swalNotify('Croquis analizado correctamente', 'success');
                 }, 800);
             }
 
@@ -3307,11 +3293,11 @@
                 // Show SweetAlert when budget state changes
                 if (lastBudgetState !== null && lastBudgetState !== newState) {
                     if (newState === 'over') {
-                        swalNotify(`⚠️ Te pasaste del presupuesto por ${fmt(total - S.presupuesto)}. Ajustá los parámetros.`, 'error');
+                        swalNotify(`Te pasaste del presupuesto por ${fmt(total - S.presupuesto)}. Ajustá los parámetros.`, 'error');
                     } else if (newState === 'warn' && lastBudgetState === 'ok') {
-                        swalNotify(`⚠️ Estás cerca del límite del presupuesto (${pct}%)`, 'warn');
+                        swalNotify(`Estás cerca del límite del presupuesto (${pct}%)`, 'warn');
                     } else if (newState === 'ok' && lastBudgetState !== 'ok') {
-                        swalNotify('✅ ¡Volviste a estar dentro del presupuesto!', 'success');
+                        swalNotify('¡Volviste a estar dentro del presupuesto!', 'success');
                     }
                 }
                 lastBudgetState = newState;
@@ -4115,21 +4101,21 @@
             }
 
             function fabShareProject() {
-                swalNotify('📤 Enlace de proyecto copiado al portapapeles', 'success');
+                swalNotify('Enlace de proyecto copiado al portapapeles', 'success');
             }
 
             function fabDownloadPlanos() {
-                swalNotify('📥 Descargando planos en PDF…', 'info');
-                setTimeout(() => swalNotify('✅ Planos descargados correctamente', 'success'), 1500);
+                swalNotify('Descargando planos en PDF…', 'info');
+                setTimeout(() => swalNotify('Planos descargados correctamente', 'success'), 1500);
             }
 
             function fabOptimizar() {
                 const total = costoTotal();
                 if (total <= S.presupuesto) {
-                    swalNotify('✅ Tu proyecto ya está optimizado dentro del presupuesto', 'success');
+                    swalNotify('Tu proyecto ya está optimizado dentro del presupuesto', 'success');
                 } else {
                     Swal.fire({
-                        title: '⚡ Optimizar proyecto',
+                        title: 'Optimizar proyecto',
                         html: `<p style="font-size:14px;color:#636366">Tu proyecto excede el presupuesto por <strong>${fmt(total - S.presupuesto)}</strong>. ¿Querés que el sistema ajuste automáticamente los parámetros para entrar en presupuesto?</p>`,
                         icon: 'warning',
                         showCancelButton: true,
@@ -4152,7 +4138,7 @@
                             document.getElementById('pLin').value = S.params.lineas;
                             document.getElementById('pIndoor').checked = S.params.indoor;
                             setParam('longitud', S.params.longitud);
-                            swalNotify('✅ Proyecto optimizado dentro del presupuesto', 'success');
+                            swalNotify('Proyecto optimizado dentro del presupuesto', 'success');
                         }
                     });
                 }
@@ -4169,7 +4155,7 @@
                     confirmButtonColor: '#34c759',
                 }).then(r => {
                     if (r.isConfirmed) {
-                        swalNotify('📩 Consulta enviada. Un asesor te contactará en breve.', 'success');
+                        swalNotify('Consulta enviada. Un asesor te contactará en breve.', 'success');
                     }
                 });
             }
@@ -4732,7 +4718,7 @@
                     calcularMedidas();
                     const m2 = (l * a).toFixed(1);
                     endSession();
-                    setTimeout(() => swalNotify('✅ Medidas AR aplicadas: ' + l.toFixed(2) + ' m largo × ' + a.toFixed(2) + ' m ancho (' + m2 + ' m²). Revisá la altura en Manual.', 'success'), 300);
+                    setTimeout(() => swalNotify('Medidas AR aplicadas: ' + l.toFixed(2) + ' m largo × ' + a.toFixed(2) + ' m ancho (' + m2 + ' m²). Revisá la altura en Manual.', 'success'), 300);
                 }
 
                 function onEnd() {
