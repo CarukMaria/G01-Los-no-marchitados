@@ -3945,6 +3945,9 @@
                 let points = [], rectInfo = null, measureGroup = null;
                 let modelGroup = null, modelPlaced = false;
                 let curHit = null;
+                let overlayOn = false, reticleMesh = null;
+                let onSelectHandler = null, autoApplied = false;
+                let watchdogOn = false, lastHitAt = 0;
                 const tv = new THREE.Vector3();
                 let supportCache;
 
@@ -4073,6 +4076,46 @@
                     const fill = new THREE.DirectionalLight(0x38bdf8, 0.35);
                     fill.position.set(-1, 1, -1);
                     scene.add(fill);
+                    // Retícula 3D de respaldo (visible solo cuando no hay dom-overlay).
+                    reticleMesh = new THREE.Mesh(
+                        new THREE.RingGeometry(0.025, 0.04, 32),
+                        new THREE.MeshBasicMaterial({ color: 0x22d3ee, transparent: true, opacity: 0.9, side: THREE.DoubleSide })
+                    );
+                    reticleMesh.rotation.x = -Math.PI / 2;
+                    reticleMesh.visible = false;
+                    scene.add(reticleMesh);
+                }
+
+                // Algunos navegadores/ARCore rechazan ciertas combinaciones de features
+                // ("The specified session configuration is not supported"). Probamos varias.
+                async function requestSessionCompat() {
+                    const configs = [
+                        { requiredFeatures: ['hit-test'], optionalFeatures: ['dom-overlay'], domOverlay: { root: hudEl } },
+                        { requiredFeatures: ['hit-test'] },
+                        { optionalFeatures: ['hit-test', 'dom-overlay'] }
+                    ];
+                    let lastErr = null;
+                    for (const cfg of configs) {
+                        try {
+                            const s = await navigator.xr.requestSession('immersive-ar', cfg);
+                            return { session: s, overlayOn: s.domOverlayType === 'screen' };
+                        } catch (e) {
+                            lastErr = e;
+                            console.warn('[AR] config rechazada:', JSON.stringify(cfg), (e && e.message) || e);
+                        }
+                    }
+                    throw lastErr || new Error('configuración de AR no soportada');
+                }
+
+                // Sin dom-overlay no hay botones en pantalla: tocás igual y al juntar
+                // 3 puntos las medidas se aplican solas.
+                function onSelect() {
+                    if (!running || mode !== 'measure' || !curHit) return;
+                    placePoint();
+                    if (!overlayOn && rectInfo && !autoApplied) {
+                        autoApplied = true;
+                        setTimeout(() => applyMeasure(), 350);
+                    }
                 }
 
                 async function start(type, opts) {
@@ -4083,25 +4126,29 @@
                     initWorld();
                     try {
                         if (!hudEl) hudEl = buildHUD();
-                        const session = await navigator.xr.requestSession('immersive-ar', {
-                            requiredFeatures: ['hit-test'],
-                            optionalFeatures: ['dom-overlay'],
-                            domOverlay: { root: hudEl }
-                        });
+                        hudEl.hidden = true;
+                        const { session, overlayOn: oOn } = await requestSessionCompat();
                         xrSession = session;
+                        overlayOn = oOn;
                         mode = type;
                         running = true;
                         modelPlaced = false;
+                        autoApplied = false;
+                        watchdogOn = true;
+                        lastHitAt = Date.now();
                         scene.remove(...scene.children.filter(c => c.userData.ar === true));
                         if (modelGroup) { disposeModel(modelGroup); modelGroup = null; }
                         renderer.xr.setReferenceSpaceType('local-floor');
                         await renderer.xr.setSession(session);
                         hitSource = null; // se crea en onFrame sobre el primer frame
                         session.addEventListener('end', onEnd);
+                        onSelectHandler = overlayOn ? null : onSelect;
+                        if (onSelectHandler) session.addEventListener('select', onSelectHandler);
+                        if (!overlayOn && reticleMesh) reticleMesh.visible = true;
                         if (type === 'model') {
                             points = [];
                             rectInfo = null;
-                            hudEl.hidden = false;
+                            hudEl.hidden = !overlayOn;
                             $id('arHudModel').hidden = false;
                             $id('arHudMeasure').hidden = true;
                             $id('arModelRead').textContent = '—';
@@ -4111,7 +4158,7 @@
                         } else {
                             points = [];
                             rectInfo = null;
-                            hudEl.hidden = false;
+                            hudEl.hidden = !overlayOn;
                             $id('arHudMeasure').hidden = false;
                             $id('arHudModel').hidden = true;
                             setChip('📏 Medición AR', false);
@@ -4124,8 +4171,8 @@
                         return true;
                     } catch (err) {
                         console.error('AR start error:', err);
-                        running = false; xrSession = null; mode = null;
-                        swalNotify('No se pudo iniciar la sesión AR: ' + (err.message || 'error'), 'error');
+                        running = false; xrSession = null; mode = null; overlayOn = false;
+                        swalNotify('No se pudo iniciar la sesión AR: ' + (err.message || 'error') + '. Actualizá Chrome o activá Google Play Services for AR y probá de nuevo.', 'error');
                         return false;
                     }
                 }
@@ -4175,13 +4222,19 @@
                         } catch (_e) { }
                     }
                     if (hitPose) {
+                        lastHitAt = Date.now();
                         tv.fromArray(hitPose.transform.position);
                         curHit = curHit || new THREE.Vector3();
                         curHit.copy(tv);
                         setReticle(true);
+                        if (!overlayOn && reticleMesh) {
+                            reticleMesh.position.set(curHit.x, curHit.y + 0.004, curHit.z);
+                            reticleMesh.visible = true;
+                        }
                         if (mode === 'measure') updateLive();
                         if (mode === 'model' && modelGroup && !modelPlaced) {
                             modelPlaced = true;
+                            watchdogOn = false;
                             modelGroup.position.copy(curHit);
                             modelGroup.visible = true;
                             setChip('✅ Anclado a escala real', true);
@@ -4190,6 +4243,13 @@
                     } else {
                         curHit = null;
                         setReticle(false);
+                        if (!overlayOn && reticleMesh) reticleMesh.visible = false;
+                    }
+                    if (mode === 'measure' && rectInfo) watchdogOn = false;
+                    if (watchdogOn && Date.now() - lastHitAt > 5000) {
+                        watchdogOn = false;
+                        endSession();
+                        setTimeout(() => swalNotify('La cámara no detectó el piso: necesitás una superficie fija con textura y buena luz. Movete más despacio y probá de nuevo.', 'warn'), 350);
                     }
                     renderer.render(scene, camera);
                 }
@@ -4323,10 +4383,14 @@
                 function onEnd() {
                     if (!running) return;
                     running = false;
+                    if (onSelectHandler && xrSession) xrSession.removeEventListener('select', onSelectHandler);
+                    onSelectHandler = null;
                     renderer.setAnimationLoop(null);
                     if (measureGroup) { disposeModel(measureGroup); measureGroup = null; }
                     if (modelGroup) { disposeModel(modelGroup); modelGroup = null; }
+                    if (reticleMesh) reticleMesh.visible = false;
                     points = []; rectInfo = null; curHit = null;
+                    overlayOn = false; autoApplied = false; watchdogOn = false;
                     if (hudEl) hudEl.hidden = true;
                     mode = null; hitSource = null;
                 }
