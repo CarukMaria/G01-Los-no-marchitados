@@ -1,0 +1,2751 @@
+<!DOCTYPE html>
+<html lang="es-AR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HydroPlan · Planificación y factibilidad hidropónica</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hydro: {
+                            green: '#10B981', greenDark: '#059669', greenSoft: '#D1FAE5',
+                            teal: '#0D9488', blue: '#0284C7', amber: '#F59E0B',
+                            danger: '#EF4444', soil: '#78350F', slate2: '#334155'
+                        }
+                    },
+                    fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'], mono: ['JetBrains Mono', 'monospace'] },
+                    boxShadow: { glow: '0 10px 30px rgba(16,185,129,.3)', card: '0 4px 16px rgba(15,23,42,.06)' }
+                }
+            }
+        }
+    </script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;600&display=swap"
+        rel="stylesheet">
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+
+    <style>
+        * {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background-color: #F8FAFC;
+            background-image:
+                radial-gradient(#E2E8F0 1px, transparent 1px),
+                radial-gradient(circle at 15% 0%, rgba(16, 185, 129, .08), transparent 45%);
+            background-size: 22px 22px, 100% 100%;
+            background-attachment: fixed;
+        }
+
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #CBD5E1;
+            border-radius: 10px;
+        }
+
+        .view {
+            display: none
+        }
+
+        .view.active {
+            display: block;
+            animation: fadeUp .35s ease both
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(12px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        @keyframes pop {
+            0% {
+                transform: scale(.92);
+                opacity: 0
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1
+            }
+        }
+
+        .pop {
+            animation: pop .3s cubic-bezier(.34, 1.56, .64, 1) both
+        }
+
+        @keyframes pulse-ring {
+            0% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, .5)
+            }
+
+            70% {
+                box-shadow: 0 0 0 15px rgba(16, 185, 129, 0)
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(16, 185, 129, 0)
+            }
+        }
+
+        .pulse-ring {
+            animation: pulse-ring 2s infinite
+        }
+
+        .step-item {
+            border-left: 4px solid transparent;
+            transition: all .25s
+        }
+
+        .step-item.active {
+            background: linear-gradient(90deg, #ECFDF5, #fff);
+            border-left-color: #10B981
+        }
+
+        .step-item.done .step-num {
+            background: #10B981;
+            color: #fff
+        }
+
+        .step-item.active .step-num {
+            background: #059669;
+            color: #fff
+        }
+
+        .avis-box {
+            border-left: 4px solid #F59E0B;
+            background: #FFFBEB;
+            padding: 10px 12px;
+            border-radius: 6px
+        }
+
+        .avis-box.error {
+            border-left-color: #EF4444;
+            background: #FEF2F2
+        }
+
+        .avis-box.ok {
+            border-left-color: #10B981;
+            background: #ECFDF5
+        }
+
+        .avis-box.info {
+            border-left-color: #0284C7;
+            background: #F0F9FF
+        }
+
+        .mat-item.selected {
+            border-color: #10B981;
+            background: #F0FDF4;
+            box-shadow: 0 0 0 1px #10B981
+        }
+
+        .badge-verde {
+            background: #ECFDF5;
+            color: #047857;
+            border: 1px solid #6EE7B7
+        }
+
+        .badge-amarillo {
+            background: #FFFBEB;
+            color: #B45309;
+            border: 1px solid #FCD34D
+        }
+
+        .badge-rojo {
+            background: #FEF2F2;
+            color: #B91C1C;
+            border: 1px solid #FCA5A5
+        }
+
+        .tab-btn.active {
+            background: #10B981;
+            color: #fff;
+            border-color: #10B981
+        }
+
+        #three-canvas {
+            cursor: grab
+        }
+
+        #three-canvas:active {
+            cursor: grabbing
+        }
+    </style>
+</head>
+
+<body class="min-h-screen font-sans text-slate-800 antialiased">
+
+    <!-- ============================================================
+     HEADER
+============================================================ -->
+    <header class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/85 backdrop-blur-md">
+        <div class="mx-auto flex max-w-[1400px] items-center justify-between gap-3 px-4 py-3">
+            <button id="btn-logo" class="flex items-center gap-3">
+                <div
+                    class="grid h-10 w-10 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 shadow-glow">
+                    <i data-lucide="sprout" class="h-5 w-5 text-white"></i>
+                </div>
+                <div class="text-left">
+                    <h1 class="text-lg font-extrabold tracking-tight text-slate-900">HydroPlan</h1>
+                    <p class="text-[10px] font-medium text-slate-500">Asistente de planificación · <span id="badge-demo"
+                            class="font-extrabold text-amber-600">DEMO</span></p>
+                </div>
+            </button>
+            <div class="flex items-center gap-2">
+                <button id="btn-cargar-demo"
+                    class="hidden items-center gap-1.5 rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-[11px] font-extrabold text-amber-800 transition hover:bg-amber-100">
+                    <i data-lucide="play-circle" class="h-3 w-3"></i> Cargar demo
+                </button>
+                <button id="btn-nuevo"
+                    class="hidden rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50">
+                    <i data-lucide="plus" class="mr-1 inline h-3 w-3"></i> Nuevo
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ============================================================
+     MAIN
+============================================================ -->
+    <main class="mx-auto max-w-[1400px] px-4 py-6">
+
+        <!-- ========================================================
+       LANDING
+  ======================================================== -->
+        <section id="view-landing" class="view active">
+            <div class="mx-auto max-w-4xl text-center py-6">
+                <div
+                    class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-3 py-1 text-[11px] font-extrabold text-emerald-700 ring-1 ring-emerald-200">
+                    <i data-lucide="sparkles" class="h-3 w-3"></i> Prototipo MVP · Hackatón
+                </div>
+                <h2 class="mt-4 text-4xl font-extrabold tracking-tight text-slate-900 sm:text-5xl">
+                    Planificá tu emprendimiento <span class="text-emerald-600">hidropónico</span>
+                </h2>
+                <p class="mx-auto mt-4 max-w-2xl text-sm leading-relaxed text-slate-600">
+                    Definí tu situación, ubicación y objetivo productivo. El sistema construye una propuesta coherente
+                    que relaciona espacio, producción, infraestructura, inversión inicial y costos futuros (TCO).
+                </p>
+
+                <div class="mt-6 avis-box text-left max-w-3xl mx-auto">
+                    <p class="flex items-start gap-2 text-[11px] leading-relaxed text-amber-900">
+                        <i data-lucide="alert-triangle" class="h-4 w-4 shrink-0 mt-0.5"></i>
+                        <span>
+                            <b>AVISO_ESTIMACION:</b> Valores estimados y orientativos, calculados con los supuestos
+                            indicados.
+                            No constituyen garantía de resultados ni de rentabilidad.<br>
+                            <b>AVISO_DATOS_DEMO:</b> Precios y parámetros de demostración; no son cotizaciones ni datos
+                            validados.
+                        </span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="mx-auto mt-8 grid max-w-4xl gap-5 md:grid-cols-2">
+                <button id="btn-demo"
+                    class="group relative overflow-hidden rounded-3xl border-2 border-emerald-400 bg-gradient-to-br from-emerald-50 to-white p-6 text-left transition hover:-translate-y-1 hover:shadow-glow">
+                    <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-emerald-100/60"></div>
+                    <div class="relative">
+                        <span
+                            class="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-glow">
+                            <i data-lucide="play" class="h-7 w-7"></i>
+                        </span>
+                        <h3 class="mt-4 text-xl font-extrabold text-slate-900">Cargar demo</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                            Escenario <b>DEMO-APOSTOLES</b>: terreno 20×15 m, presupuesto $14.000.000, lechuga NFT.
+                            Resultados esperados: 8 módulos, inversión ≈ $13,3M, recuperación ≈ 26 meses.
+                        </p>
+                        <div class="mt-5 flex items-center gap-2 text-sm font-extrabold text-emerald-600">
+                            Ver flujo completo <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                        </div>
+                    </div>
+                </button>
+
+                <button id="btn-desde-cero"
+                    class="group relative overflow-hidden rounded-3xl border-2 border-slate-200 bg-white p-6 text-left transition hover:-translate-y-1 hover:border-sky-400 hover:shadow-lg">
+                    <div class="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-sky-50"></div>
+                    <div class="relative">
+                        <span
+                            class="grid h-14 w-14 place-items-center rounded-2xl bg-gradient-to-br from-sky-500 to-blue-600 text-white shadow-lg">
+                            <i data-lucide="plus" class="h-7 w-7"></i>
+                        </span>
+                        <h3 class="mt-4 text-xl font-extrabold text-slate-900">Empezar de cero</h3>
+                        <p class="mt-2 text-sm leading-relaxed text-slate-600">
+                            Creá tu propio proyecto: elegí situación, ubicación, terreno, cultivo y presupuesto.
+                            El sistema calcula todo a partir de tus datos.
+                        </p>
+                        <div class="mt-5 flex items-center gap-2 text-sm font-extrabold text-sky-600">
+                            Crear proyecto <i data-lucide="arrow-right" class="h-4 w-4"></i>
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <div class="mx-auto mt-10 max-w-4xl">
+                <p class="mb-3 text-center text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Flujo
+                    del prototipo</p>
+                <div class="grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="folder-plus" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">1. Proyecto</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="map-pin" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">2. Ubicación</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="leaf" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">3. Cultivo</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="hammer" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">4. Infra</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="calculator" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">5. Inversión/TCO</p>
+                    </div>
+                    <div class="rounded-2xl border border-slate-200 bg-white p-3 text-center">
+                        <span
+                            class="grid h-8 w-8 mx-auto place-items-center rounded-lg bg-emerald-50 text-emerald-600"><i
+                                data-lucide="layout-dashboard" class="h-3.5 w-3.5"></i></span>
+                        <p class="mt-2 text-[10px] font-bold text-slate-800">6. Propuesta</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================
+       WIZARD
+  ======================================================== -->
+        <section id="view-wizard" class="view">
+            <div class="grid gap-6 lg:grid-cols-[260px_1fr]">
+
+                <!-- SIDEBAR -->
+                <aside class="lg:sticky lg:top-24 lg:self-start">
+                    <p class="mb-3 text-[11px] font-extrabold uppercase tracking-widest text-slate-400">Pasos del
+                        proyecto</p>
+                    <ol id="steps-list" class="space-y-1"></ol>
+
+                    <div class="mt-4 rounded-2xl border border-slate-200 bg-white p-3">
+                        <p class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">Estado del proyecto
+                        </p>
+                        <div id="proj-status" class="mt-2 space-y-1 text-[11px]"></div>
+                    </div>
+
+                    <div class="mt-3 avis-box">
+                        <p class="flex items-start gap-1.5 text-[10px] leading-relaxed text-amber-900">
+                            <i data-lucide="info" class="h-3 w-3 mt-0.5 shrink-0"></i>
+                            <span>Todos los resultados son <b>estimaciones orientativas</b>. No constituyen garantía de
+                                resultados.</span>
+                        </p>
+                    </div>
+                </aside>
+
+                <!-- CONTENT -->
+                <div class="min-w-0">
+
+                    <!-- ==============================================
+             PANTALLA 1 · PROYECTO (SPEC 01)
+        ============================================== -->
+                    <div data-step="0" class="view active">
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                            <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                <i data-lucide="folder-plus" class="h-4 w-4"></i> PANTALLA 1 · SPEC 01 — Proyecto y
+                                configuración
+                            </div>
+                            <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Crear proyecto</h2>
+                            <p class="mt-1 text-sm text-slate-600">Definí los datos base. Los pasos siguientes usan esta
+                                información.</p>
+
+                            <!-- Situación inicial -->
+                            <div class="mt-5">
+                                <p class="mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                                    Situación inicial (RN-001)</p>
+                                <div class="grid gap-3 md:grid-cols-3">
+                                    <button data-sit="A_DESDE_CERO"
+                                        class="sit-card selected rounded-2xl border-2 border-emerald-500 bg-emerald-50 p-4 text-left">
+                                        <span
+                                            class="sit-icon grid h-9 w-9 place-items-center rounded-xl bg-emerald-500 text-white">
+                                            <i data-lucide="circle-dashed" class="h-4 w-4"></i>
+                                        </span>
+                                        <p class="mt-2 text-sm font-extrabold text-slate-900">A · Desde cero</p>
+                                        <p class="mt-1 text-[11px] text-slate-600 leading-relaxed">No tengo
+                                            infraestructura.</p>
+                                    </button>
+                                    <button data-sit="B_INFRA_PARCIAL"
+                                        class="sit-card rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300">
+                                        <span
+                                            class="sit-icon grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-500">
+                                            <i data-lucide="puzzle" class="h-4 w-4"></i>
+                                        </span>
+                                        <p class="mt-2 text-sm font-extrabold text-slate-900">B · Infra parcial</p>
+                                        <p class="mt-1 text-[11px] text-slate-600 leading-relaxed">Ya tengo algunos
+                                            componentes.</p>
+                                    </button>
+                                    <button data-sit="C_NUEVA_INVERSION"
+                                        class="sit-card rounded-2xl border-2 border-slate-200 bg-white p-4 text-left transition hover:border-emerald-300">
+                                        <span
+                                            class="sit-icon grid h-9 w-9 place-items-center rounded-xl bg-slate-100 text-slate-500">
+                                            <i data-lucide="trending-up" class="h-4 w-4"></i>
+                                        </span>
+                                        <p class="mt-2 text-sm font-extrabold text-slate-900">C · Nueva inversión</p>
+                                        <p class="mt-1 text-[11px] text-slate-600 leading-relaxed">Ya produzco, quiero
+                                            ampliar.</p>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Infraestructura existente (solo B) -->
+                            <div id="box-infra-exist"
+                                class="mt-5 hidden rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Componentes
+                                    que ya tengo (RN-004)</p>
+                                <div id="infra-exist-list" class="mt-3 space-y-2"></div>
+                                <button id="btn-add-infra"
+                                    class="mt-3 rounded-xl bg-slate-200 px-3 py-1.5 text-[11px] font-extrabold text-slate-700 transition hover:bg-slate-300">
+                                    <i data-lucide="plus" class="mr-1 inline h-3 w-3"></i> Agregar componente existente
+                                </button>
+                            </div>
+
+                            <!-- Datos base -->
+                            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Nombre del proyecto</label>
+                                    <input id="f-nombre" type="text" maxlength="80"
+                                        value="Mi emprendimiento hidropónico"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                    <p id="err-nombre" class="mt-1 hidden text-[10px] font-bold text-red-600"></p>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Localidad (RN-003)</label>
+                                    <select id="f-localidad"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100"></select>
+                                    <p id="err-localidad" class="mt-1 hidden text-[10px] font-bold text-red-600"></p>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Largo del terreno (m)</label>
+                                    <input id="f-largo" type="number" min="0.1" max="1000" step="0.1" value="20"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                    <p id="err-largo" class="mt-1 hidden text-[10px] font-bold text-red-600"></p>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Ancho del terreno (m)</label>
+                                    <input id="f-ancho" type="number" min="0.1" max="1000" step="0.1" value="15"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                    <p id="err-ancho" class="mt-1 hidden text-[10px] font-bold text-red-600"></p>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Superficie calculada
+                                        (RN-002)</label>
+                                    <input id="f-superficie" type="text" readonly value="300.00 m²"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2.5 font-mono text-sm text-slate-700 outline-none">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Presupuesto disponible
+                                        (ARS)</label>
+                                    <input id="f-presupuesto" type="number" min="0" step="10000" value="14000000"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                    <p class="mt-1 text-[10px] text-slate-500">Obligatorio para el modo *presupuesto*
+                                        (SPEC 02, RN-002)</p>
+                                </div>
+                                <div class="sm:col-span-2">
+                                    <label class="text-[11px] font-bold text-slate-600">Objetivo general (opcional, ≤280
+                                        caracteres)</label>
+                                    <input id="f-objetivo" type="text" maxlength="280"
+                                        value="Producir lechuga hidropónica para venta local"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Fecha inicio estimada</label>
+                                    <input id="f-fecha" type="date" value="2026-10-01"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white focus:ring-2 focus:ring-emerald-100">
+                                </div>
+                            </div>
+
+                            <div class="mt-5 flex justify-end">
+                                <button data-next
+                                    class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    Guardar y continuar <i data-lucide="arrow-right" class="ml-1 inline h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==============================================
+             PANTALLA 2 · UBICACIÓN Y FACTIBILIDAD (SPEC 03)
+        ============================================== -->
+                    <div data-step="1" class="view">
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                            <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                <i data-lucide="map-pin" class="h-4 w-4"></i> PANTALLA 2 · SPEC 03 — Ubicación y
+                                factibilidad
+                            </div>
+                            <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Condiciones del terreno</h2>
+                            <p class="mt-1 text-sm text-slate-600">Cargá las condiciones básicas. El sistema evaluará
+                                factibilidad preliminar y calculará capacidad.</p>
+
+                            <!-- Criterio de la localidad (INTA mock) -->
+                            <div id="criterio-box" class="mt-5 rounded-2xl border border-sky-200 bg-sky-50/70 p-4">
+                                <p class="flex items-center gap-1.5 text-[11px] font-extrabold text-sky-900">
+                                    <i data-lucide="book-open" class="h-3.5 w-3.5"></i> Criterio de referencia (SPEC 08
+                                    · mock)
+                                </p>
+                                <div id="criterio-info" class="mt-2 text-[11px] text-sky-800"></div>
+                            </div>
+
+                            <!-- Condiciones -->
+                            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Eje largo del terreno
+                                        (RN-012)</label>
+                                    <select id="c-eje"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                        <option value="EO" selected>E–O (Este–Oeste)</option>
+                                        <option value="NS">N–S (Norte–Sur)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Pendiente (%)</label>
+                                    <input id="c-pendiente" type="number" min="0" max="100" step="0.1" value="1"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Riesgo de inundación</label>
+                                    <select id="c-inund"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                        <option value="BAJO" selected>Bajo</option>
+                                        <option value="MEDIO">Medio</option>
+                                        <option value="ALTO">Alto</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Agua disponible</label>
+                                    <select id="c-agua"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                        <option value="SI" selected>Sí</option>
+                                        <option value="LIMITADA">Limitada</option>
+                                        <option value="NO">No</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Electricidad</label>
+                                    <select id="c-elec"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                        <option value="RED" selected>Red eléctrica</option>
+                                        <option value="ALTERNATIVA">Alternativa (solar)</option>
+                                        <option value="NO">No disponible</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Capacidad por modalidad -->
+                            <div id="capacidad-box" class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Capacidad
+                                    del terreno (SPEC 03 · RF-010)</p>
+                                <div id="capacidad-info" class="mt-3 grid gap-3 md:grid-cols-2"></div>
+                            </div>
+
+                            <!-- Evaluación de factibilidad -->
+                            <div class="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                                <div class="flex items-start justify-between gap-4 flex-wrap">
+                                    <div>
+                                        <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+                                            Evaluación preliminar de factibilidad (RF-011)</p>
+                                        <p class="mt-1 text-[11px] text-slate-500">Reglas FAC-01 a FAC-07</p>
+                                    </div>
+                                    <div id="fact-badge" class="hidden"></div>
+                                </div>
+                                <ul id="fact-list" class="mt-3 space-y-1.5"></ul>
+                                <div class="mt-3 avis-box text-[10px] text-amber-900">
+                                    <b>AVISO_FACTIBILIDAD:</b> Evaluación preliminar basada en los datos ingresados y en
+                                    criterios de referencia.
+                                    No reemplaza estudios profesionales de suelo, ingeniería o construcción.
+                                </div>
+                            </div>
+
+                            <div class="mt-5 flex justify-between">
+                                <button data-prev
+                                    class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                </button>
+                                <button data-next
+                                    class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    Continuar <i data-lucide="arrow-right" class="ml-1 inline h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==============================================
+             PANTALLA 3 · CULTIVO Y DIMENSIONAMIENTO (SPEC 02)
+        ============================================== -->
+                    <div data-step="2" class="view">
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                            <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                <i data-lucide="leaf" class="h-4 w-4"></i> PANTALLA 3 · SPEC 02 — Planificación
+                                productiva
+                            </div>
+                            <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Cultivo, modalidad y
+                                dimensionamiento</h2>
+
+                            <!-- Cultivo -->
+                            <p class="mt-5 mb-2 text-[11px] font-extrabold uppercase tracking-wider text-slate-500">
+                                Cultivo (RF-004)</p>
+                            <div id="crop-grid" class="grid gap-3 sm:grid-cols-3"></div>
+
+                            <!-- Modalidad -->
+                            <div class="mt-4 grid gap-4 sm:grid-cols-2">
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Modalidad productiva
+                                        (RN-007)</label>
+                                    <select id="p-modalidad"
+                                        class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 text-sm outline-none focus:border-emerald-400 focus:bg-white"></select>
+                                </div>
+                                <div>
+                                    <label class="text-[11px] font-bold text-slate-600">Modo de planificación</label>
+                                    <div class="mt-1.5 flex rounded-xl border border-slate-200 bg-slate-100 p-0.5">
+                                        <button data-mod="PRESUPUESTO"
+                                            class="mod-btn active flex-1 rounded-lg px-3 py-2 text-[11px] font-extrabold transition">Por
+                                            presupuesto</button>
+                                        <button data-mod="OBJETIVO"
+                                            class="mod-btn flex-1 rounded-lg px-3 py-2 text-[11px] font-extrabold text-slate-600 transition">Por
+                                            objetivo</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel presupuesto -->
+                            <div id="panel-presupuesto" class="mt-5">
+                                <div
+                                    class="rounded-2xl border border-emerald-100 bg-gradient-to-br from-emerald-50 to-white p-4">
+                                    <div class="flex items-center justify-between">
+                                        <div>
+                                            <p
+                                                class="text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">
+                                                Presupuesto disponible</p>
+                                            <p id="presupuesto-display"
+                                                class="font-mono text-2xl font-extrabold text-slate-900">$14.000.000</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Panel objetivo -->
+                            <div id="panel-objetivo" class="mt-5 hidden">
+                                <div class="grid gap-4 sm:grid-cols-2">
+                                    <div>
+                                        <label class="text-[11px] font-bold text-slate-600">Objetivo de producción
+                                            (kg/mes)</label>
+                                        <input id="p-objetivo-kg" type="number" min="1" value="150"
+                                            class="mt-1.5 w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2.5 font-mono text-sm outline-none focus:border-emerald-400 focus:bg-white">
+                                    </div>
+                                    <div class="rounded-2xl border border-sky-100 bg-sky-50/60 p-3 text-[11px] text-sky-800"
+                                        id="obj-preview">
+                                        El sistema calculará los módulos necesarios.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Resultado dimensionamiento -->
+                            <div id="dim-result" class="mt-5 rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                                <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">
+                                    Dimensionamiento (RF-006 / RF-007)</p>
+                                <div id="dim-info" class="mt-3 grid gap-3 md:grid-cols-3"></div>
+                                <div id="dim-aviso" class="mt-3"></div>
+                            </div>
+
+                            <!-- Parámetros productivos -->
+                            <div id="param-box" class="mt-5 rounded-2xl border border-slate-200 bg-white p-4">
+                                <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Parámetros
+                                    productivos por módulo (RF-005)</p>
+                                <div id="param-info" class="mt-3 grid gap-3 md:grid-cols-4"></div>
+                            </div>
+
+                            <div class="mt-5 flex justify-between">
+                                <button data-prev
+                                    class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                </button>
+                                <button data-next
+                                    class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    Ver infraestructura <i data-lucide="arrow-right" class="ml-1 inline h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==============================================
+             PANTALLA 4 · INFRAESTRUCTURA (SPEC 04)
+        ============================================== -->
+                    <div data-step="3" class="view">
+                        <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                            <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                <i data-lucide="hammer" class="h-4 w-4"></i> PANTALLA 4 · SPEC 04 — Infraestructura y
+                                equipamiento
+                            </div>
+                            <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Componentes requeridos</h2>
+                            <p class="mt-1 text-sm text-slate-600">Cantidades calculadas con las reglas del catálogo
+                                (RN-017). Descontando lo existente.</p>
+
+                            <div class="mt-4 grid gap-3 sm:grid-cols-3">
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Módulos</p>
+                                    <p id="res-modulos" class="font-mono text-lg font-extrabold text-slate-900">—</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Área
+                                        invernadero</p>
+                                    <p id="res-area" class="font-mono text-lg font-extrabold text-slate-900">—</p>
+                                </div>
+                                <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                    <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Plazas
+                                        totales</p>
+                                    <p id="res-plazas" class="font-mono text-lg font-extrabold text-slate-900">—</p>
+                                </div>
+                            </div>
+
+                            <div id="aviso-infra-adic" class="mt-3 hidden"></div>
+
+                            <div class="mt-4 overflow-x-auto">
+                                <table class="w-full text-sm">
+                                    <thead>
+                                        <tr
+                                            class="border-b border-slate-200 text-left text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                                            <th class="pb-2">Componente</th>
+                                            <th class="pb-2">Grupo</th>
+                                            <th class="pb-2">Categoría</th>
+                                            <th class="pb-2 text-right">Requerido</th>
+                                            <th class="pb-2 text-right">Existente</th>
+                                            <th class="pb-2 text-right">Comprar</th>
+                                            <th class="pb-2 text-right">Unitario</th>
+                                            <th class="pb-2 text-right">Subtotal</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="infra-table"></tbody>
+                                    <tfoot>
+                                        <tr class="border-t-2 border-slate-900">
+                                            <td colspan="7"
+                                                class="pt-3 text-right text-sm font-extrabold text-slate-900">COSTO DE
+                                                MATERIALES</td>
+                                            <td id="infra-total"
+                                                class="pt-3 text-right font-mono text-lg font-extrabold text-emerald-600">
+                                                $0</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <div class="mt-4 avis-box text-[10px]">
+                                <b>AVISO_DATOS_DEMO:</b> Precios de demostración; no son cotizaciones ni datos
+                                validados.
+                            </div>
+
+                            <div class="mt-5 flex justify-between">
+                                <button data-prev
+                                    class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                </button>
+                                <button data-next
+                                    class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    Estimar inversión <i data-lucide="arrow-right" class="ml-1 inline h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==============================================
+             PANTALLA 5 · INVERSIÓN + PRODUCCIÓN + TCO (SPEC 05 + 06)
+        ============================================== -->
+                    <div data-step="4" class="view">
+                        <div class="space-y-5">
+
+                            <!-- Inversión -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                    <i data-lucide="calculator" class="h-4 w-4"></i> PANTALLA 5A · SPEC 05 — Estimación
+                                    económica
+                                </div>
+                                <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Inversión inicial (RF-015)</h2>
+
+                                <div class="mt-4 grid gap-3 md:grid-cols-4">
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Materiales</p>
+                                        <p id="inv-materiales" class="font-mono text-lg font-extrabold text-slate-900">
+                                            $0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Mano de
+                                            obra (15%)</p>
+                                        <p id="inv-mano" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Imprevistos (10%)</p>
+                                        <p id="inv-impr" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                    <div
+                                        class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                                            Inversión inicial</p>
+                                        <p id="inv-total" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                </div>
+
+                                <div id="inv-comparison" class="mt-4 rounded-2xl border p-4"></div>
+
+                                <div class="mt-3 rounded-2xl bg-slate-50 p-4">
+                                    <p class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                                        Fórmulas aplicadas (RF-015)</p>
+                                    <div class="mt-2 space-y-1 font-mono text-[11px] text-slate-600">
+                                        <p>costoLinea = cantidadAComprar × precioUnitario</p>
+                                        <p>manoDeObraInstalacion = costoMateriales × 0.15</p>
+                                        <p>imprevistos = (costoMateriales + manoDeObraInstalacion) × 0.10</p>
+                                        <p>inversionInicial = costoMateriales + manoDeObraInstalacion + imprevistos</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 avis-box text-[10px]">
+                                    <b>AVISO_ESTIMACION:</b> Valores estimados y orientativos, calculados con los
+                                    supuestos indicados.
+                                    No constituyen garantía de resultados ni de rentabilidad. Fecha de referencia de
+                                    precios: 2026-09-01.
+                                </div>
+                            </div>
+
+                            <!-- Producción -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                    <i data-lucide="bar-chart-3" class="h-4 w-4"></i> PANTALLA 5B · SPEC 06 — Producción
+                                    e ingresos (RF-017 / RF-018)
+                                </div>
+                                <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Producción estimada</h2>
+
+                                <div class="mt-4 grid gap-3 md:grid-cols-4">
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Plazas
+                                            totales</p>
+                                        <p id="prod-plazas" class="font-mono text-lg font-extrabold text-slate-900">—
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">kg / año
+                                        </p>
+                                        <p id="prod-kg-anio" class="font-mono text-lg font-extrabold text-slate-900">—
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">kg / mes
+                                        </p>
+                                        <p id="prod-kg-mes" class="font-mono text-lg font-extrabold text-emerald-600">—
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">kg /
+                                            semana</p>
+                                        <p id="prod-kg-sem" class="font-mono text-lg font-extrabold text-slate-900">—
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 grid gap-3 md:grid-cols-4">
+                                    <div class="rounded-2xl border border-sky-200 bg-sky-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-sky-700">Ingreso
+                                            bruto / mes</p>
+                                        <p id="ing-bruto" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Insumos
+                                            / mes</p>
+                                        <p id="ing-insumos" class="font-mono text-lg font-extrabold text-slate-900">$0
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Mano de
+                                            obra / mes</p>
+                                        <p id="ing-mano" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Costos
+                                            fijos / mes</p>
+                                        <p id="ing-fijos" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 grid gap-3 md:grid-cols-2">
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">Costos
+                                            operativos / mes</p>
+                                        <p id="ing-costos" class="font-mono text-lg font-extrabold text-slate-900">$0
+                                        </p>
+                                    </div>
+                                    <div
+                                        class="rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-700">Flujo
+                                            neto operativo / mes</p>
+                                        <p id="ing-neto" class="font-mono text-lg font-extrabold text-emerald-600">$0
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <!-- Recuperación -->
+                                <div id="rec-box"
+                                    class="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50/60 p-4">
+                                    <p class="text-[11px] font-extrabold text-emerald-800">RF-019 · Recuperación
+                                        aproximada de la inversión</p>
+                                    <p id="rec-text" class="mt-2 text-sm leading-relaxed text-emerald-900">—</p>
+                                    <div class="mt-3 h-40">
+                                        <canvas id="recChart"></canvas>
+                                    </div>
+                                </div>
+
+                                <!-- Supuestos -->
+                                <div class="mt-3 rounded-2xl bg-slate-50 p-4">
+                                    <p class="text-[10px] font-extrabold uppercase tracking-wide text-slate-400">
+                                        Supuestos utilizados (RN-034)</p>
+                                    <ul id="supuestos" class="mt-2 space-y-1 text-[11px] text-slate-600 font-mono"></ul>
+                                </div>
+
+                                <div class="mt-3 avis-box text-[10px]">
+                                    <b>AVISO_ESTIMACION:</b> Los ingresos consideran solo la fracción efectivamente
+                                    vendida (90%).
+                                    El resultado depende de los supuestos y no es garantía de rentabilidad.
+                                </div>
+                            </div>
+
+                            <!-- TCO -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                    <i data-lucide="line-chart" class="h-4 w-4"></i> PANTALLA 5C · SPEC 06 — TCO y
+                                    mantenimiento (RF-020)
+                                </div>
+                                <h2 class="mt-3 text-2xl font-extrabold text-slate-900">Costo Total de Propiedad</h2>
+                                <p class="mt-1 text-sm text-slate-600">Proyección a 60 meses con reposiciones,
+                                    mantenimiento y calibración.</p>
+
+                                <div class="mt-4 grid gap-3 md:grid-cols-4">
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Inversión inicial</p>
+                                        <p id="tco-inv" class="font-mono text-lg font-extrabold text-slate-900">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Reposiciones</p>
+                                        <p id="tco-rep" class="font-mono text-lg font-extrabold text-amber-600">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Mantenimiento</p>
+                                        <p id="tco-mant" class="font-mono text-lg font-extrabold text-sky-600">$0</p>
+                                    </div>
+                                    <div class="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                                            Calibración</p>
+                                        <p id="tco-cal" class="font-mono text-lg font-extrabold text-teal-600">$0</p>
+                                    </div>
+                                </div>
+
+                                <div
+                                    class="mt-4 rounded-2xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-4">
+                                    <p class="text-[10px] font-extrabold uppercase tracking-wide text-emerald-700">TCO
+                                        total a 60 meses</p>
+                                    <p id="tco-total" class="font-mono text-3xl font-extrabold text-slate-900">$0</p>
+                                </div>
+
+                                <div class="mt-4 h-52">
+                                    <canvas id="tcoChart"></canvas>
+                                </div>
+
+                                <!-- Matriz de mantenimiento -->
+                                <div class="mt-5">
+                                    <p class="text-[11px] font-extrabold uppercase tracking-wide text-slate-500">Matriz
+                                        de mantenimiento (RF-020)</p>
+                                    <div class="mt-3 overflow-x-auto">
+                                        <table class="w-full text-sm">
+                                            <thead>
+                                                <tr
+                                                    class="border-b border-slate-200 text-left text-[10px] font-extrabold uppercase text-slate-400">
+                                                    <th class="pb-2">Componente</th>
+                                                    <th class="pb-2 text-right">Vida útil</th>
+                                                    <th class="pb-2 text-right">Frecuencia mant.</th>
+                                                    <th class="pb-2 text-right">Costo evento</th>
+                                                    <th class="pb-2 text-right">Próxima fecha</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="maint-table"></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+
+                                <div class="mt-3 avis-box text-[10px]">
+                                    <b>AVISO_ESTIMACION:</b> El TCO incluye inversión, reposición, mantenimiento y
+                                    calibración.
+                                    No incluye costos operativos (insumos, mano de obra, fijos) que se muestran aparte.
+                                </div>
+                            </div>
+
+                            <div class="flex justify-between">
+                                <button data-prev
+                                    class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <i data-lucide="arrow-left" class="h-4 w-4"></i>
+                                </button>
+                                <button data-next
+                                    class="rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    Ver propuesta visual <i data-lucide="arrow-right" class="ml-1 inline h-4 w-4"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ==============================================
+             PANTALLA 6 · PROPUESTA VISUAL (SPEC 07)
+        ============================================== -->
+                    <div data-step="5" class="view">
+                        <div class="space-y-5">
+
+                            <!-- Resumen -->
+                            <div
+                                class="rounded-3xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white p-6 shadow-card">
+                                <div class="flex items-center gap-2 text-[11px] font-extrabold text-emerald-700">
+                                    <i data-lucide="check-circle" class="h-4 w-4"></i> PANTALLA 6 · SPEC 07 — Propuesta
+                                    visual
+                                </div>
+                                <h2 id="prop-titulo" class="mt-3 text-2xl font-extrabold text-slate-900">Propuesta</h2>
+                                <p id="prop-resumen" class="mt-2 text-sm text-slate-600">—</p>
+
+                                <div class="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                                    <div class="rounded-2xl bg-white p-3 ring-1 ring-emerald-100">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                                            Módulos</p>
+                                        <p id="prop-modulos"
+                                            class="mt-1 font-mono text-lg font-extrabold text-slate-900">—</p>
+                                    </div>
+                                    <div class="rounded-2xl bg-white p-3 ring-1 ring-emerald-100">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                                            Inversión</p>
+                                        <p id="prop-inv" class="mt-1 font-mono text-lg font-extrabold text-slate-900">—
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl bg-white p-3 ring-1 ring-emerald-100">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                                            Producción / mes</p>
+                                        <p id="prop-prod" class="mt-1 font-mono text-lg font-extrabold text-slate-900">—
+                                        </p>
+                                    </div>
+                                    <div class="rounded-2xl bg-white p-3 ring-1 ring-emerald-100">
+                                        <p class="text-[10px] font-bold uppercase tracking-wide text-emerald-600">
+                                            Recuperación</p>
+                                        <p id="prop-rec" class="mt-1 font-mono text-lg font-extrabold text-emerald-600">
+                                            —</p>
+                                    </div>
+                                </div>
+
+                                <div id="prop-fact" class="mt-4"></div>
+                            </div>
+
+                            <!-- Croquis superior SVG -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <h3 class="flex items-center gap-2 text-base font-extrabold text-slate-900">
+                                    <i data-lucide="layout" class="h-5 w-5 text-emerald-600"></i> Croquis superior
+                                    (RF-022)
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-500">Vista en planta. Coordenadas en metros. Origen en
+                                    esquina NO.</p>
+                                <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                                    <svg id="croquis-sup" viewBox="0 0 900 600" class="w-full"></svg>
+                                </div>
+                                <div class="mt-3 avis-box text-[10px]">
+                                    <b>AVISO_CROQUIS:</b> Representación conceptual generada a partir de la
+                                    configuración.
+                                    No es un plano arquitectónico ni constructivo.
+                                </div>
+                            </div>
+
+                            <!-- Vista frontal SVG -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <h3 class="flex items-center gap-2 text-base font-extrabold text-slate-900">
+                                    <i data-lucide="frame" class="h-5 w-5 text-emerald-600"></i> Vista frontal (RF-023)
+                                </h3>
+                                <p class="mt-1 text-xs text-slate-500">Corte transversal desde el acceso. Cotas
+                                    generales.</p>
+                                <div class="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-slate-50">
+                                    <svg id="croquis-front" viewBox="0 0 900 400" class="w-full"></svg>
+                                </div>
+                            </div>
+
+                            <!-- 3D -->
+                            <div class="rounded-3xl border border-slate-200 bg-white p-6 shadow-card">
+                                <div class="flex items-center justify-between flex-wrap gap-2">
+                                    <div>
+                                        <h3 class="flex items-center gap-2 text-base font-extrabold text-slate-900">
+                                            <i data-lucide="box" class="h-5 w-5 text-emerald-600"></i> Visualización 3D
+                                        </h3>
+                                        <p class="mt-1 text-xs text-slate-500">Arrastrá para rotar · scroll para zoom
+                                        </p>
+                                    </div>
+                                    <button id="btn-3d-reset"
+                                        class="rounded-xl border border-slate-200 bg-white px-3 py-2 text-[11px] font-bold text-slate-600 transition hover:bg-slate-50">
+                                        <i data-lucide="rotate-ccw" class="mr-1 inline h-3 w-3"></i> Reset
+                                    </button>
+                                </div>
+                                <div
+                                    class="mt-4 overflow-hidden rounded-2xl bg-gradient-to-b from-slate-50 to-slate-100">
+                                    <canvas id="three-canvas" class="h-[420px] w-full"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Acciones demostrativas -->
+                            <div class="rounded-3xl border border-dashed border-slate-300 bg-white p-6 shadow-card">
+                                <h3 class="text-base font-extrabold text-slate-900">Acciones demostrativas (RF-024)</h3>
+                                <div class="mt-4 grid gap-3 sm:grid-cols-2">
+                                    <button id="btn-ar"
+                                        class="flex items-center gap-3 rounded-2xl border border-violet-200 bg-violet-50 p-4 text-left transition hover:bg-violet-100">
+                                        <span
+                                            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-violet-500 text-white">
+                                            <i data-lucide="camera" class="h-5 w-5"></i>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-extrabold text-violet-900">Ver en AR (demostrativo)
+                                            </p>
+                                            <p class="text-[10px] text-violet-700">Capacidad opcional. No bloquea el
+                                                flujo.</p>
+                                        </div>
+                                    </button>
+                                    <button id="btn-especialista"
+                                        class="flex items-center gap-3 rounded-2xl border border-sky-200 bg-sky-50 p-4 text-left transition hover:bg-sky-100">
+                                        <span
+                                            class="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-sky-500 text-white">
+                                            <i data-lucide="user-check" class="h-5 w-5"></i>
+                                        </span>
+                                        <div>
+                                            <p class="text-sm font-extrabold text-sky-900">Consultar a un especialista
+                                            </p>
+                                            <p class="text-[10px] text-sky-700">Servicio profesional (M10 · fuera del
+                                                MVP).</p>
+                                        </div>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Avisos finales -->
+                            <div class="rounded-3xl border border-amber-200 bg-amber-50/60 p-5">
+                                <p class="flex items-start gap-2 text-[11px] leading-relaxed text-amber-900">
+                                    <i data-lucide="alert-triangle" class="h-4 w-4 shrink-0 mt-0.5"></i>
+                                    <span>
+                                        <b>AVISO_ESTIMACION:</b> Los resultados presentados son estimaciones
+                                        orientativas basadas en los parámetros
+                                        ingresados. No constituyen asesoramiento profesional, evaluación de factibilidad
+                                        constructiva,
+                                        certificación técnica ni garantía de rentabilidad.<br><br>
+                                        <b>AVISO_CROQUIS:</b> El croquis es una representación conceptual derivada solo
+                                        de la configuración;
+                                        no incluye cálculos estructurales ni hidráulicos ni sirve para obra.<br><br>
+                                        <b>AVISO_DATOS_DEMO:</b> Precios, criterios de ubicación y parámetros
+                                        productivos son datos de
+                                        demostración; no son cotizaciones ni datos validados.
+                                    </span>
+                                </p>
+                            </div>
+
+                            <div class="flex flex-wrap gap-2">
+                                <button data-prev
+                                    class="rounded-2xl border border-slate-200 px-5 py-3 text-sm font-bold text-slate-600 transition hover:bg-slate-50">
+                                    <i data-lucide="arrow-left" class="mr-1 inline h-4 w-4"></i> Ajustar
+                                </button>
+                                <button id="btn-finalizar"
+                                    class="flex-1 min-w-[200px] rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-5 py-3 text-sm font-extrabold text-white shadow-glow transition active:scale-[.98]">
+                                    <i data-lucide="check" class="mr-1 inline h-4 w-4"></i> Finalizar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Toast -->
+    <div id="toast" style="display:none"
+        class="fixed bottom-6 right-6 z-[100] items-center gap-3 rounded-2xl border border-emerald-200 bg-white px-4 py-3 shadow-2xl">
+        <span class="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-emerald-500 text-white">
+            <i data-lucide="check" class="h-4 w-4"></i>
+        </span>
+        <p id="toast-msg" class="text-sm font-bold text-slate-800">Listo</p>
+    </div>
+
+    <!-- Modal -->
+    <div id="modal" style="display:none"
+        class="fixed inset-0 z-[90] items-center justify-center bg-slate-900/60 p-4 backdrop-blur-sm">
+        <div class="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl pop">
+            <div id="modal-content"></div>
+        </div>
+    </div>
+
+    <script>
+        /* ============================================================
+           UTILIDADES
+        ============================================================ */
+        const $ = (s, c = document) => c.querySelector(s);
+        const $$ = (s, c = document) => Array.from(c.querySelectorAll(s));
+        const fmtARS = v => new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS', maximumFractionDigits: 0 }).format(Math.round(v));
+        const fmtCompact = v => {
+            const a = Math.abs(v);
+            if (a >= 1e6) return '$' + (v / 1e6).toFixed(1).replace('.', ',') + 'M';
+            if (a >= 1e3) return '$' + Math.round(v / 1e3) + 'k';
+            return '$' + Math.round(v);
+        };
+        const fmtNum = (v, d = 2) => Number(v).toFixed(d).replace('.', ',');
+        const fmtNum2 = (v) => new Intl.NumberFormat('es-AR', { maximumFractionDigits: 2 }).format(v);
+        const esc = s => String(s).replace(/[&<>"']/g, m => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+        const refreshIcons = () => { if (window.lucide) window.lucide.createIcons(); };
+
+        let toastTimer;
+        function toast(msg) {
+            const t = $('#toast');
+            $('#toast-msg').textContent = msg;
+            t.style.display = 'flex';
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => t.style.display = 'none', 2800);
+        }
+
+        /* ============================================================
+           DATOS SEMILLA (SPEC 08)
+        ============================================================ */
+        const PARAMETROS = {
+            moneda: 'ARS',
+            fechaReferenciaPrecios: '2026-09-01',
+            retiroPerimetralM: 1.5,
+            filasPorInvernadero: 2,
+            pasilloLateralM: 0.6,
+            pasilloCentralM: 1.2,
+            zonaTecnicaM: 2.4,
+            alturaLateralM: 2.5,
+            alturaCumbreraM: 3.5,
+            diasOperativosAnio: 330,
+            diasLimpiezaEntreCiclos: 3,
+            manoDeObraInstalacionPct: 0.15,
+            imprevistosPct: 0.10,
+            porcentajeVentaEfectiva: 0.90,
+            horasBaseSemana: 3.0,
+            horasPor100PlazasSemana: 0.6,
+            valorHoraManoObra: 3000,
+            semanasPorMes: 4.33,
+            costoFijoMensualBase: 60000,
+            costoFijoMensualPorModulo: 15000,
+            horizonteMeses: 60
+        };
+
+        const CULTIVOS = [
+            { id: 'LECHUGA', nombre: 'Lechuga', modalidadesCompatibles: ['NFT', 'DWC'], cicloDias: 45, pesoCosechaKg: 0.18, mortalidadPct: 0.08, factorDensidad: 1.0, precioReferenciaKg: 6500, costoInsumosKg: 1200 },
+            { id: 'ALBAHACA', nombre: 'Albahaca', modalidadesCompatibles: ['NFT'], cicloDias: 50, pesoCosechaKg: 0.12, mortalidadPct: 0.10, factorDensidad: 0.8, precioReferenciaKg: 14000, costoInsumosKg: 1800 },
+            { id: 'RUCULA', nombre: 'Rúcula', modalidadesCompatibles: ['NFT', 'DWC'], cicloDias: 35, pesoCosechaKg: 0.06, mortalidadPct: 0.10, factorDensidad: 1.5, precioReferenciaKg: 10000, costoInsumosKg: 1500 }
+        ];
+
+        const COMPONENTES = [
+            { id: 'ESTR_INV', nombre: 'Estructura metálica del invernadero', categoria: 'ESTRUCTURA', grupo: 'INFRAESTRUCTURA', unidad: 'm2', precioUnitario: 45000, reglaCantidad: 'POR_M2_INVERNADERO', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: false, vidaUtilMeses: 120, mantenimientoFrecuenciaMeses: 12, mantenimientoCostoPorEvento: 500, mantenimientoTipo: 'MANTENIMIENTO' },
+            { id: 'CUBIERTA', nombre: 'Cubierta de polietileno', categoria: 'ESTRUCTURA', grupo: 'INFRAESTRUCTURA', unidad: 'm2', precioUnitario: 6000, reglaCantidad: 'POR_M2_INVERNADERO', parametroRegla: 2, aplicaModalidades: ['NFT', 'DWC'], ajustable: false, vidaUtilMeses: 36 },
+            { id: 'VENTILADOR', nombre: 'Ventilador/extractor', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 65000, reglaCantidad: 'CADA_N_M2_INVERNADERO', parametroRegla: 20, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 60 },
+            { id: 'MOD_NFT', nombre: 'Módulo NFT de 3 niveles', categoria: 'PRODUCCION', grupo: 'INFRAESTRUCTURA', unidad: 'unidad', precioUnitario: 600000, reglaCantidad: 'POR_MODULO', parametroRegla: 1, aplicaModalidades: ['NFT'], ajustable: false, vidaUtilMeses: 96, mantenimientoFrecuenciaMeses: 6, mantenimientoCostoPorEvento: 5000, mantenimientoTipo: 'MANTENIMIENTO', atributosModulo: { modalidad: 'NFT', largoM: 3.0, anchoM: 1.2, niveles: 3, plazasBase: 288, litrosReservaPorModulo: 150, alturaM: 1.9 } },
+            { id: 'MOD_DWC', nombre: 'Módulo DWC (piscina flotante)', categoria: 'PRODUCCION', grupo: 'INFRAESTRUCTURA', unidad: 'unidad', precioUnitario: 380000, reglaCantidad: 'POR_MODULO', parametroRegla: 1, aplicaModalidades: ['DWC'], ajustable: false, vidaUtilMeses: 96, mantenimientoFrecuenciaMeses: 6, mantenimientoCostoPorEvento: 4000, mantenimientoTipo: 'MANTENIMIENTO', atributosModulo: { modalidad: 'DWC', largoM: 2.4, anchoM: 1.2, niveles: 1, plazasBase: 72, litrosReservaPorModulo: 250, alturaM: 0.9 } },
+            { id: 'TANQUE_500', nombre: 'Tanque de reserva 500 L', categoria: 'HIDRAULICA', grupo: 'INFRAESTRUCTURA', unidad: 'unidad', precioUnitario: 150000, reglaCantidad: 'POR_CAPACIDAD_TANQUE', parametroRegla: 500, aplicaModalidades: ['NFT', 'DWC'], ajustable: false, vidaUtilMeses: 120, atributosTanque: { capacidadL: 500, diametroM: 1.0, alturaM: 1.2 } },
+            { id: 'KIT_CANIA', nombre: 'Kit de cañerías y conexiones por módulo', categoria: 'HIDRAULICA', grupo: 'INFRAESTRUCTURA', unidad: 'unidad', precioUnitario: 55000, reglaCantidad: 'POR_MODULO', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: false, vidaUtilMeses: 60 },
+            { id: 'FILTRO', nombre: 'Filtro de agua', categoria: 'HIDRAULICA', grupo: 'INFRAESTRUCTURA', unidad: 'unidad', precioUnitario: 25000, reglaCantidad: 'CADA_N_MODULOS', parametroRegla: 6, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 6 },
+            { id: 'BOMBA_RECIRC', nombre: 'Bomba de recirculación', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 85000, reglaCantidad: 'CADA_N_MODULOS', parametroRegla: 6, aplicaModalidades: ['NFT'], ajustable: true, vidaUtilMeses: 24, mantenimientoFrecuenciaMeses: 6, mantenimientoCostoPorEvento: 3000, mantenimientoTipo: 'MANTENIMIENTO' },
+            { id: 'AIREADOR', nombre: 'Bomba de aireación/oxigenación', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 40000, reglaCantidad: 'CADA_N_MODULOS', parametroRegla: 4, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 24 },
+            { id: 'SONDA_PH', nombre: 'Sonda de pH', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 45000, reglaCantidad: 'FIJA', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 12, mantenimientoFrecuenciaMeses: 1, mantenimientoCostoPorEvento: 3000, mantenimientoTipo: 'CALIBRACION' },
+            { id: 'MEDIDOR_EC', nombre: 'Medidor de conductividad (EC)', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 110000, reglaCantidad: 'FIJA', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 48, mantenimientoFrecuenciaMeses: 3, mantenimientoCostoPorEvento: 4000, mantenimientoTipo: 'CALIBRACION' },
+            { id: 'SENSOR_TEMP', nombre: 'Sensor de temperatura', categoria: 'EQUIPAMIENTO', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 30000, reglaCantidad: 'FIJA', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: true, vidaUtilMeses: 36 },
+            { id: 'KIT_ELEC', nombre: 'Kit de instalación eléctrica básica', categoria: 'ELECTRICA', grupo: 'EQUIPAMIENTO', unidad: 'unidad', precioUnitario: 150000, reglaCantidad: 'FIJA', parametroRegla: 1, aplicaModalidades: ['NFT', 'DWC'], ajustable: false, vidaUtilMeses: 120 }
+        ];
+
+        const CRITERIOS_UBICACION = {
+            APOSTOLES: { localidadId: 'APOSTOLES', nombre: 'Apóstoles', provincia: 'Misiones', latitud: -27.91, longitud: -55.76, riesgoHeladas: 'MEDIO', riesgoCalorExtremo: 'ALTO', ejeLargoRecomendado: 'EO', climaResumen: 'Subtropical húmedo; veranos calurosos, inviernos suaves con heladas ocasionales.', justificacionEje: 'Orientar el eje largo E–O favorece la captación de radiación en invierno (criterio de demostración).', fuente: 'Referencia técnica (INTA) — a verificar por el equipo', estadoValidacion: 'VALOR_DEMO_NO_VALIDADO' },
+            POSADAS: { localidadId: 'POSADAS', nombre: 'Posadas', provincia: 'Misiones', latitud: -27.37, longitud: -55.90, riesgoHeladas: 'BAJO', riesgoCalorExtremo: 'ALTO', ejeLargoRecomendado: 'EO', climaResumen: 'Subtropical húmedo.', justificacionEje: 'Ídem Apóstoles (criterio de demostración).', fuente: 'Referencia técnica (INTA) — a verificar por el equipo', estadoValidacion: 'VALOR_DEMO_NO_VALIDADO' },
+            MENDOZA: { localidadId: 'MENDOZA', nombre: 'Mendoza', provincia: 'Mendoza', latitud: -32.89, longitud: -68.84, riesgoHeladas: 'MEDIO', riesgoCalorExtremo: 'MEDIO', ejeLargoRecomendado: 'NS', climaResumen: 'Templado árido, alta radiación, amplitud térmica.', justificacionEje: 'Criterio de demostración distinto para evidenciar que la orientación depende de la localidad.', fuente: 'Referencia técnica (INTA) — a verificar por el equipo', estadoValidacion: 'VALOR_DEMO_NO_VALIDADO' }
+        };
+
+        /* ============================================================
+           ESTADO
+        ============================================================ */
+        const state = {
+            step: 0,
+            proyecto: {
+                id: 'PRY-' + Date.now(),
+                nombre: 'Mi emprendimiento hidropónico',
+                situacionInicial: 'A_DESDE_CERO',
+                presupuestoDisponible: 14000000,
+                localidadId: 'APOSTOLES',
+                largoM: 20, anchoM: 15, superficieM2: 300,
+                infraestructuraExistente: [],
+                objetivoGeneral: '',
+                fechaInicioEstimada: '2026-10-01'
+            },
+            condiciones: {
+                ejeLargoTerreno: 'EO', pendientePct: 1,
+                riesgoInundacion: 'BAJO', aguaDisponible: 'SI', electricidad: 'RED'
+            },
+            produccion: {
+                cultivoId: 'LECHUGA', modalidad: 'NFT',
+                modoPlanificacion: 'PRESUPUESTO', objetivoKgMes: 150,
+                nModulos: 0, nRequerido: null, ajusteManual: false,
+                limitadoPor: null, estadoDimensionamiento: 'OK'
+            },
+            // Resultados derivados
+            capacidad: {},
+            layout: null,
+            factibilidad: null,
+            lineas: [],
+            costos: null,
+            produccionEst: null,
+            ingresosEst: null,
+            recuperacion: null,
+            tco: null
+        };
+
+        /* ============================================================
+           FUNCIONES PURAS (SPECS 02-06)
+        ============================================================ */
+
+        /* SPEC 02 — RF-005 */
+        function calcularParametrosModulo(cultivo, modulo, parametros) {
+            const plazasPorModulo = Math.floor(modulo.atributosModulo.plazasBase * cultivo.factorDensidad);
+            const ciclosPorAnio = parametros.diasOperativosAnio / (cultivo.cicloDias + parametros.diasLimpiezaEntreCiclos);
+            const kgAnioPorModulo = plazasPorModulo * ciclosPorAnio * cultivo.pesoCosechaKg * (1 - cultivo.mortalidadPct);
+            const kgMesPorModulo = kgAnioPorModulo / 12;
+            const huellaModuloM2 = modulo.atributosModulo.largoM * modulo.atributosModulo.anchoM;
+            return { plazasPorModulo, ciclosPorAnio, kgAnioPorModulo, kgMesPorModulo, huellaModuloM2 };
+        }
+
+        /* SPEC 03 — RF-010 */
+        function calcularCapacidad(proyecto, condiciones, criterio, modulo, parametros) {
+            const { largoM, anchoM } = proyecto;
+            const { retiroPerimetralM, filasPorInvernadero, pasilloLateralM, pasilloCentralM, zonaTecnicaM } = parametros;
+            const { largoM: largoMod, anchoM: anchoMod } = modulo.atributosModulo;
+
+            const anchoInvernaderoM = filasPorInvernadero * anchoMod + pasilloCentralM + 2 * pasilloLateralM;
+
+            const dimEnEje = (eje) => condiciones.ejeLargoTerreno === eje ? largoM : anchoM;
+            const largoDisp = (eje) => dimEnEje(eje) - 2 * retiroPerimetralM;
+            const transvDisp = (eje) => {
+                const otro = eje === 'EO' ? 'NS' : 'EO';
+                return dimEnEje(otro) - 2 * retiroPerimetralM;
+            };
+
+            const maxModulosEn = (eje) => {
+                const transv = transvDisp(eje);
+                const largo = largoDisp(eje);
+                if (transv < anchoInvernaderoM) return 0;
+                if (largo < zonaTecnicaM + largoMod) return 0;
+                return filasPorInvernadero * Math.floor((largo - zonaTecnicaM) / largoMod);
+            };
+
+            const ejeRec = criterio.ejeLargoRecomendado;
+            const ejeAlt = ejeRec === 'EO' ? 'NS' : 'EO';
+            const maxRec = maxModulosEn(ejeRec);
+            const maxAlt = maxModulosEn(ejeAlt);
+
+            let eje;
+            if (maxRec >= 1) eje = ejeRec;
+            else if (maxAlt >= 1) eje = ejeAlt;
+            else eje = ejeRec;
+
+            return {
+                eje,
+                maxModulos: maxRec >= 1 ? maxRec : maxAlt,
+                maxModulosEjeAlterno: maxRec >= 1 ? maxAlt : maxRec,
+                anchoInvernaderoM
+            };
+        }
+
+        function calcularLayout(n, modulo, parametros) {
+            if (n < 1) return null;
+            const { anchoM: anchoMod, largoM: largoMod } = modulo.atributosModulo;
+            const { filasPorInvernadero, pasilloLateralM, pasilloCentralM, zonaTecnicaM, alturaLateralM, alturaCumbreraM } = parametros;
+
+            const modulosPorFila = [Math.ceil(n / 2), Math.floor(n / 2)];
+            const largoInvernaderoM = Math.ceil(n / 2) * largoMod + zonaTecnicaM;
+            const anchoInvernaderoM = filasPorInvernadero * anchoMod + pasilloCentralM + 2 * pasilloLateralM;
+            const areaInvernaderoM2 = anchoInvernaderoM * largoInvernaderoM;
+
+            return { ejeInvernadero: null, anchoInvernaderoM, largoInvernaderoM, areaInvernaderoM2, modulosPorFila, alturaLateralM, alturaCumbreraM };
+        }
+
+        /* SPEC 04 — RF-012/RF-013 */
+        function calcularCantidadRegla(componente, nModulos, areaInvernaderoM2, modulo, litrosReservaPorModulo) {
+            const p = componente.parametroRegla;
+            switch (componente.reglaCantidad) {
+                case 'FIJA': return p;
+                case 'POR_MODULO': return nModulos * p;
+                case 'POR_M2_INVERNADERO': return areaInvernaderoM2 * p;
+                case 'CADA_N_MODULOS': return Math.max(1, Math.ceil(nModulos / p));
+                case 'CADA_N_M2_INVERNADERO': return Math.ceil(areaInvernaderoM2 / p);
+                case 'POR_CAPACIDAD_TANQUE': return Math.ceil(nModulos * litrosReservaPorModulo / p);
+                default: throw new Error('DATO_INCONSISTENTE: regla desconocida ' + componente.reglaCantidad);
+            }
+        }
+
+        function generarComponentes(config, layout, componentes, infraExistente) {
+            const modulo = componentes.find(c => c.id === (config.modalidad === 'NFT' ? 'MOD_NFT' : 'MOD_DWC'));
+            const litrosReserva = modulo.atributosModulo.litrosReservaPorModulo;
+            const lineas = [];
+
+            componentes.forEach(c => {
+                if (!c.aplicaModalidades.includes(config.modalidad)) return;
+                if (c.id === 'MOD_NFT' || c.id === 'MOD_DWC') {
+                    // Módulos: cantidad = nModulos
+                    if (c.atributosModulo?.modalidad !== config.modalidad) return;
+                }
+                const cantReq = calcularCantidadRegla(c, config.nModulos, layout.areaInvernaderoM2, modulo, litrosReserva);
+                const exist = infraExistente.find(i => i.componenteId === c.id);
+                const cantExist = exist ? exist.cantidad : 0;
+                const cantComprar = Math.max(0, cantReq - cantExist);
+                const cobertura = cantExist === 0 ? 'SIN_EXISTENTE' : (cantExist < cantReq ? 'PARCIAL' : 'COMPLETA');
+                lineas.push({ componente: c, cantidadRequerida: cantReq, cantidadExistente: cantExist, cantidadAComprar: cantComprar, cobertura });
+            });
+
+            return lineas;
+        }
+
+        /* SPEC 05 — RF-015 */
+        function calcularCostos(lineas, parametros) {
+            const porLinea = lineas.map(l => ({
+                componente: l.componente,
+                cantidad: l.cantidadAComprar,
+                precioUnitario: l.componente.precioUnitario,
+                costoLinea: l.cantidadAComprar * l.componente.precioUnitario,
+                grupo: l.componente.grupo,
+                cantidadRequerida: l.cantidadRequerida,
+                cantidadExistente: l.cantidadExistente,
+                cobertura: l.cobertura
+            }));
+            const costoMateriales = porLinea.reduce((s, l) => s + l.costoLinea, 0);
+            const costoInfra = porLinea.filter(l => l.grupo === 'INFRAESTRUCTURA').reduce((s, l) => s + l.costoLinea, 0);
+            const costoEquip = porLinea.filter(l => l.grupo === 'EQUIPAMIENTO').reduce((s, l) => s + l.costoLinea, 0);
+            const manoDeObra = costoMateriales * parametros.manoDeObraInstalacionPct;
+            const imprevistos = (costoMateriales + manoDeObra) * parametros.imprevistosPct;
+            const inversionInicial = costoMateriales + manoDeObra + imprevistos;
+            return { lineas: porLinea, costoInfraestructura: costoInfra, costoEquipamiento: costoEquip, costoMateriales, manoDeObraInstalacion: manoDeObra, imprevistos, inversionInicial };
+        }
+
+        function calcularInversion(n, ctx) {
+            const layout = calcularLayout(n, ctx.modulo, ctx.parametros);
+            const config = { nModulos: n, modalidad: ctx.modalidad };
+            const lineas = generarComponentes(config, layout, ctx.componentes, ctx.infraExistente);
+            return calcularCostos(lineas, ctx.parametros);
+        }
+
+        /* SPEC 02 — RF-006 */
+        function dimensionarPorPresupuesto(presupuesto, ctx) {
+            const nMax = ctx.nMaxTerreno;
+            if (nMax === 0) return { nModulos: 0, limitadoPor: 'TERRENO', estado: 'SUPERFICIE_INSUFICIENTE' };
+            if (ctx.inversion1 > presupuesto) return { nModulos: 1, limitadoPor: null, estado: 'PRESUPUESTO_INSUFICIENTE', minPresupuesto: ctx.inversion1 };
+            let n = 0;
+            for (let i = 1; i <= nMax; i++) {
+                const inv = calcularInversion(i, ctx).inversionInicial;
+                if (inv <= presupuesto) n = i; else break;
+            }
+            return { nModulos: n, limitadoPor: n === nMax ? 'TERRENO' : 'PRESUPUESTO', estado: 'OK' };
+        }
+
+        /* SPEC 02 — RF-007 */
+        function dimensionarPorObjetivo(objetivoKgMes, ctx) {
+            const kgMesPorModulo = ctx.kgMesPorModulo;
+            const nRequerido = Math.ceil(objetivoKgMes / kgMesPorModulo);
+            const nModulos = nRequerido <= ctx.nMaxTerreno ? nRequerido : ctx.nMaxTerreno;
+            const estado = nRequerido <= ctx.nMaxTerreno ? 'OK' : 'SUPERFICIE_INSUFICIENTE';
+            return { nRequerido, nModulos, estado };
+        }
+
+        /* SPEC 06 — RF-017/018/019/020 */
+        function estimarProduccion(nModulos, cultivo, modulo, parametros, paramsMod) {
+            const plazasTotales = nModulos * paramsMod.plazasPorModulo;
+            const kgAnio = plazasTotales * paramsMod.ciclosPorAnio * cultivo.pesoCosechaKg * (1 - cultivo.mortalidadPct);
+            const kgMes = kgAnio / 12;
+            const kgSemana = kgAnio / 52;
+            const superficieProductivaM2 = nModulos * paramsMod.huellaModuloM2;
+            const rendimientoKgM2Anio = kgAnio / superficieProductivaM2;
+            return { plazasTotales, kgAnio, kgMes, kgSemana, superficieProductivaM2, rendimientoKgM2Anio, frecuenciaCosecha: 'semanal (siembras escalonadas)' };
+        }
+
+        function estimarIngresos(produccion, cultivo, parametros, nModulos) {
+            const kgVendiblesMes = produccion.kgMes * parametros.porcentajeVentaEfectiva;
+            const ingresoBrutoMensual = kgVendiblesMes * cultivo.precioReferenciaKg;
+            const costoInsumosMensual = produccion.kgMes * cultivo.costoInsumosKg;
+            const horasSemana = parametros.horasBaseSemana + parametros.horasPor100PlazasSemana * produccion.plazasTotales / 100;
+            const costoManoObraMensual = horasSemana * parametros.valorHoraManoObra * parametros.semanasPorMes;
+            const costoFijoMensual = parametros.costoFijoMensualBase + parametros.costoFijoMensualPorModulo * nModulos;
+            const costosOperativosMensuales = costoInsumosMensual + costoManoObraMensual + costoFijoMensual;
+            const flujoNetoOperativoMensual = ingresoBrutoMensual - costosOperativosMensuales;
+            return { kgVendiblesMes, ingresoBrutoMensual, costoInsumosMensual, costoHora: horasSemana, costoManoObraMensual, costoFijoMensual, costosOperativosMensuales, flujoNetoOperativoMensual, horasSemana };
+        }
+
+        function proyectarTCO(lineas, parametros, horizonte, fechaInicio) {
+            const eventos = [];
+            const totalesAnio = Array(5).fill(0);
+            let repTotal = 0, mantTotal = 0, calTotal = 0;
+            const matriz = [];
+
+            lineas.forEach(l => {
+                if (l.cantidadRequerida <= 0) return;
+                const c = l.componente;
+                const vidaM = c.vidaUtilMeses;
+                if (!vidaM) return;
+
+                // Reposiciones
+                for (let m = vidaM; m <= horizonte; m += vidaM) {
+                    const costo = l.cantidadRequerida * c.precioUnitario;
+                    eventos.push({ mes: m, componenteId: c.id, tipo: 'REPOSICION', costo });
+                    repTotal += costo;
+                    const anio = Math.ceil(m / 12) - 1;
+                    if (anio >= 0 && anio < 5) totalesAnio[anio] += costo;
+                }
+                // Mantenimiento / Calibración
+                if (c.mantenimientoFrecuenciaMeses && c.mantenimientoCostoPorEvento) {
+                    const tipo = c.mantenimientoTipo === 'CALIBRACION' ? 'CALIBRACION' : 'MANTENIMIENTO';
+                    for (let m = c.mantenimientoFrecuenciaMeses; m <= horizonte; m += c.mantenimientoFrecuenciaMeses) {
+                        const costo = l.cantidadRequerida * c.mantenimientoCostoPorEvento;
+                        eventos.push({ mes: m, componenteId: c.id, tipo, costo });
+                        if (tipo === 'CALIBRACION') calTotal += costo; else mantTotal += costo;
+                        const anio = Math.ceil(m / 12) - 1;
+                        if (anio >= 0 && anio < 5) totalesAnio[anio] += costo;
+                    }
+                }
+                // Matriz
+                const primerEvento = Math.min(vidaM, c.mantenimientoFrecuenciaMeses || Infinity);
+                let proximaFecha = '—';
+                if (primerEvento <= horizonte) {
+                    const [y, mo, d] = fechaInicio.split('-').map(Number);
+                    const totalM = mo - 1 + primerEvento;
+                    const newY = y + Math.floor(totalM / 12);
+                    const newM = (totalM % 12) + 1;
+                    const lastDay = new Date(newY, newM, 0).getDate();
+                    proximaFecha = `${newY}-${String(newM).padStart(2, '0')}-${String(Math.min(d, lastDay)).padStart(2, '0')}`;
+                }
+                matriz.push({
+                    componenteId: c.id, nombre: c.nombre,
+                    vidaUtilMeses: vidaM,
+                    frecuenciaMantenimiento: c.mantenimientoFrecuenciaMeses || null,
+                    costoPorEvento: (c.mantenimientoCostoPorEvento || 0),
+                    proximaFecha
+                });
+            });
+
+            return { eventos, totalesPorAnio: totalesAnio, totalesPorTipo: { reposicion: repTotal, mantenimiento: mantTotal, calibracion: calTotal }, tcoEventosTotal: repTotal + mantTotal + calTotal, matriz };
+        }
+
+        function calcularRecuperacion(inversion, ingresos, tco, cultivo, horizonte) {
+            const mesesArranque = Math.ceil(cultivo.cicloDias / 30);
+            const flujoAcumulado = [];
+            let acum = -inversion;
+            const eventosPorMes = {};
+            tco.eventos.forEach(e => { eventosPorMes[e.mes] = (eventosPorMes[e.mes] || 0) + e.costo; });
+
+            for (let m = 1; m <= horizonte; m++) {
+                const flujoOp = m <= mesesArranque ? -ingresos.costoFijoMensual : ingresos.flujoNetoOperativoMensual;
+                const costoEventos = eventosPorMes[m] || 0;
+                acum += flujoOp - costoEventos;
+                flujoAcumulado.push(acum);
+            }
+
+            let recMeses = null;
+            for (let i = 0; i < flujoAcumulado.length; i++) {
+                if (flujoAcumulado[i] >= 0) { recMeses = i + 1; break; }
+            }
+            return { mesesArranque, flujoAcumulado, recuperacionMeses: recMeses, recuperacionAnios: recMeses ? recMeses / 12 : null };
+        }
+
+        /* SPEC 03 — RF-011 */
+        function evaluarFactibilidad(proyecto, condiciones, criterio, capacidad, nModulos) {
+            const observaciones = [];
+            const c = condiciones;
+
+            if (capacidad.maxModulos === 0 || (nModulos && nModulos > capacidad.maxModulos)) {
+                observaciones.push({ regla: 'FAC-01', severidad: 'CRITICA', mensaje: 'Sin capacidad suficiente en el terreno para la configuración.' });
+            }
+            if (c.aguaDisponible === 'LIMITADA') observaciones.push({ regla: 'FAC-02', severidad: 'ADVERTENCIA', mensaje: 'Agua limitada: prever reserva y eficiencia de riego.' });
+            if (c.aguaDisponible === 'NO') observaciones.push({ regla: 'FAC-02', severidad: 'CRITICA', mensaje: 'Sin agua disponible: no viable.' });
+            if (c.electricidad === 'ALTERNATIVA') observaciones.push({ regla: 'FAC-03', severidad: 'ADVERTENCIA', mensaje: 'Electricidad alternativa (solar): verificar autonomía.' });
+            if (c.electricidad === 'NO') observaciones.push({ regla: 'FAC-03', severidad: 'CRITICA', mensaje: 'Sin electricidad: no viable.' });
+            if (c.pendientePct > 2 && c.pendientePct <= 5) observaciones.push({ regla: 'FAC-04', severidad: 'ADVERTENCIA', mensaje: 'Pendiente >2%: requiere nivelación.' });
+            if (c.pendientePct > 5) observaciones.push({ regla: 'FAC-04', severidad: 'CRITICA', mensaje: 'Pendiente >5%: requiere movimiento de suelos.' });
+            if (c.riesgoInundacion === 'MEDIO') observaciones.push({ regla: 'FAC-05', severidad: 'ADVERTENCIA', mensaje: 'Riesgo de inundación medio: considerar drenaje.' });
+            if (c.riesgoInundacion === 'ALTO') observaciones.push({ regla: 'FAC-05', severidad: 'CRITICA', mensaje: 'Riesgo de inundación alto: no recomendado.' });
+            if (capacidad.eje !== criterio.ejeLargoRecomendado) observaciones.push({ regla: 'FAC-06', severidad: 'ADVERTENCIA', mensaje: `Eje de implantación ${capacidad.eje} difiere del recomendado (${criterio.ejeLargoRecomendado}).` });
+            if (capacidad.maxModulosEjeAlterno > capacidad.maxModulos) observaciones.push({ regla: 'FAC-06', severidad: 'INFO', mensaje: `El eje alterno admitiría más módulos (${capacidad.maxModulosEjeAlterno}).` });
+            observaciones.push({ regla: 'FAC-07', severidad: 'INFO', mensaje: `${criterio.nombre}: ${criterio.climaResumen} Heladas ${criterio.riesgoHeladas.toLowerCase()}, calor extremo ${criterio.riesgoCalorExtremo.toLowerCase()}.` });
+
+            let estado = 'VERDE';
+            if (observaciones.some(o => o.severidad === 'CRITICA')) estado = 'ROJO';
+            else if (observaciones.some(o => o.severidad === 'ADVERTENCIA')) estado = 'AMARILLO';
+
+            return { estado, observaciones };
+        }
+
+        /* ============================================================
+           CÁLCULO GLOBAL DEL PROYECTO
+        ============================================================ */
+        function recomputar() {
+            const p = state.proyecto;
+            const criterio = CRITERIOS_UBICACION[p.localidadId];
+            const modalidad = state.produccion.modalidad;
+            const modulo = COMPONENTES.find(c => c.atributosModulo?.modalidad === modalidad);
+            const cultivo = CULTIVOS.find(c => c.id === state.produccion.cultivoId);
+
+            // Parámetros productivos por módulo
+            const paramsMod = calcularParametrosModulo(cultivo, modulo, PARAMETROS);
+            state.paramsMod = paramsMod;
+
+            // Capacidad
+            const cap = calcularCapacidad(p, state.condiciones, criterio, modulo, PARAMETROS);
+            state.capacidad = cap;
+
+            // Contexto de dimensionamiento
+            const ctxBase = {
+                modulo, modalidad, parametros: PARAMETROS, componentes: COMPONENTES,
+                infraExistente: p.infraestructuraExistente, nMaxTerreno: cap.maxModulos,
+                inversion1: 0, kgMesPorModulo: paramsMod.kgMesPorModulo
+            };
+            ctxBase.inversion1 = calcularInversion(1, ctxBase).inversionInicial;
+
+            // Dimensionamiento
+            let dim;
+            if (state.produccion.modoPlanificacion === 'PRESUPUESTO') {
+                dim = dimensionarPorPresupuesto(p.presupuestoDisponible, ctxBase);
+            } else {
+                dim = dimensionarPorObjetivo(state.produccion.objetivoKgMes, ctxBase);
+            }
+            state.produccion.nModulos = dim.nModulos;
+            state.produccion.nRequerido = dim.nRequerido || null;
+            state.produccion.limitadoPor = dim.limitadoPor || null;
+            state.produccion.estadoDimensionamiento = dim.estado;
+            state.dimMinPresupuesto = dim.minPresupuesto || null;
+
+            // Layout
+            state.layout = calcularLayout(dim.nModulos, modulo, PARAMETROS);
+            if (state.layout) state.layout.ejeInvernadero = cap.eje;
+
+            // Componentes
+            state.lineas = generarComponentes({ nModulos: dim.nModulos, modalidad }, state.layout, COMPONENTES, p.infraestructuraExistente);
+
+            // Costos
+            state.costos = calcularCostos(state.lineas, PARAMETROS);
+
+            // Comparación con presupuesto
+            state.presupuestoEstado = compararPresupuesto(state.costos.inversionInicial, p.presupuestoDisponible, ctxBase);
+
+            // Factibilidad
+            state.factibilidad = evaluarFactibilidad(p, state.condiciones, criterio, cap, dim.nModulos);
+
+            // Producción
+            state.produccionEst = estimarProduccion(dim.nModulos, cultivo, modulo, PARAMETROS, paramsMod);
+
+            // Ingresos
+            state.ingresosEst = estimarIngresos(state.produccionEst, cultivo, PARAMETROS, dim.nModulos);
+
+            // TCO
+            state.tco = proyectarTCO(state.lineas, PARAMETROS, PARAMETROS.horizonteMeses, p.fechaInicioEstimada);
+
+            // Recuperación
+            state.recuperacion = calcularRecuperacion(state.costos.inversionInicial, state.ingresosEst, state.tco, cultivo, PARAMETROS.horizonteMeses);
+
+            return { criterio, modulo, cultivo, paramsMod };
+        }
+
+        function compararPresupuesto(inversion, presupuesto, ctx) {
+            if (!presupuesto || presupuesto <= 0) return { estado: 'SIN_PRESUPUESTO' };
+            const saldo = presupuesto - inversion;
+            const uso = inversion / presupuesto;
+            if (inversion <= presupuesto) return { estado: 'DENTRO_DE_PRESUPUESTO', saldo, uso };
+            // Buscar nMaxPorPresupuesto
+            let nMaxPP = 0;
+            for (let i = 1; i <= ctx.nMaxTerreno; i++) {
+                const inv = calcularInversion(i, ctx).inversionInicial;
+                if (inv <= presupuesto) nMaxPP = i; else break;
+            }
+            const sugerencia = nMaxPP >= 1 ? 'REDUCIR_ESCALA' : 'AUMENTAR_PRESUPUESTO';
+            return { estado: 'SUPERA_PRESUPUESTO', saldo, uso, sugerencia, nMaxPP, minPresupuesto: ctx.inversion1 };
+        }
+
+        /* ============================================================
+           UI · STEPS
+        ============================================================ */
+        const STEPS = [
+            { id: 0, label: 'Proyecto', icon: 'folder-plus', spec: '01' },
+            { id: 1, label: 'Ubicación', icon: 'map-pin', spec: '03' },
+            { id: 2, label: 'Producción', icon: 'leaf', spec: '02' },
+            { id: 3, label: 'Infraestructura', icon: 'hammer', spec: '04' },
+            { id: 4, label: 'Inversión + TCO', icon: 'calculator', spec: '05-06' },
+            { id: 5, label: 'Propuesta', icon: 'layout-dashboard', spec: '07' }
+        ];
+
+        function renderSteps() {
+            const list = $('#steps-list');
+            list.innerHTML = STEPS.map(s => {
+                const cls = s.id === state.step ? 'active' : (s.id < state.step ? 'done' : '');
+                return `
+      <li class="step-item ${cls} flex cursor-pointer items-center gap-2 rounded-lg bg-white px-3 py-2.5" data-goto="${s.id}">
+        <span class="step-num grid h-6 w-6 shrink-0 place-items-center rounded-md bg-slate-100 text-[10px] font-extrabold text-slate-500">${s.id + 1}</span>
+        <div class="min-w-0 flex-1">
+          <p class="text-xs font-bold text-slate-700 truncate">${s.label}</p>
+          <p class="text-[9px] font-extrabold text-slate-400">SPEC ${s.spec}</p>
+        </div>
+      </li>`;
+            }).join('');
+            $$('[data-goto]').forEach(el => {
+                el.addEventListener('click', () => showStep(Number(el.dataset.goto)));
+            });
+        }
+
+        function showStep(n) {
+            if (n < 0 || n >= STEPS.length) return;
+            $$('#view-wizard [data-step]').forEach(p => p.classList.remove('active'));
+            const panel = $(`#view-wizard [data-step="${n}"]`);
+            if (panel) panel.classList.add('active');
+            state.step = n;
+            renderSteps();
+            updateStatus();
+            if (n === 1) renderUbicacion();
+            if (n === 2) renderProduccion();
+            if (n === 3) renderInfraestructura();
+            if (n === 4) renderInversionProduccionTCO();
+            if (n === 5) renderPropuesta();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        document.addEventListener('click', e => {
+            if (e.target.closest('[data-next]')) {
+                recomputar();
+                showStep(state.step + 1);
+            }
+            if (e.target.closest('[data-prev]')) showStep(state.step - 1);
+        });
+
+        function updateStatus() {
+            const p = state.proyecto;
+            const el = $('#proj-status');
+            el.innerHTML = `
+    <div class="flex justify-between"><span class="text-slate-500">Situación</span><span class="font-mono font-extrabold text-slate-800">${p.situacionInicial.replace(/_/g, ' ')}</span></div>
+    <div class="flex justify-between"><span class="text-slate-500">Localidad</span><span class="font-mono font-extrabold text-slate-800">${CRITERIOS_UBICACION[p.localidadId]?.nombre || '—'}</span></div>
+    <div class="flex justify-between"><span class="text-slate-500">Superficie</span><span class="font-mono font-extrabold text-slate-800">${fmtNum(p.superficieM2, 0)} m²</span></div>
+    <div class="flex justify-between"><span class="text-slate-500">Presupuesto</span><span class="font-mono font-extrabold text-slate-800">${fmtCompact(p.presupuestoDisponible)}</span></div>
+    ${state.costos ? `<div class="flex justify-between border-t border-slate-200 pt-1.5 mt-1.5"><span class="text-slate-500">Inversión</span><span class="font-mono font-extrabold text-emerald-600">${fmtCompact(state.costos.inversionInicial)}</span></div>` : ''}
+    ${state.produccionEst ? `<div class="flex justify-between"><span class="text-slate-500">Prod./mes</span><span class="font-mono font-extrabold text-slate-800">${fmtNum(state.produccionEst.kgMes, 1)} kg</span></div>` : ''}
+  `;
+        }
+
+        /* ============================================================
+           SPEC 01 · PROYECTO
+        ============================================================ */
+        function initProyecto() {
+            const sel = $('#f-localidad');
+            Object.values(CRITERIOS_UBICACION).forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c.localidadId;
+                opt.textContent = `${c.nombre}, ${c.provincia}`;
+                sel.appendChild(opt);
+            });
+            sel.value = state.proyecto.localidadId;
+
+            $$('[data-sit]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    $$('[data-sit]').forEach(b => {
+                        b.classList.remove('selected', 'border-emerald-500', 'bg-emerald-50');
+                        b.classList.add('border-slate-200', 'bg-white');
+                        const ic = b.querySelector('.sit-icon');
+                        ic.classList.remove('bg-emerald-500', 'text-white');
+                        ic.classList.add('bg-slate-100', 'text-slate-500');
+                    });
+                    btn.classList.remove('border-slate-200', 'bg-white');
+                    btn.classList.add('selected', 'border-emerald-500', 'bg-emerald-50');
+                    const ic = btn.querySelector('.sit-icon');
+                    ic.classList.remove('bg-slate-100', 'text-slate-500');
+                    ic.classList.add('bg-emerald-500', 'text-white');
+
+                    state.proyecto.situacionInicial = btn.dataset.sit;
+                    const showB = btn.dataset.sit === 'B_INFRA_PARCIAL';
+                    $('#box-infra-exist').classList.toggle('hidden', !showB);
+                });
+            });
+
+            // Inputs sync
+            ['f-nombre', 'f-largo', 'f-ancho', 'f-presupuesto', 'f-objetivo', 'f-fecha'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('input', () => {
+                    const p = state.proyecto;
+                    p.nombre = $('#f-nombre').value;
+                    p.largoM = Number($('#f-largo').value) || 0;
+                    p.anchoM = Number($('#f-ancho').value) || 0;
+                    p.superficieM2 = p.largoM * p.anchoM;
+                    p.presupuestoDisponible = Number($('#f-presupuesto').value) || 0;
+                    p.objetivoGeneral = $('#f-objetivo').value;
+                    p.fechaInicioEstimada = $('#f-fecha').value;
+                    $('#f-superficie').value = fmtNum(p.superficieM2, 2) + ' m²';
+                    $('#presupuesto-display').textContent = fmtARS(p.presupuestoDisponible);
+                });
+            });
+            $('#f-localidad').addEventListener('change', e => {
+                state.proyecto.localidadId = e.target.value;
+                renderCriterio();
+            });
+
+            $('#btn-add-infra').addEventListener('click', addInfraRow);
+        }
+
+        function addInfraRow() {
+            const cont = $('#infra-exist-list');
+            const div = document.createElement('div');
+            div.className = 'flex gap-2 items-center';
+            div.innerHTML = `
+    <select class="infra-comp flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs">
+      ${COMPONENTES.map(c => `<option value="${c.id}">${esc(c.nombre)}</option>`).join('')}
+    </select>
+    <input type="number" min="1" value="1" class="infra-cant w-20 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-xs font-mono">
+    <button class="infra-del grid h-7 w-7 place-items-center rounded-lg bg-red-50 text-red-600 hover:bg-red-100">
+      <i data-lucide="x" class="h-3 w-3"></i>
+    </button>
+  `;
+            cont.appendChild(div);
+            refreshIcons();
+            div.querySelector('.infra-del').addEventListener('click', () => { div.remove(); syncInfra(); });
+            div.querySelector('.infra-comp').addEventListener('change', syncInfra);
+            div.querySelector('.infra-cant').addEventListener('input', syncInfra);
+            syncInfra();
+        }
+
+        function syncInfra() {
+            const list = [];
+            $$('#infra-exist-list > div').forEach(d => {
+                const id = d.querySelector('.infra-comp').value;
+                const cant = Number(d.querySelector('.infra-cant').value) || 0;
+                if (cant >= 1) list.push({ componenteId: id, cantidad: cant });
+            });
+            state.proyecto.infraestructuraExistente = list;
+        }
+
+        /* ============================================================
+           SPEC 03 · UBICACIÓN
+        ============================================================ */
+        function initUbicacion() {
+            ['c-eje', 'c-pendiente', 'c-inund', 'c-agua', 'c-elec'].forEach(id => {
+                const el = document.getElementById(id);
+                el.addEventListener('change', () => {
+                    state.condiciones.ejeLargoTerreno = $('#c-eje').value;
+                    state.condiciones.pendientePct = Number($('#c-pendiente').value) || 0;
+                    state.condiciones.riesgoInundacion = $('#c-inund').value;
+                    state.condiciones.aguaDisponible = $('#c-agua').value;
+                    state.condiciones.electricidad = $('#c-elec').value;
+                });
+                el.addEventListener('input', () => el.dispatchEvent(new Event('change')));
+            });
+        }
+
+        function renderCriterio() {
+            const c = CRITERIOS_UBICACION[state.proyecto.localidadId];
+            if (!c) return;
+            $('#criterio-info').innerHTML = `
+    <p><b>${esc(c.nombre)}, ${esc(c.provincia)}</b> · Eje recomendado: <b>${c.ejeLargoRecomendado}</b></p>
+    <p class="mt-1">${esc(c.climaResumen)}</p>
+    <p class="mt-1">Heladas: ${c.riesgoHeladas.toLowerCase()} · Calor extremo: ${c.riesgoCalorExtremo.toLowerCase()}</p>
+    <p class="mt-1 text-[10px] italic">${esc(c.justificacionEje)}</p>
+    <p class="mt-1 text-[10px] font-bold text-amber-700">⚠ ${c.estadoValidacion}</p>
+    <p class="mt-1 text-[9px]">Fuente: ${esc(c.fuente)}</p>
+  `;
+        }
+
+        function renderUbicacion() {
+            recomputar();
+            renderCriterio();
+            const cap = state.capacidad;
+            $('#capacidad-info').innerHTML = `
+    <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Eje de implantación</p>
+      <p class="font-mono text-lg font-extrabold text-slate-900">${cap.eje}</p>
+      <p class="text-[10px] text-slate-500">Ancho invernadero: ${fmtNum(cap.anchoInvernaderoM, 1)} m</p>
+    </div>
+    <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Capacidad máxima (NFT)</p>
+      <p class="font-mono text-lg font-extrabold text-emerald-600">${cap.maxModulos} módulos</p>
+      <p class="text-[10px] text-slate-500">Eje alterno: ${cap.maxModulosEjeAlterno}</p>
+    </div>
+  `;
+            const f = state.factibilidad;
+            const badge = $('#fact-badge');
+            const cls = f.estado === 'VERDE' ? 'badge-verde' : f.estado === 'AMARILLO' ? 'badge-amarillo' : 'badge-rojo';
+            badge.className = `${cls} rounded-full px-3 py-1 text-[11px] font-extrabold`;
+            badge.textContent = f.estado === 'VERDE' ? '✓ APTO' : f.estado === 'AMARILLO' ? '⚠ CON OBSERVACIONES' : '✕ NO APTO';
+            badge.classList.remove('hidden');
+
+            $('#fact-list').innerHTML = f.observaciones.map(o => {
+                const ico = o.severidad === 'CRITICA' ? 'x-circle' : o.severidad === 'ADVERTENCIA' ? 'alert-triangle' : 'info';
+                const clr = o.severidad === 'CRITICA' ? 'text-red-600' : o.severidad === 'ADVERTENCIA' ? 'text-amber-600' : 'text-sky-600';
+                return `<li class="flex items-start gap-2 text-[11px] ${clr}">
+      <i data-lucide="${ico}" class="h-3.5 w-3.5 mt-0.5 shrink-0"></i>
+      <span><b class="font-mono">${o.regla}</b> · ${esc(o.mensaje)}</span>
+    </li>`;
+            }).join('');
+            refreshIcons();
+        }
+
+        /* ============================================================
+           SPEC 02 · PRODUCCIÓN
+        ============================================================ */
+        function initProduccion() {
+            // Render cultivos
+            renderCultivos();
+
+            // Modalidad
+            const selMod = $('#p-modalidad');
+            const cultivo = CULTIVOS.find(c => c.id === state.produccion.cultivoId);
+            selMod.innerHTML = cultivo.modalidadesCompatibles.map(m => `<option value="${m}">${m}</option>`).join('');
+            selMod.value = state.produccion.modalidad;
+            selMod.addEventListener('change', e => {
+                state.produccion.modalidad = e.target.value;
+                recomputar();
+                renderProduccion();
+            });
+
+            // Modo
+            $$('[data-mod]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    $$('[data-mod]').forEach(b => { b.classList.remove('active'); b.classList.add('text-slate-600'); });
+                    btn.classList.add('active'); btn.classList.remove('text-slate-600');
+                    state.produccion.modoPlanificacion = btn.dataset.mod;
+                    $('#panel-presupuesto').classList.toggle('hidden', btn.dataset.mod !== 'PRESUPUESTO');
+                    $('#panel-objetivo').classList.toggle('hidden', btn.dataset.mod !== 'OBJETIVO');
+                    recomputar();
+                    renderProduccion();
+                });
+            });
+
+            $('#p-objetivo-kg').addEventListener('input', e => {
+                state.produccion.objetivoKgMes = Number(e.target.value) || 0;
+                recomputar();
+                renderProduccion();
+            });
+        }
+
+        function renderCultivos() {
+            const grid = $('#crop-grid');
+            const emojis = { LECHUGA: '🥬', ALBAHACA: '🌿', RUCULA: '🌱' };
+            grid.innerHTML = CULTIVOS.map(c => `
+    <button data-crop="${c.id}" class="crop-card rounded-2xl border-2 ${state.produccion.cultivoId === c.id ? 'border-emerald-500 bg-emerald-50' : 'border-slate-200 bg-white'} p-4 text-left transition hover:border-emerald-400">
+      <div class="flex items-center gap-3">
+        <span class="text-3xl">${emojis[c.id] || '🌱'}</span>
+        <div>
+          <p class="text-sm font-extrabold text-slate-900">${c.nombre}</p>
+          <p class="text-[10px] text-slate-500">Ciclo ${c.cicloDias} d</p>
+        </div>
+      </div>
+      <div class="mt-3 flex flex-wrap gap-1.5">
+        <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-700">${c.modalidadesCompatibles.join(' / ')}</span>
+        <span class="rounded-full bg-slate-100 px-2 py-0.5 text-[10px] font-bold text-slate-600">${fmtARS(c.precioReferenciaKg)}/kg</span>
+      </div>
+    </button>
+  `).join('');
+            $$('.crop-card').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const newCultivo = CULTIVOS.find(c => c.id === btn.dataset.crop);
+                    state.produccion.cultivoId = btn.dataset.crop;
+                    // Ajustar modalidad si no es compatible
+                    if (!newCultivo.modalidadesCompatibles.includes(state.produccion.modalidad)) {
+                        state.produccion.modalidad = newCultivo.modalidadesCompatibles[0];
+                    }
+                    // Re-render modalidad options
+                    const selMod = $('#p-modalidad');
+                    selMod.innerHTML = newCultivo.modalidadesCompatibles.map(m => `<option value="${m}">${m}</option>`).join('');
+                    selMod.value = state.produccion.modalidad;
+                    recomputar();
+                    renderProduccion();
+                });
+            });
+        }
+
+        function renderProduccion() {
+            recomputar();
+            renderCultivos();
+            const dim = state.produccion;
+            const layout = state.layout;
+            const pMod = state.paramsMod;
+
+            $('#dim-info').innerHTML = `
+    <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Módulos (n*)</p>
+      <p class="font-mono text-lg font-extrabold text-emerald-600">${dim.nModulos}</p>
+      ${dim.limitadoPor ? `<p class="text-[10px] text-slate-500">Limitado por ${dim.limitadoPor}</p>` : ''}
+    </div>
+    <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Estado dimensionamiento</p>
+      <p class="text-sm font-extrabold ${dim.estadoDimensionamiento === 'OK' ? 'text-emerald-600' : 'text-amber-600'}">${dim.estadoDimensionamiento}</p>
+      ${dim.nRequerido ? `<p class="text-[10px] text-slate-500">Requeridos: ${dim.nRequerido}</p>` : ''}
+    </div>
+    <div class="rounded-xl bg-white p-3 ring-1 ring-slate-200">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Layout invernadero</p>
+      <p class="font-mono text-sm font-extrabold text-slate-900">${layout ? fmtNum(layout.largoInvernaderoM, 1) + ' × ' + fmtNum(layout.anchoInvernaderoM, 1) + ' m' : '—'}</p>
+      <p class="text-[10px] text-slate-500">${layout ? fmtNum(layout.areaInvernaderoM2, 2) + ' m²' : ''}</p>
+    </div>
+  `;
+
+            const av = $('#dim-aviso');
+            if (dim.estadoDimensionamiento === 'PRESUPUESTO_INSUFICIENTE') {
+                av.innerHTML = `<div class="avis-box error text-[11px]"><b>⚠ PRESUPUESTO_INSUFICIENTE</b> · Se muestra 1 módulo como referencia. Presupuesto mínimo necesario: <b>${fmtARS(state.dimMinPresupuesto)}</b></div>`;
+            } else if (dim.estadoDimensionamiento === 'SUPERFICIE_INSUFICIENTE') {
+                av.innerHTML = `<div class="avis-box error text-[11px]"><b>⚠ SUPERFICIE_INSUFICIENTE</b> · Se alcanzan ${dim.nModulos} módulos (máximo del terreno).</div>`;
+            } else {
+                av.innerHTML = `<div class="avis-box ok text-[11px]"><b>✓ Configuración viable</b> · ${dim.nModulos} módulos, limitado por ${dim.limitadoPor || 'presupuesto'}.</div>`;
+            }
+
+            $('#param-info').innerHTML = `
+    <div class="rounded-xl bg-slate-50 p-3">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Plazas / módulo</p>
+      <p class="font-mono text-lg font-extrabold">${pMod.plazasPorModulo}</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-3">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Ciclos / año</p>
+      <p class="font-mono text-lg font-extrabold">${fmtNum(pMod.ciclosPorAnio, 2)}</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-3">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">kg / mes / módulo</p>
+      <p class="font-mono text-lg font-extrabold text-emerald-600">${fmtNum(pMod.kgMesPorModulo, 2)}</p>
+    </div>
+    <div class="rounded-xl bg-slate-50 p-3">
+      <p class="text-[10px] font-extrabold uppercase text-slate-400">Huella módulo</p>
+      <p class="font-mono text-lg font-extrabold">${fmtNum(pMod.huellaModuloM2, 2)} m²</p>
+    </div>
+  `;
+
+            // Update objetivo preview
+            if (state.produccion.modoPlanificacion === 'OBJETIVO') {
+                const op = $('#obj-preview');
+                op.innerHTML = `<b>Objetivo:</b> ${state.produccion.objetivoKgMes} kg/mes<br><b>Requeridos:</b> ${dim.nRequerido || '—'} módulos<br><b>Resultado:</b> ${dim.nModulos} módulos (${dim.estadoDimensionamiento})`;
+            }
+            updateStatus();
+            refreshIcons();
+        }
+
+        /* ============================================================
+           SPEC 04 · INFRAESTRUCTURA
+        ============================================================ */
+        function renderInfraestructura() {
+            recomputar();
+            const layout = state.layout;
+            const lineas = state.costos.lineas;
+
+            $('#res-modulos').textContent = state.produccion.nModulos;
+            $('#res-area').textContent = fmtNum(layout.areaInvernaderoM2, 2) + ' m²';
+            $('#res-plazas').textContent = state.produccionEst.plazasTotales;
+
+            const requiereAdic = state.lineas.some(l => l.cobertura === 'PARCIAL');
+            const av = $('#aviso-infra-adic');
+            if (requiereAdic) {
+                av.innerHTML = `<div class="avis-box text-[11px]"><b>requiereInfraAdicional = true</b> · Algunos componentes existentes cubren solo parcialmente lo requerido.</div>`;
+                av.classList.remove('hidden');
+            } else {
+                av.classList.add('hidden');
+            }
+
+            // Group by grupo then categoria
+            const grupos = {};
+            lineas.forEach(l => {
+                const g = l.componente.grupo;
+                if (!grupos[g]) grupos[g] = [];
+                grupos[g].push(l);
+            });
+
+            const rows = [];
+            Object.entries(grupos).forEach(([grupo, arr]) => {
+                arr.sort((a, b) => a.componente.categoria.localeCompare(b.componente.categoria) || a.componente.id.localeCompare(b.componente.id));
+                arr.forEach(l => {
+                    rows.push(`
+        <tr class="border-b border-slate-100">
+          <td class="py-2 text-xs font-bold text-slate-800">${esc(l.componente.nombre)}</td>
+          <td class="py-2 text-[10px] text-slate-500">${l.componente.grupo}</td>
+          <td class="py-2 text-[10px] text-slate-500">${l.componente.categoria}</td>
+          <td class="py-2 text-right font-mono text-xs">${fmtNum(l.cantidadRequerida, l.componente.unidad === 'm2' ? 2 : 0)} ${l.componente.unidad}</td>
+          <td class="py-2 text-right font-mono text-xs text-slate-500">${l.cantidadExistente}</td>
+          <td class="py-2 text-right font-mono text-xs font-bold ${l.cantidadAComprar > 0 ? 'text-emerald-600' : 'text-slate-400'}">${fmtNum(l.cantidadAComprar, l.componente.unidad === 'm2' ? 2 : 0)}</td>
+          <td class="py-2 text-right font-mono text-xs text-slate-600">${fmtARS(l.componente.precioUnitario)}</td>
+          <td class="py-2 text-right font-mono text-xs font-extrabold text-slate-900">${fmtARS(l.costoLinea)}</td>
+        </tr>
+      `);
+                });
+            });
+            $('#infra-table').innerHTML = rows.join('');
+            $('#infra-total').textContent = fmtARS(state.costos.costoMateriales);
+            updateStatus();
+        }
+
+        /* ============================================================
+           SPEC 05+06 · INVERSIÓN + PRODUCCIÓN + TCO
+        ============================================================ */
+        let recChart = null, tcoChart = null;
+
+        function renderInversionProduccionTCO() {
+            recomputar();
+            const c = state.costos, p = state.produccionEst, i = state.ingresosEst, r = state.recuperacion, t = state.tco;
+
+            // Inversión
+            $('#inv-materiales').textContent = fmtARS(c.costoMateriales);
+            $('#inv-mano').textContent = fmtARS(c.manoDeObraInstalacion);
+            $('#inv-impr').textContent = fmtARS(c.imprevistos);
+            $('#inv-total').textContent = fmtARS(c.inversionInicial);
+
+            // Comparación
+            const pe = state.presupuestoEstado;
+            const comp = $('#inv-comparison');
+            if (pe.estado === 'DENTRO_DE_PRESUPUESTO') {
+                comp.className = 'mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4';
+                comp.innerHTML = `<p class="text-xs font-extrabold text-emerald-800">✓ DENTRO_DE_PRESUPUESTO</p>
+      <p class="text-[11px] mt-1 text-emerald-700">Saldo disponible: <b>${fmtARS(pe.saldo)}</b> · Uso: ${fmtNum(pe.uso * 100, 1)}%</p>`;
+            } else if (pe.estado === 'SUPERA_PRESUPUESTO') {
+                comp.className = 'mt-4 rounded-2xl border border-amber-200 bg-amber-50 p-4';
+                comp.innerHTML = `<p class="text-xs font-extrabold text-amber-800">⚠ SUPERA_PRESUPUESTO</p>
+      <p class="text-[11px] mt-1 text-amber-700">Faltan <b>${fmtARS(Math.abs(pe.saldo))}</b>.
+      ${pe.sugerencia === 'REDUCIR_ESCALA' ? `Sugerencia: reducir a <b>${pe.nMaxPP} módulos</b>.` : `Presupuesto mínimo: <b>${fmtARS(pe.minPresupuesto)}</b>.`}</p>`;
+            } else {
+                comp.className = 'mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4';
+                comp.innerHTML = `<p class="text-xs font-extrabold text-slate-600">SIN_PRESUPUESTO</p><p class="text-[11px] mt-1 text-slate-500">No se ingresó presupuesto. Modo objetivo.</p>`;
+            }
+
+            // Producción
+            $('#prod-plazas').textContent = p.plazasTotales;
+            $('#prod-kg-anio').textContent = fmtNum(p.kgAnio, 1);
+            $('#prod-kg-mes').textContent = fmtNum(p.kgMes, 1);
+            $('#prod-kg-sem').textContent = fmtNum(p.kgSemana, 1);
+
+            $('#ing-bruto').textContent = fmtARS(i.ingresoBrutoMensual);
+            $('#ing-insumos').textContent = fmtARS(i.costoInsumosMensual);
+            $('#ing-mano').textContent = fmtARS(i.costoManoObraMensual);
+            $('#ing-fijos').textContent = fmtARS(i.costoFijoMensual);
+            $('#ing-costos').textContent = fmtARS(i.costosOperativosMensuales);
+            $('#ing-neto').textContent = fmtARS(i.flujoNetoOperativoMensual);
+
+            // Recuperación texto
+            const rec = $('#rec-text');
+            if (r.recuperacionMeses) {
+                rec.innerHTML = `Con los supuestos utilizados, la inversión inicial se recuperaría aproximadamente en <b>${r.recuperacionMeses} meses</b> (${fmtNum(r.recuperacionAnios, 1)} años).`;
+            } else {
+                rec.innerHTML = `Con los supuestos utilizados, la inversión inicial <b>no se recuperaría</b> dentro de los ${PARAMETROS.horizonteMeses} meses analizados.`;
+            }
+
+            // Chart recuperación
+            renderRecChart(r.flujoAcumulado);
+
+            // Supuestos
+            const cultivo = CULTIVOS.find(x => x.id === state.produccion.cultivoId);
+            $('#supuestos').innerHTML = `
+    <li>• Precio de referencia: ${fmtARS(cultivo.precioReferenciaKg)}/kg</li>
+    <li>• Peso por planta: ${fmtNum(cultivo.pesoCosechaKg, 2)} kg · Mortalidad: ${cultivo.mortalidadPct * 100}%</li>
+    <li>• Ciclo productivo: ${cultivo.cicloDias} días · Ciclos/año: ${fmtNum(state.paramsMod.ciclosPorAnio, 2)}</li>
+    <li>• % venta efectiva: ${PARAMETROS.porcentajeVentaEfectiva * 100}%</li>
+    <li>• Valor hora MO: ${fmtARS(PARAMETROS.valorHoraManoObra)} · Horas/semana: ${fmtNum(i.horasSemana, 1)}</li>
+    <li>• Horizonte de análisis: ${PARAMETROS.horizonteMeses} meses</li>
+  `;
+
+            // TCO
+            $('#tco-inv').textContent = fmtARS(c.inversionInicial);
+            $('#tco-rep').textContent = fmtARS(t.totalesPorTipo.reposicion);
+            $('#tco-mant').textContent = fmtARS(t.totalesPorTipo.mantenimiento);
+            $('#tco-cal').textContent = fmtARS(t.totalesPorTipo.calibracion);
+            $('#tco-total').textContent = fmtARS(c.inversionInicial + t.tcoEventosTotal);
+
+            renderTCOChart(t.totalesPorAnio, c.inversionInicial);
+            renderMaintMatriz(t.matriz);
+
+            updateStatus();
+        }
+
+        function renderRecChart(flujo) {
+            const canvas = $('#recChart');
+            if (!canvas || !window.Chart) return;
+            const ctx = canvas.getContext('2d');
+            const labels = flujo.map((_, i) => 'M' + (i + 1));
+            if (recChart) recChart.destroy();
+            recChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Flujo acumulado', data: flujo, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,.1)', borderWidth: 2, fill: true, tension: .3, pointRadius: 0 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 9 }, color: '#94A3B8', maxTicksLimit: 12 } },
+                        y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 9 }, color: '#94A3B8', maxTicksLimit: 5, callback: v => fmtCompact(v) } }
+                    }
+                }
+            });
+        }
+
+        function renderTCOChart(porAnio, inv) {
+            const canvas = $('#tcoChart');
+            if (!canvas || !window.Chart) return;
+            const ctx = canvas.getContext('2d');
+            const labels = ['Inversión', 'Año 1', 'Año 2', 'Año 3', 'Año 4', 'Año 5'];
+            let acum = inv;
+            const acumulados = [inv, ...porAnio.map(v => { acum += v; return acum; })];
+            if (tcoChart) tcoChart.destroy();
+            tcoChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels, datasets: [{ label: 'Costo acumulado', data: acumulados, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,.15)', borderWidth: 2.5, fill: true, tension: .3, pointRadius: 5, pointBackgroundColor: '#10B981', pointBorderColor: '#fff', pointBorderWidth: 2 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: item => '  ' + fmtARS(item.parsed.y) } } },
+                    scales: {
+                        x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#94A3B8' } },
+                        y: { grid: { color: '#F1F5F9' }, ticks: { font: { size: 10 }, color: '#94A3B8', maxTicksLimit: 6, callback: v => fmtCompact(v) } }
+                    }
+                }
+            });
+        }
+
+        function renderMaintMatriz(matriz) {
+            $('#maint-table').innerHTML = matriz.map(m => `
+    <tr class="border-b border-slate-100">
+      <td class="py-2 text-xs font-bold text-slate-800">${esc(m.nombre)}</td>
+      <td class="py-2 text-right font-mono text-xs">${m.vidaUtilMeses} m</td>
+      <td class="py-2 text-right font-mono text-xs">${m.frecuenciaMantenimiento ? m.frecuenciaMantenimiento + ' m' : '—'}</td>
+      <td class="py-2 text-right font-mono text-xs">${m.costoPorEvento ? fmtARS(m.costoPorEvento) : '—'}</td>
+      <td class="py-2 text-right font-mono text-xs text-slate-600">${m.proximaFecha}</td>
+    </tr>
+  `).join('');
+        }
+
+        /* ============================================================
+           SPEC 07 · PROPUESTA
+        ============================================================ */
+        function renderPropuesta() {
+            recomputar();
+            const p = state.proyecto;
+            const criterio = CRITERIOS_UBICACION[p.localidadId];
+            const cultivo = CULTIVOS.find(c => c.id === state.produccion.cultivoId);
+            const pe = state.presupuestoEstado;
+
+            $('#prop-titulo').textContent = p.nombre;
+            $('#prop-resumen').textContent = `${cultivo.nombre} · ${state.produccion.modalidad} · ${state.produccion.nModulos} módulos · ${criterio.nombre}, ${criterio.provincia}`;
+
+            $('#prop-modulos').textContent = state.produccion.nModulos;
+            $('#prop-inv').textContent = fmtCompact(state.costos.inversionInicial);
+            $('#prop-prod').textContent = fmtNum(state.produccionEst.kgMes, 1) + ' kg';
+
+            if (state.recuperacion.recuperacionMeses) {
+                $('#prop-rec').textContent = state.recuperacion.recuperacionMeses + ' meses';
+            } else {
+                $('#prop-rec').textContent = '> 60 meses';
+            }
+
+            // Factibilidad
+            const f = state.factibilidad;
+            const cls = f.estado === 'VERDE' ? 'border-emerald-200 bg-emerald-50' : f.estado === 'AMARILLO' ? 'border-amber-200 bg-amber-50' : 'border-red-200 bg-red-50';
+            const txt = f.estado === 'VERDE' ? 'text-emerald-800' : f.estado === 'AMARILLO' ? 'text-amber-800' : 'text-red-800';
+            $('#prop-fact').innerHTML = `<div class="rounded-2xl border ${cls} p-3 text-[11px] ${txt}">
+    <b>Factibilidad: ${f.estado}</b> · ${f.observaciones.filter(o => o.severidad !== 'INFO').length} observaciones.
+    ${pe.estado === 'SUPERA_PRESUPUESTO' ? '<br><b>⚠ Supera presupuesto</b>' : ''}
+  </div>`;
+
+            // Croquis
+            drawCroquisSuperior();
+            drawCroquisFrontal();
+
+            // 3D
+            setTimeout(() => init3D(), 150);
+        }
+
+        function drawCroquisSuperior() {
+            const svg = $('#croquis-sup');
+            const p = state.proyecto;
+            const layout = state.layout;
+            const cap = state.capacidad;
+            const modulo = COMPONENTES.find(c => c.atributosModulo?.modalidad === state.produccion.modalidad);
+            const tanque = COMPONENTES.find(c => c.id === 'TANQUE_500');
+
+            const W = 900, H = 600, pad = 60;
+            const Wt = state.condiciones.ejeLargoTerreno === 'EO' ? p.largoM : p.anchoM;
+            const Ht = state.condiciones.ejeLargoTerreno === 'EO' ? p.anchoM : p.largoM;
+            const ratio = Math.min((W - 2 * pad) / Wt, (H - 2 * pad) / Ht);
+            const pxX = pad + (W - 2 * pad - Wt * ratio) / 2;
+            const pxY = pad + (H - 2 * pad - Ht * ratio) / 2;
+
+            const m = (val) => val * ratio;
+            const x = (val) => pxX + val * ratio;
+            const y = (val) => pxY + val * ratio;
+
+            const retiro = PARAMETROS.retiroPerimetralM;
+            const invernW = state.condiciones.ejeLargoTerreno === 'EO' ? layout.largoInvernaderoM : layout.anchoInvernaderoM;
+            const invernH = state.condiciones.ejeLargoTerreno === 'EO' ? layout.anchoInvernaderoM : layout.largoInvernaderoM;
+            const invernX = pxX + ((Wt - invernW) / 2) * ratio;
+            const invernY = pxY + ((Ht - invernH) / 2) * ratio;
+
+            let html = `<defs>
+    <pattern id="gridS" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E2E8F0" stroke-width="0.4"/>
+    </pattern>
+    <marker id="arrN" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#0F172A"/>
+    </marker>
+  </defs>
+  <rect width="${W}" height="${H}" fill="url(#gridS)"/>`;
+
+            // Terreno
+            html += `<rect x="${pxX}" y="${pxY}" width="${m(Wt)}" height="${m(Ht)}" fill="#F8FAFC" stroke="#334155" stroke-width="2" stroke-dasharray="6 4"/>`;
+            html += `<text x="${pxX + 6}" y="${pxY - 10}" font-size="12" font-weight="700" fill="#64748B">Terreno ${fmtNum(p.largoM, 1)} × ${fmtNum(p.anchoM, 1)} m</text>`;
+
+            // Retiro
+            html += `<rect x="${pxX + m(retiro)}" y="${pxY + m(retiro)}" width="${m(Wt - 2 * retiro)}" height="${m(Ht - 2 * retiro)}" fill="none" stroke="#94A3B8" stroke-width="1" stroke-dasharray="3 3"/>`;
+            html += `<text x="${pxX + m(retiro) + 4}" y="${pxY + m(retiro) - 4}" font-size="9" fill="#94A3B8">Retiro perimetral ${retiro} m</text>`;
+
+            // Invernadero
+            html += `<rect x="${invernX}" y="${invernY}" width="${m(invernW)}" height="${m(invernH)}" fill="#ECFDF5" stroke="#10B981" stroke-width="2"/>`;
+
+            // Zona técnica
+            const zonaW = state.condiciones.ejeLargoTerreno === 'EO' ? PARAMETROS.zonaTecnicaM : layout.anchoInvernaderoM;
+            const zonaH = state.condiciones.ejeLargoTerreno === 'EO' ? layout.anchoInvernaderoM : PARAMETROS.zonaTecnicaM;
+            html += `<rect x="${invernX}" y="${invernY}" width="${m(zonaW)}" height="${m(zonaH)}" fill="#FEF3C7" stroke="#F59E0B" stroke-width="1" stroke-dasharray="3 3"/>`;
+            html += `<text x="${invernX + 8}" y="${invernY + 18}" font-size="10" font-weight="700" fill="#B45309">Zona técnica</text>`;
+
+            // Tanques en zona técnica
+            const cantTanques = state.lineas.find(l => l.componente.id === 'TANQUE_500')?.cantidadRequerida || 0;
+            for (let i = 0; i < cantTanques; i++) {
+                const tDiam = tanque.atributosTanque.diametroM;
+                const tx = invernX + m(1.3) + (i < 3 ? m(1.2) * i : 0);
+                const ty = invernY + m(0.2) + (i < 3 ? m(0.2) : 0);
+                if (i < 3) {
+                    html += `<circle cx="${tx}" cy="${ty + m(tDiam / 2)}" r="${m(tDiam / 2)}" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5"/>`;
+                    html += `<text x="${tx}" y="${ty + m(tDiam / 2) + 3}" text-anchor="middle" font-size="8" font-weight="700" fill="#0369A1">T${i + 1}</text>`;
+                }
+            }
+
+            // Módulos (racks)
+            const largoMod = modulo.atributosModulo.largoM;
+            const anchoMod = modulo.atributosModulo.anchoM;
+            const modulosPorFila = layout.modulosPorFila;
+            const filasY = state.condiciones.ejeLargoTerreno === 'EO'
+                ? [invernY + m(PARAMETROS.pasilloLateralM), invernY + m(PARAMETROS.pasilloLateralM + anchoMod + PARAMETROS.pasilloCentralM)]
+                : [invernY + m(PARAMETROS.pasilloLateralM), invernY + m(PARAMETROS.pasilloLateralM + anchoMod + PARAMETROS.pasilloCentralM)];
+
+            let modNum = 1;
+            for (let f = 0; f < 2; f++) {
+                for (let k = 0; k < modulosPorFila[f]; k++) {
+                    const modX = invernX + m(PARAMETROS.zonaTecnicaM + k * largoMod);
+                    const modY = filasY[f];
+                    html += `<rect x="${modX}" y="${modY}" width="${m(largoMod)}" height="${m(anchoMod)}" fill="#10B981" fill-opacity="0.35" stroke="#059669" stroke-width="1.2" rx="3"/>`;
+                    html += `<text x="${modX + m(largoMod / 2)}" y="${modY + m(anchoMod / 2) + 4}" text-anchor="middle" font-size="11" font-weight="800" fill="#065F46">M${modNum}</text>`;
+                    modNum++;
+                }
+            }
+
+            // Pasillos (líneas)
+            html += `<line x1="${invernX + m(PARAMETROS.zonaTecnicaM)}" y1="${invernY + m(PARAMETROS.pasilloLateralM + anchoMod)}" x2="${invernX + m(invernW)}" y2="${invernY + m(PARAMETROS.pasilloLateralM + anchoMod)}" stroke="#0284C7" stroke-width="0.8" stroke-dasharray="4 2"/>`;
+
+            // Acceso
+            const accX = invernX - 15;
+            const accY = invernY + m(invernH / 2) - 8;
+            html += `<rect x="${accX}" y="${accY}" width="15" height="16" fill="#F59E0B" rx="2"/>`;
+            html += `<text x="${accX - 2}" y="${accY + 11}" text-anchor="end" font-size="9" font-weight="700" fill="#B45309">ACCESO</text>`;
+
+            // Norte
+            html += `<g transform="translate(${W - 70}, ${pad + 40})">
+    <circle r="26" fill="#fff" stroke="#0F172A" stroke-width="1.5"/>
+    <line x1="0" y1="18" x2="0" y2="-18" stroke="#0F172A" stroke-width="2" marker-end="url(#arrN)"/>
+    <text x="0" y="-22" text-anchor="middle" font-size="11" font-weight="800" fill="#0F172A">N</text>
+    <text x="0" y="38" text-anchor="middle" font-size="9" font-weight="700" fill="#64748B">Eje: ${cap.eje}</text>
+  </g>`;
+
+            // Dimensiones terreno
+            html += `<line x1="${pxX}" y1="${pxY + m(Ht) + 25}" x2="${pxX + m(Wt)}" y2="${pxY + m(Ht) + 25}" stroke="#94A3B8"/>`;
+            html += `<text x="${pxX + m(Wt / 2)}" y="${pxY + m(Ht) + 38}" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">${fmtNum(Wt, 1)} m</text>`;
+
+            // Escala
+            html += `<g transform="translate(${pad}, ${H - 30})">
+    <line x1="0" y1="0" x2="${m(5)}" y2="0" stroke="#0F172A" stroke-width="2"/>
+    <line x1="0" y1="-4" x2="0" y2="4" stroke="#0F172A" stroke-width="2"/>
+    <line x1="${m(5)}" y1="-4" x2="${m(5)}" y2="4" stroke="#0F172A" stroke-width="2"/>
+    <text x="${m(5) / 2}" y="-8" text-anchor="middle" font-size="10" font-weight="700" fill="#0F172A">5 m</text>
+  </g>`;
+
+            // Leyenda
+            html += `<g transform="translate(${W - 240}, ${H - 90})">
+    <text x="0" y="0" font-size="10" font-weight="800" fill="#0F172A">LEYENDA</text>
+    <rect x="0" y="8" width="14" height="10" fill="#10B981" fill-opacity="0.35" stroke="#059669"/>
+    <text x="20" y="17" font-size="9" fill="#334155">Módulo NFT</text>
+    <circle cx="7" cy="30" r="6" fill="#E0F2FE" stroke="#0284C7"/>
+    <text x="20" y="34" font-size="9" fill="#334155">Tanque</text>
+    <rect x="0" y="44" width="14" height="10" fill="#FEF3C7" stroke="#F59E0B" stroke-dasharray="3 3"/>
+    <text x="20" y="53" font-size="9" fill="#334155">Zona técnica</text>
+    <rect x="0" y="60" width="14" height="10" fill="#F59E0B"/>
+    <text x="20" y="69" font-size="9" fill="#334155">Acceso</text>
+  </g>`;
+
+            svg.innerHTML = html;
+        }
+
+        function drawCroquisFrontal() {
+            const svg = $('#croquis-front');
+            const layout = state.layout;
+            const modulo = COMPONENTES.find(c => c.atributosModulo?.modalidad === state.produccion.modalidad);
+            const tanque = COMPONENTES.find(c => c.id === 'TANQUE_500');
+
+            const W = 900, H = 400, pad = 60;
+            const W_real = layout.anchoInvernaderoM;
+            const ratio = (W - 2 * pad) / W_real;
+            const x0 = pad;
+            const yFloor = H - pad;
+            const yLat = yFloor - PARAMETROS.alturaLateralM * ratio;
+            const yCumb = yFloor - PARAMETROS.alturaCumbreraM * ratio;
+
+            let html = `<defs><pattern id="gridF" width="40" height="40" patternUnits="userSpaceOnUse">
+    <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#E2E8F0" stroke-width="0.4"/>
+  </pattern></defs>
+  <rect width="${W}" height="${H}" fill="url(#gridF)"/>`;
+
+            // Piso
+            html += `<line x1="${x0 - 20}" y1="${yFloor}" x2="${x0 + W_real * ratio + 20}" y2="${yFloor}" stroke="#334155" stroke-width="3"/>`;
+
+            // Estructura
+            html += `<line x1="${x0}" y1="${yFloor}" x2="${x0}" y2="${yLat}" stroke="#334155" stroke-width="6"/>`;
+            html += `<line x1="${x0 + W_real * ratio}" y1="${yFloor}" x2="${x0 + W_real * ratio}" y2="${yLat}" stroke="#334155" stroke-width="6"/>`;
+            html += `<path d="M ${x0} ${yLat} L ${x0 + W_real * ratio / 2} ${yCumb} L ${x0 + W_real * ratio} ${yLat}" fill="none" stroke="#334155" stroke-width="5" stroke-linejoin="round"/>`;
+
+            // Racks (uno por fila)
+            const vFila = [PARAMETROS.pasilloLateralM, PARAMETROS.pasilloLateralM + modulo.atributosModulo.anchoM + PARAMETROS.pasilloCentralM];
+            vFila.forEach((v, idx) => {
+                if (layout.modulosPorFila[idx] === 0) return;
+                const rx = x0 + v * ratio;
+                const ry = yFloor - modulo.atributosModulo.alturaM * ratio;
+                const rw = modulo.atributosModulo.anchoM * ratio;
+                const rh = modulo.atributosModulo.alturaM * ratio;
+                html += `<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="#10B981" fill-opacity="0.35" stroke="#059669" stroke-width="1.5"/>`;
+                // Niveles
+                const niveles = modulo.atributosModulo.niveles;
+                for (let n = 1; n < niveles; n++) {
+                    const ny = ry + (rh / niveles) * n;
+                    html += `<line x1="${rx}" y1="${ny}" x2="${rx + rw}" y2="${ny}" stroke="#059669" stroke-width="0.8" stroke-dasharray="2 2"/>`;
+                }
+                html += `<text x="${rx + rw / 2}" y="${ry - 6}" text-anchor="middle" font-size="10" font-weight="800" fill="#065F46">Rack ${modulo.atributosModulo.niveles} niveles</text>`;
+            });
+
+            // Tanque (representativo)
+            const tX = x0 + 0.3 * ratio;
+            const tY = yFloor - tanque.atributosTanque.alturaM * ratio;
+            const tW = tanque.atributosTanque.diametroM * ratio;
+            const tH = tanque.atributosTanque.alturaM * ratio;
+            html += `<rect x="${tX}" y="${tY}" width="${tW}" height="${tH}" fill="#E0F2FE" stroke="#0284C7" stroke-width="1.5" stroke-dasharray="4 2"/>`;
+            html += `<text x="${tX + tW / 2}" y="${tY - 6}" text-anchor="middle" font-size="9" font-weight="700" fill="#0369A1">Tanque</text>`;
+
+            // Cotas
+            html += `<line x1="${x0}" y1="${yFloor + 20}" x2="${x0 + W_real * ratio}" y2="${yFloor + 20}" stroke="#94A3B8"/>`;
+            html += `<text x="${x0 + W_real * ratio / 2}" y="${yFloor + 34}" text-anchor="middle" font-size="11" font-weight="700" fill="#64748B">Ancho: ${fmtNum(W_real, 1)} m</text>`;
+
+            html += `<line x1="${x0 - 30}" y1="${yLat}" x2="${x0 - 30}" y2="${yFloor}" stroke="#94A3B8"/>`;
+            html += `<text x="${x0 - 36}" y="${(yLat + yFloor) / 2}" text-anchor="end" font-size="10" font-weight="700" fill="#64748B">H lateral: ${PARAMETROS.alturaLateralM} m</text>`;
+
+            html += `<line x1="${x0 + W_real * ratio + 30}" y1="${yCumb}" x2="${x0 + W_real * ratio + 30}" y2="${yFloor}" stroke="#94A3B8"/>`;
+            html += `<text x="${x0 + W_real * ratio + 36}" y="${(yCumb + yFloor) / 2}" text-anchor="start" font-size="10" font-weight="700" fill="#64748B">H cumbrera: ${PARAMETROS.alturaCumbreraM} m</text>`;
+
+            svg.innerHTML = html;
+        }
+
+        /* ============================================================
+           THREE.JS 3D
+        ============================================================ */
+        let threeScene, threeRenderer, threeGroup, threeAnimId;
+        let threeRot = { x: 0.4, y: 0.7 }, threeDist = 10, threeDrag = { active: false, x: 0, y: 0 };
+
+        function init3D() {
+            const canvas = $('#three-canvas');
+            if (!canvas || !window.THREE) return;
+            if (threeRenderer) { cancelAnimationFrame(threeAnimId); threeRenderer.dispose(); }
+
+            const layout = state.layout;
+            const p = state.proyecto;
+            const W = canvas.clientWidth, H = canvas.clientHeight;
+
+            threeScene = new THREE.Scene();
+            threeScene.background = new THREE.Color(0xF1F5F9);
+
+            const camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 100);
+            threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            threeRenderer.setSize(W, H);
+            threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            threeScene.add(new THREE.AmbientLight(0xffffff, 0.75));
+            const d1 = new THREE.DirectionalLight(0xffffff, 0.9); d1.position.set(6, 12, 8); threeScene.add(d1);
+            const d2 = new THREE.DirectionalLight(0xffffff, 0.35); d2.position.set(-6, 6, -5); threeScene.add(d2);
+
+            threeGroup = new THREE.Group(); threeScene.add(threeGroup);
+
+            const largoInvern = layout.largoInvernaderoM;
+            const anchoInvern = layout.anchoInvernaderoM;
+            const scale = 6 / Math.max(largoInvern, anchoInvern);
+
+            const matGreen = new THREE.MeshStandardMaterial({ color: 0x10B981, roughness: .5 });
+            const matDark = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: .7 });
+            const matBlue = new THREE.MeshStandardMaterial({ color: 0x0284C7, roughness: .3 });
+            const matLeaf = new THREE.MeshStandardMaterial({ color: 0x34D399, roughness: .6 });
+            const matGround = new THREE.MeshStandardMaterial({ color: 0xE2E8F0, roughness: .9 });
+
+            // Piso
+            const ground = new THREE.Mesh(new THREE.BoxGeometry(largoInvern * scale + 1.5, 0.05, anchoInvern * scale + 1.5), matGround);
+            ground.position.y = -1.35;
+            threeGroup.add(ground);
+
+            // Paredes (transparentes)
+            const wallMat = new THREE.MeshStandardMaterial({ color: 0x94A3B8, transparent: true, opacity: .15, side: THREE.DoubleSide });
+            const wallH = PARAMETROS.alturaLateralM * scale;
+            // Laterales
+            const wall1 = new THREE.Mesh(new THREE.PlaneGeometry(largoInvern * scale, wallH), wallMat);
+            wall1.position.set(0, wallH / 2 - wallH / 2, anchoInvern * scale / 2);
+            threeGroup.add(wall1);
+            const wall2 = wall1.clone(); wall2.position.z = -anchoInvern * scale / 2; wall2.rotation.y = Math.PI; threeGroup.add(wall2);
+            const wall3 = new THREE.Mesh(new THREE.PlaneGeometry(anchoInvern * scale, wallH), wallMat);
+            wall3.position.set(largoInvern * scale / 2, 0, 0); wall3.rotation.y = -Math.PI / 2; threeGroup.add(wall3);
+            const wall4 = wall3.clone(); wall4.position.x = -largoInvern * scale / 2; wall4.rotation.y = Math.PI / 2; threeGroup.add(wall4);
+            // Techo
+            const roofH = (PARAMETROS.alturaCumbreraM - PARAMETROS.alturaLateralM) * scale;
+            const roof = new THREE.Mesh(new THREE.ConeGeometry(largoInvern * scale * 0.55, roofH, 4), wallMat);
+            roof.position.y = PARAMETROS.alturaLateralM * scale;
+            roof.rotation.y = Math.PI / 4;
+            threeGroup.add(roof);
+
+            // Módulos (racks)
+            const modulo = COMPONENTES.find(c => c.atributosModulo?.modalidad === state.produccion.modalidad);
+            const largoMod = modulo.atributosModulo.largoM * scale;
+            const anchoMod = modulo.atributosModulo.anchoM * scale;
+            const altoMod = modulo.atributosModulo.alturaM * scale;
+            const niveles = modulo.atributosModulo.niveles;
+
+            const vFilas = [PARAMETROS.pasilloLateralM, PARAMETROS.pasilloLateralM + modulo.atributosModulo.anchoM + PARAMETROS.pasilloCentralM];
+            const startX = -largoInvern * scale / 2 + PARAMETROS.zonaTecnicaM * scale;
+
+            let modNum = 1;
+            for (let f = 0; f < 2; f++) {
+                for (let k = 0; k < layout.modulosPorFila[f]; k++) {
+                    const mx = startX + k * largoMod + largoMod / 2;
+                    const mz = -anchoInvern * scale / 2 + (vFilas[f] + modulo.atributosModulo.anchoM / 2) * scale;
+                    // Rack
+                    const rack = new THREE.Mesh(new THREE.BoxGeometry(largoMod, altoMod, anchoMod), matGreen);
+                    rack.position.set(mx, altoMod / 2 - 1.3, mz);
+                    rack.material = new THREE.MeshStandardMaterial({ color: 0x10B981, transparent: true, opacity: .35 });
+                    threeGroup.add(rack);
+                    // Niveles (líneas)
+                    for (let n = 1; n < niveles; n++) {
+                        const lvl = new THREE.Mesh(new THREE.BoxGeometry(largoMod * 1.02, 0.02, anchoMod * 1.02), matDark);
+                        lvl.position.set(mx, -1.3 + (altoMod / niveles) * n, mz);
+                        threeGroup.add(lvl);
+                    }
+                    // Plantas
+                    for (let pl = 0; pl < 6; pl++) {
+                        const px = -largoMod / 2 + 0.1 + pl * (largoMod - 0.2) / 5;
+                        for (let n = 0; n < niveles; n++) {
+                            const leaf = new THREE.Mesh(new THREE.SphereGeometry(0.06, 6, 6), matLeaf);
+                            leaf.position.set(mx + px, -1.3 + (altoMod / niveles) * (n + .5), mz);
+                            threeGroup.add(leaf);
+                        }
+                    }
+                    modNum++;
+                }
+            }
+
+            // Tanque
+            const cantT = state.lineas.find(l => l.componente.id === 'TANQUE_500')?.cantidadRequerida || 0;
+            for (let i = 0; i < Math.min(cantT, 3); i++) {
+                const t = new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.25, 0.6, 12), matBlue);
+                t.position.set(-largoInvern * scale / 2 + 0.5 + i * 0.6, -1.05, anchoInvern * scale / 2 - 0.6);
+                threeGroup.add(t);
+            }
+
+            // Grid
+            const grid = new THREE.GridHelper(10, 20, 0xE2E8F0, 0xE2E8F0);
+            grid.position.y = -1.4;
+            threeScene.add(grid);
+
+            // Events
+            canvas.onmousedown = (e) => { threeDrag.active = true; threeDrag.x = e.clientX; threeDrag.y = e.clientY; };
+            window.onmouseup = () => { threeDrag.active = false; };
+            window.onmousemove = (e) => {
+                if (!threeDrag.active) return;
+                threeRot.y += (e.clientX - threeDrag.x) * 0.008;
+                threeRot.x += (e.clientY - threeDrag.y) * 0.008;
+                threeRot.x = Math.max(-0.3, Math.min(1.2, threeRot.x));
+                threeDrag.x = e.clientX; threeDrag.y = e.clientY;
+            };
+            canvas.onwheel = (e) => {
+                e.preventDefault();
+                threeDist = Math.max(4, Math.min(20, threeDist + e.deltaY * 0.005));
+            };
+
+            (function animate() {
+                threeAnimId = requestAnimationFrame(animate);
+                const x = Math.sin(threeRot.y) * Math.cos(threeRot.x) * threeDist;
+                const y = Math.sin(threeRot.x) * threeDist + 1;
+                const z = Math.cos(threeRot.y) * Math.cos(threeRot.x) * threeDist;
+                camera.position.set(x, y, z);
+                camera.lookAt(0, 0, 0);
+                threeRenderer.render(threeScene, camera);
+            })();
+        }
+
+        /* ============================================================
+           MODAL
+        ============================================================ */
+        function showModal(title, body, onConfirm, confirmText = 'OK') {
+            $('#modal-content').innerHTML = `
+    <h3 class="text-lg font-extrabold text-slate-900">${title}</h3>
+    <div class="mt-3 text-sm leading-relaxed text-slate-600">${body}</div>
+    <div class="mt-5 flex gap-2">
+      <button id="m-cancel" class="rounded-2xl border border-slate-200 px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50">Cerrar</button>
+      <button id="m-ok" class="flex-1 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2.5 text-sm font-extrabold text-white shadow-glow">${confirmText}</button>
+    </div>
+  `;
+            $('#modal').style.display = 'flex';
+            $('#m-cancel').onclick = () => { $('#modal').style.display = 'none'; };
+            $('#m-ok').onclick = () => { $('#modal').style.display = 'none'; if (onConfirm) onConfirm(); };
+        }
+
+        /* ============================================================
+           CARGA DE ESCENARIOS DEMO
+        ============================================================ */
+        function cargarDemoApostoles() {
+            state.proyecto = {
+                id: 'PRY-DEMO-APOSTOLES',
+                nombre: 'Invernadero Apóstoles (demo)',
+                situacionInicial: 'A_DESDE_CERO',
+                presupuestoDisponible: 14000000,
+                localidadId: 'APOSTOLES',
+                largoM: 20, anchoM: 15, superficieM2: 300,
+                infraestructuraExistente: [],
+                objetivoGeneral: 'Producir lechuga hidropónica para venta local',
+                fechaInicioEstimada: '2026-10-01'
+            };
+            state.condiciones = { ejeLargoTerreno: 'EO', pendientePct: 1, riesgoInundacion: 'BAJO', aguaDisponible: 'SI', electricidad: 'RED' };
+            state.produccion = { cultivoId: 'LECHUGA', modalidad: 'NFT', modoPlanificacion: 'PRESUPUESTO', objetivoKgMes: 150, nModulos: 0, nRequerido: null, ajusteManual: false, limitadoPor: null, estadoDimensionamiento: 'OK' };
+            syncUIFromState();
+            recomputar();
+            showStep(0);
+            toast('Demo DEMO-APOSTOLES cargada ✓');
+        }
+
+        function syncUIFromState() {
+            $('#f-nombre').value = state.proyecto.nombre;
+            $('#f-localidad').value = state.proyecto.localidadId;
+            $('#f-largo').value = state.proyecto.largoM;
+            $('#f-ancho').value = state.proyecto.anchoM;
+            $('#f-superficie').value = fmtNum(state.proyecto.superficieM2, 2) + ' m²';
+            $('#f-presupuesto').value = state.proyecto.presupuestoDisponible;
+            $('#f-objetivo').value = state.proyecto.objetivoGeneral;
+            $('#f-fecha').value = state.proyecto.fechaInicioEstimada;
+            $('#presupuesto-display').textContent = fmtARS(state.proyecto.presupuestoDisponible);
+
+            $('#c-eje').value = state.condiciones.ejeLargoTerreno;
+            $('#c-pendiente').value = state.condiciones.pendientePct;
+            $('#c-inund').value = state.condiciones.riesgoInundacion;
+            $('#c-agua').value = state.condiciones.aguaDisponible;
+            $('#c-elec').value = state.condiciones.electricidad;
+
+            const selMod = $('#p-modalidad');
+            const cultivo = CULTIVOS.find(c => c.id === state.produccion.cultivoId);
+            selMod.innerHTML = cultivo.modalidadesCompatibles.map(m => `<option value="${m}">${m}</option>`).join('');
+            selMod.value = state.produccion.modalidad;
+
+            $$('[data-sit]').forEach(b => {
+                const on = b.dataset.sit === state.proyecto.situacionInicial;
+                b.classList.toggle('selected', on);
+                b.classList.toggle('border-emerald-500', on);
+                b.classList.toggle('bg-emerald-50', on);
+                b.classList.toggle('border-slate-200', !on);
+                b.classList.toggle('bg-white', !on);
+            });
+        }
+
+        /* ============================================================
+           NAVEGACIÓN
+        ============================================================ */
+        function showView(name) {
+            $$('.view').forEach(v => v.classList.remove('active'));
+            const v = document.getElementById('view-' + name);
+            if (v) v.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ============================================================
+           INIT
+        ============================================================ */
+        document.addEventListener('DOMContentLoaded', () => {
+            refreshIcons();
+            renderSteps();
+            initProyecto();
+            initUbicacion();
+            initProduccion();
+
+            // Landing buttons
+            $('#btn-demo').onclick = cargarDemoApostoles;
+            $('#btn-desde-cero').onclick = () => { showView('wizard'); showStep(0); };
+            $('#btn-cargar-demo').onclick = cargarDemoApostoles;
+            $('#btn-nuevo').onclick = () => { location.reload(); };
+            $('#btn-logo').onclick = () => showView('landing');
+
+            // Wizard next/prev handled globally
+
+            // 3D reset
+            $('#btn-3d-reset').onclick = () => { threeRot = { x: 0.4, y: 0.7 }; threeDist = 10; };
+
+            // AR & specialists
+            $('#btn-ar').onclick = () => {
+                showModal('Realidad Aumentada (demostrativo)',
+                    'La AR es una capacidad opcional de visualización y validación espacial. Su ausencia no impide el flujo principal ni afecta los cálculos. En este prototipo se muestra como punto de extensión preparado.',
+                    null, 'Entendido');
+            };
+            $('#btn-especialista').onclick = () => {
+                showModal('Consultar a un especialista',
+                    'Este servicio es una extensión contemplada (M10 · Servicios profesionales) fuera del MVP. En la versión completa, el productor podrá solicitar asistencia profesional para evaluación de suelo, análisis de terreno, asesoramiento agronómico y validación del proyecto.',
+                    null, 'Entendido');
+            };
+
+            $('#btn-finalizar').onclick = () => {
+                showModal('✓ Proyecto completado',
+                    'Tu propuesta fue generada correctamente. Recordá que los resultados son <b>estimaciones orientativas</b> y no constituyen garantía de rentabilidad. Para decisiones de inversión, consultá con un profesional habilitado.',
+                    () => showView('landing'), 'Volver al inicio');
+            };
+
+            // Show demo button
+            $('#btn-cargar-demo').classList.remove('hidden');
+            $('#btn-cargar-demo').classList.add('inline-flex');
+        });
+    </script>
+</body>
+
+</html>

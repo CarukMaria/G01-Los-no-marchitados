@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HidroStart · Tu primer cultivo hidropónico</title>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@500;700;800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#EEF6F2;--card:#fff;--ink:#0E2A22;--mut:#5A7168;--line:#D5E5DC;--leaf:#1F8F55;--leaf2:#D9F2E3;--water:#2479B8;--lime:#C9EA6A;--warn:#B4530A;--warnbg:#FDEBD5;--bad:#B3261E;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0B1A15;--card:#122820;--ink:#E6F3EC;--mut:#93AEA2;--line:#22403A;--leaf:#4CC583;--leaf2:#17372B;--water:#6DB6EC;--lime:#C9EA6A;--warn:#F0A25C;--warnbg:#3A2814;--bad:#F2877F}}
+:root[data-theme="dark"]{--bg:#0B1A15;--card:#122820;--ink:#E6F3EC;--mut:#93AEA2;--line:#22403A;--leaf:#4CC583;--leaf2:#17372B;--water:#6DB6EC;--lime:#C9EA6A;--warn:#F0A25C;--warnbg:#3A2814;--bad:#F2877F}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 "Instrument Sans",system-ui,sans-serif}
+h1,h2,h3{font-family:"Bricolage Grotesque","Instrument Sans",system-ui,sans-serif;margin:0;letter-spacing:-.02em}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--water);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:0 18px 90px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:18px 0;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;font:800 22px "Bricolage Grotesque",sans-serif}
+.logo i{width:34px;height:34px;border-radius:50% 50% 50% 8px;background:var(--leaf);display:grid;place-items:center;color:#fff;font-style:normal;font-size:18px}
+.seg{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:99px;padding:4px}
+.seg button{border:0;background:none;padding:8px 16px;border-radius:99px;font-weight:600;color:var(--mut)}
+.seg button.on{background:var(--ink);color:var(--bg)}
+.hero{padding:22px 0 18px}
+.hero h1{font-size:clamp(28px,5.5vw,46px);line-height:1.05;font-weight:800;max-width:15em}
+.hero p{color:var(--mut);max-width:38em;margin:12px 0 0}
+.steps{display:flex;gap:6px;margin:22px 0;overflow-x:auto}
+.steps button{flex:1;min-width:110px;border:0;border-bottom:4px solid var(--line);background:none;text-align:left;padding:8px 2px;color:var(--mut);font-weight:600}
+.steps button.on{border-color:var(--leaf);color:var(--ink)}
+.steps button.done{border-color:var(--lime);color:var(--ink)}
+.steps small{display:block;font-weight:400}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:720px){.grid{grid-template-columns:1fr}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px}
+.card h2{font-size:20px;margin-bottom:14px}
+label{display:block;font-weight:600;font-size:14px;margin:14px 0 6px}
+input[type=number],input[type=text],select{width:100%;padding:11px 12px;border-radius:10px;border:1.5px solid var(--line);background:var(--bg)}
+input[type=range]{width:100%;accent-color:var(--leaf)}
+.big{font:800 34px "Bricolage Grotesque",sans-serif;color:var(--leaf)}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.crops{display:flex;flex-wrap:wrap;gap:8px}
+.crops button{border:1.5px solid var(--line);background:var(--bg);border-radius:99px;padding:8px 14px;font-weight:600}
+.crops button.on{background:var(--leaf);border-color:var(--leaf);color:#fff}
+.btn{border:0;background:var(--leaf);color:#fff;font-weight:700;padding:13px 22px;border-radius:12px}
+.btn.alt{background:var(--ink);color:var(--bg)}
+.btn.ghost{background:none;color:var(--ink);border:1.5px solid var(--line)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.err{color:var(--bad);font-size:13px;margin-top:6px}
+.note{background:var(--warnbg);color:var(--warn);border-radius:12px;padding:10px 14px;font-size:14px;margin-top:12px}
+.ok{background:var(--leaf2);color:var(--leaf);border-radius:12px;padding:10px 14px;font-size:14px;font-weight:600;margin-top:12px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
+.kpi{background:var(--bg);border-radius:14px;padding:12px 14px}
+.kpi b{display:block;font:800 22px "Bricolage Grotesque",sans-serif}
+.kpi span{font-size:13px;color:var(--mut)}
+.scroll{overflow-x:auto}
+.actions{display:flex;gap:10px;justify-content:space-between;margin-top:18px;flex-wrap:wrap}
+.g{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.g input{width:22px;height:22px;accent-color:var(--leaf);margin-top:2px;flex:none}
+.g b{display:block}.g span{color:var(--mut);font-size:14px}
+.fab{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:5;background:var(--water);color:#fff;border:0;border-radius:99px;padding:14px 20px;font-weight:700;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.chat{position:fixed;right:16px;bottom:calc(76px + env(safe-area-inset-bottom,0px));width:min(360px,calc(100vw - 32px));height:min(460px,60vh);background:var(--card);border:1px solid var(--line);border-radius:18px;display:none;flex-direction:column;z-index:6;box-shadow:0 10px 40px rgba(0,0,0,.3)}
+.chat.open{display:flex}
+.chat header{padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+#msgs{flex:1;overflow:auto;padding:12px;display:flex;flex-direction:column;gap:8px}
+.m{max-width:85%;padding:9px 12px;border-radius:14px;font-size:14px}
+.m.b{background:var(--leaf2);align-self:flex-start}.m.u{background:var(--water);color:#fff;align-self:flex-end}
+.chat form{display:flex;gap:8px;padding:10px;border-top:1px solid var(--line)}
+.chat input{flex:1}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(90px + env(safe-area-inset-bottom,0px));background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:12px;z-index:9;max-width:90vw;font-size:14px}
+svg text{font-family:"Instrument Sans",sans-serif}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo"><i>🌱</i>HidroStart</div>
+  <div class="seg" role="tablist"><button id="rP" class="on" onclick="setRole('p')">Soy productor</button><button id="rV" onclick="setRole('v')">Soy proveedor</button></div>
+</header>
+<div id="app"></div>
+</div>
+<button class="fab" onclick="toggleChat()" aria-label="Abrir asistente">💬 Asistente</button>
+<div class="chat" id="chat"><header>Asistente de tu proyecto</header><div id="msgs"></div>
+<form onsubmit="ask(event)"><input type="text" id="q" placeholder="¿Cómo conecto la bomba?" autocomplete="off"><button class="btn" style="padding:10px 14px">Enviar</button></form></div>
+
+<script>
+const $=s=>document.querySelector(s), fmt=n=>'$ '+Math.round(n).toLocaleString('es-AR');
+const CROPS={lechuga:{e:'🥬',dens:1,ciclo:35,precio:1200,sem:60},albahaca:{e:'🌿',dens:1.1,ciclo:30,precio:900,sem:50},espinaca:{e:'🍃',dens:1.2,ciclo:40,precio:800,sem:45},frutilla:{e:'🍓',dens:.6,ciclo:90,precio:3500,sem:400},tomate:{e:'🍅',dens:.3,ciclo:110,precio:6000,sem:300}};
+const NOM={estructura:'Rack metálico 3 niveles',cano:'Caño PVC 110 mm × 3 m',tanque:'Tanque 200 L',bomba:'Bomba sumergible',filtro:'Filtro de agua',conectores:'Kit de conectores y codos',sensores:'Kit sensores pH/EC',nutrientes:'Solución nutritiva (ciclo)'};
+let CAT=[['estructura','VerdeVida',48000],['estructura','AgroPlus',52000],['cano','HidroCultivo',5000],['cano','AgroPlus',5400],['tanque','VerdeVida',26000],['tanque','HidroCultivo',24500],['bomba','AgroPlus',18000],['bomba','VerdeVida',16500],['filtro','HidroCultivo',9000],['conectores','VerdeVida',7000],['conectores','AgroPlus',7500],['sensores','HidroCultivo',32000],['nutrientes','AgroPlus',6000],['nutrientes','VerdeVida',5500]].map(([t,p,pr])=>({t,p,pr,stock:true}));
+const GUIA=[['Preparar la superficie','Nivelá y limpiá el piso. Cubrilo con lona o film para proteger de la humedad.'],['Armar la estructura','Ensamblá los racks respetando niveles y separación. Fijalos para que no se muevan.'],['Instalar los caños','Colocá los caños con una leve pendiente (1–2 %) para que el agua fluya.'],['Armar el sistema hidráulico','Conectá tanque, filtro y mangueras. Verificá que no haya pérdidas.'],['Conectar la bomba','Sumergí la bomba en el tanque y conectala a la línea de distribución.'],['Poner los cultivos','Colocá los plantines en las bandejas o vasos y preparé la solución nutritiva.'],['Hacer las pruebas','Encendé, medí pH (5,5–6,5) y EC, y buscá pérdidas antes de dejarlo funcionando.']];
+let S={role:'p',step:0,budget:350000,crop:'lechuga',L:3.2,A:2.5,H:2.4,P:null,pay:false,done:[]};
+
+function cheapest(t){const l=CAT.filter(c=>c.t===t&&c.stock);return l.length?l.reduce((a,b)=>a.pr<b.pr?a:b):null}
+function build(m,n,crop){const c=CROPS[crop],plantas=Math.round(m*n*16*c.dens);
+ const q={estructura:m*n/3,cano:Math.ceil(m*n/2),tanque:Math.ceil(m/4),bomba:Math.ceil(m/4),filtro:1,conectores:m,sensores:1,nutrientes:Math.ceil(m/2)};
+ const items=[];let miss=[];
+ for(const t in q){const p=cheapest(t);if(!p){miss.push(NOM[t]);continue}items.push({t,n:NOM[t],prov:p.p,q:t==='estructura'?m:q[t],sub:p.pr*q[t]})}
+ items.push({t:'sem',n:'Semillas/plantines de '+crop,prov:'HidroCultivo',q:plantas,sub:plantas*c.sem});
+ const inv=items.reduce((s,i)=>s+i.sub,0),ciclos=365/c.ciclo;
+ const ingreso=plantas*ciclos*c.precio*.85,nut=(cheapest('nutrientes')?.pr||6000)*Math.ceil(m/2)*ciclos,sem=plantas*c.sem*ciclos,energia=3000*12*Math.ceil(m/4),mant=inv*.08;
+ const rec=nut+sem+energia+mant,neto=ingreso-rec;
+ return{m,n,plantas,items,inv,ingreso,rec,neto,payback:neto>0?inv/neto*12:null,tco:inv+rec*3,miss,cosecha:Math.round(plantas*ciclos)}}
+function plan(){const{L,A,H,budget,crop}=S,n=Math.max(1,Math.min(4,Math.floor((H-.6)/.5))),max=Math.max(1,Math.floor(L*A*.5/.72));
+ let p;for(let m=max;m>=1;m--){p=build(m,n,crop);if(p.inv<=budget)break}p.max=max;p.fits=p.inv<=budget;return p}
+function errs(){const e=[],{L,A,H,budget}=S;if(!(L>=.5&&L<=30))e.push('El largo debe estar entre 0,5 y 30 m.');if(!(A>=.5&&A<=30))e.push('El ancho debe estar entre 0,5 y 30 m.');if(!(H>=1.5&&H<=5))e.push('El alto debe estar entre 1,5 y 5 m.');if(L*A<1)e.push('La superficie es muy chica para armar un módulo.');return e}
+
+function setRole(r){S.role=r;$('#rP').classList.toggle('on',r==='p');$('#rV').classList.toggle('on',r==='v');render()}
+function go(s){S.step=s;render();scrollTo({top:0,behavior:'smooth'})}
+function set(k,v){S[k]=k==='crop'?v:+v;render(k)}
+function toast(t){const d=document.createElement('div');d.className='toast';d.textContent=t;document.body.appendChild(d);setTimeout(()=>d.remove(),3500)}
+
+function svg(p){const m=Math.min(p.m,3),n=p.n,W=110*m+30,H=40+n*52+20;let s=`<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Vista frontal del proyecto">`;
+ for(let k=0;k<m;k++){const x=15+k*110;s+=`<rect x="${x}" y="20" width="4" height="${n*52+10}" fill="#7C8B94"/><rect x="${x+96}" y="20" width="4" height="${n*52+10}" fill="#7C8B94"/>`;
+  for(let l=0;l<n;l++){const y=60+l*52;s+=`<rect x="${x}" y="${y}" width="100" height="9" rx="4" fill="#DDD3B8"/><rect x="${x+4}" y="${y+9}" width="92" height="3" fill="#2479B8" opacity=".6"/>`;for(let i=0;i<5;i++)s+=`<circle cx="${x+14+i*18}" cy="${y-8}" r="9" fill="#3FAE66"/><circle cx="${x+14+i*18}" cy="${y-10}" r="5" fill="#7BD38B"/>`}}
+ s+=`<rect x="${W-8}" y="${H-46}" width="0" height="0"/></svg>`;return s+(p.m>3?`<div style="text-align:center;font-size:13px;color:var(--mut)">Se muestran 3 de ${p.m} módulos</div>`:'')}
+
+function render(f){const a=$('#app');
+ if(S.role==='v')return a.innerHTML=prov();
+ const st=['Tu proyecto','Propuesta','Compra','Guía'],hero=S.step===0?`<div class="hero"><h1>Tengo un lugar, un presupuesto y ganas de cultivar. ¿Cómo empiezo?</h1><p>Contanos cuánto querés invertir, qué espacio tenés y qué querés cultivar. Armamos un plan hidropónico con materiales reales de proveedores.</p></div>`:'';
+ const bar=`<div class="steps">${st.map((t,i)=>`<button class="${i===S.step?'on':S.done.includes(i)?'done':''}" onclick="${i===0||S.P?`go(${i})`:''}">${t}<small>Paso ${i+1}</small></button>`).join('')}</div>`;
+ a.innerHTML=hero+bar+[s0,s1,s2,s3][S.step]();
+ if(f){const el=document.getElementById(f);if(el){el.focus();try{el.setSelectionRange(99,99)}catch(e){}}}}
+
+function s0(){const E=errs();return`<div class="grid"><div class="card"><h2>Inversión y cultivo</h2>
+<label for="budget">¿Cuánto querés invertir?</label><div class="big">${fmt(S.budget)}</div>
+<input type="range" id="budget" min="100000" max="1000000" step="10000" value="${S.budget}" oninput="S.budget=+this.value;this.previousElementSibling.textContent=fmt(S.budget)">
+<div style="display:flex;justify-content:space-between;color:var(--mut);font-size:13px"><span>$ 100.000</span><span>$ 1.000.000</span></div>
+<label>¿Qué querés cultivar?</label><div class="crops">${Object.keys(CROPS).map(c=>`<button class="${c===S.crop?'on':''}" onclick="set('crop','${c}')">${CROPS[c].e} ${c[0].toUpperCase()+c.slice(1)}</button>`).join('')}</div></div>
+<div class="card"><h2>Tu espacio</h2><div class="row3"><div><label for="L">Largo (m)</label><input type="number" id="L" step=".1" value="${S.L}" onchange="set('L',this.value)"></div><div><label for="A">Ancho (m)</label><input type="number" id="A" step=".1" value="${S.A}" onchange="set('A',this.value)"></div><div><label for="H">Alto (m)</label><input type="number" id="H" step=".1" value="${S.H}" onchange="set('H',this.value)"></div></div>
+<div class="kpis"><div class="kpi"><b>${(S.L*S.A||0).toFixed(2)} m²</b><span>Superficie</span></div><div class="kpi"><b>${(S.L*S.A*S.H||0).toFixed(1)} m³</b><span>Volumen</span></div></div>
+${E.map(e=>`<div class="err">${e}</div>`).join('')}
+<button class="btn ghost" onclick="toast('La medición con realidad aumentada estará en la versión móvil. Por ahora, ingresá las medidas a mano.')">📱 Medir con la cámara (AR)</button></div></div>
+<div class="actions"><span></span><button class="btn" ${E.length?'disabled':''} onclick="S.P=plan();S.done=[0];go(1)">Generar mi proyecto</button></div>`}
+
+function s1(){const p=S.P=plan(),c=CROPS[S.crop];
+ return`<div class="grid"><div class="card"><h2>Tu proyecto de ${S.crop}</h2>${svg(p)}
+<div class="kpis"><div class="kpi"><b>${p.m}</b><span>módulos de ${p.n} niveles</span></div><div class="kpi"><b>${p.plantas}</b><span>plantas por ciclo</span></div></div>
+${p.fits?`<div class="ok">✓ Dentro de tu presupuesto (${fmt(S.budget)})</div>`:`<div class="note">Con un solo módulo la inversión supera tu presupuesto en ${fmt(p.inv-S.budget)}. Probá subir el presupuesto o elegir otro cultivo.</div>`}
+${p.m<p.max&&p.fits?`<div class="note">Tu espacio admitiría hasta ${p.max} módulos, pero ajustamos el diseño a tu presupuesto.</div>`:''}
+${p.miss.length?`<div class="note">Sin stock de proveedores para: ${p.miss.join(', ')}.</div>`:''}</div>
+<div class="card"><h2>Números aproximados</h2><div class="kpis"><div class="kpi"><b>${fmt(p.inv)}</b><span>Inversión inicial</span></div><div class="kpi"><b>${p.payback?p.payback.toFixed(1)+' meses':'—'}</b><span>Retorno aprox.</span></div><div class="kpi"><b>${fmt(p.ingreso)}</b><span>Ingreso anual est.</span></div><div class="kpi"><b>${fmt(p.rec)}</b><span>Costos recurrentes/año</span></div><div class="kpi"><b>${fmt(p.tco)}</b><span>TCO a 3 años</span></div><div class="kpi"><b>${p.cosecha}</b><span>plantas/año · ciclo ${c.ciclo} días</span></div></div>
+<p style="font-size:13px;color:var(--mut);margin:0">Es una aproximación para evaluar tu inicio, no una predicción financiera. Incluye mantenimiento y reposiciones (8 % de la inversión por año), energía, nutrientes y plantines.</p></div></div>
+<div class="card" style="margin-top:18px"><h2>Lista de materiales</h2><div class="scroll"><table><tr><th>Material</th><th>Proveedor</th><th class="r">Cant.</th><th class="r">Subtotal</th></tr>${p.items.map(i=>`<tr><td>${i.n}</td><td>${i.prov}</td><td class="r">${i.q}</td><td class="r">${fmt(i.sub)}</td></tr>`).join('')}<tr><th colspan="3">Total estimado</th><th class="r">${fmt(p.inv)}</th></tr></table></div></div>
+<div class="actions"><button class="btn ghost" onclick="go(0)">Cambiar datos</button><button class="btn" onclick="S.done=[0,1];go(2)">Ir a la compra</button></div>`}
+
+function s2(){const p=S.P,mat=p.inv,env=15000,by={};p.items.forEach(i=>by[i.prov]=(by[i.prov]||0)+i.sub);
+ return`<div class="card"><h2>Resumen de compra</h2><div class="scroll"><table>${Object.entries(by).map(([k,v])=>`<tr><td>${k}</td><td class="r">${fmt(v)}</td></tr>`).join('')}<tr><td>Envío (opcional)</td><td class="r">${fmt(env)}</td></tr><tr><th>Total</th><th class="r">${fmt(mat+env)}</th></tr></table></div>
+<p style="font-size:13px;color:var(--mut)">El pago va al proveedor a través de Mercado Pago. HidroStart puede cobrar una comisión por venta.</p>
+${S.pay?'<div class="ok">✓ Pedido registrado (demostración). Ya podés empezar a construir.</div>':`<button class="btn alt" onclick="S.pay=true;S.done=[0,1,2];render();toast('Demo: en la versión real se abre el checkout de Mercado Pago.')">Pagar con Mercado Pago</button>`}</div>
+<div class="actions"><button class="btn ghost" onclick="go(1)">Volver</button><button class="btn" onclick="S.done=[0,1,2];go(3)">Ver guía de construcción</button></div>`}
+
+function s3(){const d=S.gd=S.gd||[];const n=d.length;
+ return`<div class="card"><h2>Guía de construcción · ${n} de ${GUIA.length} pasos</h2><div style="height:8px;background:var(--line);border-radius:9px;overflow:hidden;margin-bottom:6px"><div style="height:100%;width:${n/GUIA.length*100}%;background:var(--leaf);transition:width .3s"></div></div>
+${GUIA.map((g,i)=>`<label class="g" style="margin:0;font-weight:400"><input type="checkbox" ${d.includes(i)?'checked':''} onchange="tg(${i})"><div><b>${g[0]}</b><span>${g[1]}</span></div></label>`).join('')}
+${n===GUIA.length?'<div class="ok">🌱 ¡Listo! Tu sistema está armado. Preguntale al asistente cómo cuidarlo.</div>':''}</div>
+<div class="actions"><button class="btn ghost" onclick="go(2)">Volver</button><span></span></div>`}
+function tg(i){const d=S.gd;d.includes(i)?d.splice(d.indexOf(i),1):d.push(i);render()}
+
+function prov(){const mine=CAT.filter(c=>c.p==='Mi tienda');
+ return`<div class="hero"><h1>Cargá lo que vendés y llegá a quienes están por empezar.</h1><p>Lo que cargues acá se usa en los proyectos de los productores: si tu precio es el más bajo y tenés stock, tu producto aparece en la lista de materiales.</p></div>
+<div class="grid"><div class="card"><h2>Agregar material</h2><label for="pt">Tipo</label><select id="pt">${Object.entries(NOM).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select>
+<label for="pp">Precio por unidad ($)</label><input type="number" id="pp" placeholder="Ej: 4500"><label for="ps">Stock</label><select id="ps"><option value="1">Disponible</option><option value="0">Sin stock</option></select>
+<div id="pe" class="err"></div><div style="margin-top:14px"><button class="btn" onclick="addMat()">Guardar material</button></div></div>
+<div class="card"><h2>Mis materiales cargados</h2>${mine.length?`<table>${mine.map(c=>`<tr><td>${NOM[c.t]}</td><td class="r">${fmt(c.pr)}</td><td class="r">${c.stock?'Disponible':'Sin stock'}</td></tr>`).join('')}</table>`:'<p style="color:var(--mut)">Todavía no cargaste materiales. Empezá por el que más vendés.</p>'}</div></div>`}
+function addMat(){const pr=+$('#pp').value;if(!(pr>0))return $('#pe').textContent='Ingresá un precio mayor a cero.';CAT.push({t:$('#pt').value,p:'Mi tienda',pr,stock:$('#ps').value==='1'});S.P=null;render();toast('Material guardado. Ya entra en los cálculos de los productores.')}
+
+function toggleChat(){const c=$('#chat');c.classList.toggle('open');if(!$('#msgs').children.length)say('¡Hola! Soy tu asistente. Preguntame por la bomba, el flujo de agua, la limpieza, el pH, los costos o el retorno de tu proyecto.','b')}
+function say(t,c){const d=document.createElement('div');d.className='m '+c;d.textContent=t;$('#msgs').appendChild(d);$('#msgs').scrollTop=1e9}
+function ask(e){e.preventDefault();const t=$('#q').value.trim();if(!t)return;$('#q').value='';say(t,'u');const x=t.toLowerCase(),p=S.P;let r;
+ if(/bomba/.test(x))r='La bomba va sumergida en el tanque principal y se conecta a la línea de distribución con manguera de 1/2" (12 mm). Revisá que no haya pérdidas en los conectores.'+(p?` Tu proyecto usa ${Math.ceil(p.m/4)} bomba(s).`:'');
+ else if(/flujo|agua|caudal/.test(x))r='Si baja el flujo: 1) limpiá el filtro, 2) revisá que la manguera no esté doblada, 3) verificá la pendiente de los caños y 4) comprobá el nivel del tanque.';
+ else if(/limp/.test(x))r='Cada ciclo, vaciá el tanque, enjuagalo con agua y una solución diluida de lavandina, y enjuagá bien. Limpiá el filtro cada 1–2 semanas.';
+ else if(/ph|ec|nutri/.test(x))r='Mantené el pH entre 5,5 y 6,5 y controlá la EC según el cultivo. Medí todos los días al principio y ajustá con reguladores de pH.';
+ else if(/cost|precio|inver|cuánto|cuanto/.test(x))r=p?`Tu proyecto cuesta aprox. ${fmt(p.inv)} y tiene costos recurrentes de ${fmt(p.rec)} por año.`:'Generá primero tu proyecto y te cuento los costos detallados.';
+ else if(/retorno|recuper|ganan/.test(x))r=p&&p.payback?`Con los supuestos actuales, recuperarías la inversión en unos ${p.payback.toFixed(1)} meses. Es solo una aproximación.`:'Generá tu proyecto para estimar el retorno.';
+ else if(/cultiv|plant/.test(x))r='Para empezar sin experiencia, lo más simple son lechuga, albahaca y espinaca: ciclos cortos y poco exigentes. Frutilla y tomate rinden más por planta pero requieren más cuidado.';
+ else r='Puedo ayudarte con la bomba, el flujo de agua, la limpieza, el pH, los costos y el retorno. Para validaciones estructurales, eléctricas o de seguridad, consultá con un profesional.';
+ setTimeout(()=>say(r,'b'),350)}
+render();
+</script>
+</body>
+</html>
